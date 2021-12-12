@@ -37,6 +37,11 @@ type Series struct {
 const lineStrokeWidth = 2
 const dotWith = 2
 
+const (
+	SeriesBar  = "bar"
+	SeriesLine = "line"
+)
+
 func getSeriesColor(theme string, index int) drawing.Color {
 	// TODO
 	if theme == ThemeDark {
@@ -47,17 +52,30 @@ func getSeriesColor(theme string, index int) drawing.Color {
 func GetSeries(series []Series, theme string) []chart.Series {
 	arr := make([]chart.Series, len(series))
 	for index, item := range series {
+		style := chart.Style{
+			StrokeWidth: lineStrokeWidth,
+			StrokeColor: getSeriesColor(theme, index),
+			DotColor:    getSeriesColor(theme, index),
+			DotWidth:    dotWith,
+		}
 		// TODO 判断类型
-		arr[index] = chart.ContinuousSeries{
-			Name:    item.Name,
-			XValues: item.XValues,
-			Style: chart.Style{
-				StrokeWidth: lineStrokeWidth,
-				StrokeColor: getSeriesColor(theme, index),
-				DotColor:    getSeriesColor(theme, index),
-				DotWidth:    dotWith,
-			},
-			YValues: item.Data,
+		switch item.Type {
+		case SeriesBar:
+			arr[index] = BarSeries{
+				BaseSeries: BaseSeries{
+					Name:    item.Name,
+					XValues: item.XValues,
+					Style:   style,
+					YValues: item.Data,
+				},
+			}
+		default:
+			arr[index] = chart.ContinuousSeries{
+				Name:    item.Name,
+				XValues: item.XValues,
+				Style:   style,
+				YValues: item.Data,
+			}
 		}
 	}
 	return arr

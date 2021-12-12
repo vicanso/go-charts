@@ -68,7 +68,6 @@ func ToPNG(c *chart.Chart) ([]byte, error) {
 func ToSVG(c *chart.Chart) ([]byte, error) {
 	return render(c, chart.SVG)
 }
-
 func New(opt Option) *chart.Chart {
 	xAxis, xValues := GetXAxisAndValues(opt.XAxis, opt.Theme)
 
@@ -90,22 +89,11 @@ func New(opt Option) *chart.Chart {
 		YAxis:  GetYAxis(opt.Theme),
 		Series: GetSeries(opt.Series, opt.Theme),
 	}
+	// 设置secondary的样式
+	c.YAxisSecondary.Style = c.YAxis.Style
 	if legendSize != 0 {
 		c.Elements = []chart.Renderable{
-			chart.LegendThin(c, chart.Style{
-				FillColor: hiddenColor,
-				// FillColor:   drawing.ColorWhite,
-				// FontColor:   DefaultTextColor,
-				FontSize:    8.0,
-				StrokeColor: hiddenColor,
-				// StrokeWidth: DefaultAxisLineWidth,
-				// Padding: Box{
-				// 	Top:    2,
-				// 	Left:   7,
-				// 	Right:  7,
-				// 	Bottom: 5,
-				// },
-			}),
+			DefaultLegend(c),
 		}
 	}
 	return c

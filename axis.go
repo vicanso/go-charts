@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
@@ -80,7 +81,13 @@ func GetYAxis(theme string) chart.YAxis {
 		A: 255,
 	}
 	return chart.YAxis{
-
+		ValueFormatter: func(v interface{}) string {
+			value, ok := v.(float64)
+			if !ok {
+				return ""
+			}
+			return humanize.Commaf(value)
+		},
 		AxisType: chart.YAxisSecondary,
 		GridMajorStyle: chart.Style{
 			StrokeColor: strokeColor,

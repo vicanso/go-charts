@@ -69,7 +69,10 @@ func ToSVG(c *chart.Chart) ([]byte, error) {
 	return render(c, chart.SVG)
 }
 func New(opt Option) *chart.Chart {
-	xAxis, xValues := GetXAxisAndValues(opt.XAxis, opt.Theme)
+	tickPosition := chart.TickPositionBetweenTicks
+	// tickPosition = chart.TickPositionUnset
+
+	xAxis, xValues := GetXAxisAndValues(opt.XAxis, tickPosition, opt.Theme)
 
 	legendSize := len(opt.Legend.Data)
 	for index, item := range opt.Series {
@@ -87,7 +90,7 @@ func New(opt Option) *chart.Chart {
 		Height: opt.Height,
 		XAxis:  xAxis,
 		YAxis:  GetYAxis(opt.Theme),
-		Series: GetSeries(opt.Series, opt.Theme),
+		Series: GetSeries(opt.Series, tickPosition, opt.Theme),
 	}
 	// 设置secondary的样式
 	c.YAxisSecondary.Style = c.YAxis.Style

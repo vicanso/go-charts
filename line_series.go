@@ -26,53 +26,15 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-const defaultBarMargin = 10
-
-type BarSeries struct {
+type LineSeries struct {
 	BaseSeries
-	Count int
-	Index int
-	// 间隔
-	Margin int
-	// 偏移量
-	Offset int
-	// 宽度
-	BarWidth int
 }
 
-func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
-	if bs.Len() == 0 || bs.Count <= 0 {
-		return
-	}
+func (bs LineSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
 	style := bs.Style.InheritFrom(defaults)
-	style.FillColor = style.StrokeColor
-	if !style.ShouldDrawStroke() {
-		return
+	// 如果是居中，画线时重新调整
+	if bs.TickPosition == chart.TickPositionBetweenTicks {
+		xrange = wrapRange(xrange, bs.TickPosition)
 	}
-
-	cb := canvasBox.Bottom
-	cl := canvasBox.Left
-	margin := bs.Margin
-	if margin <= 0 {
-		margin = defaultBarMargin
-	}
-	barWidth := bs.BarWidth
-	if barWidth <= 0 {
-		barWidth = canvasBox.Width() / (bs.Len() * bs.Count)
-	}
-
-	for i := 0; i < bs.Len(); i++ {
-		vx, vy := bs.GetValues(i)
-
-		x := cl + xrange.Translate(vx) + bs.Index*(margin+barWidth) + bs.Offset
-		y := cb - yrange.Translate(vy)
-
-		chart.Draw.Box(r, chart.Box{
-			Left:   x,
-			Top:    y,
-			Right:  x + barWidth,
-			Bottom: canvasBox.Bottom - 1,
-		}, style)
-	}
-
+	chart.Draw.LineSeries(r, canvasBox, xrange, yrange, style, bs)
 }

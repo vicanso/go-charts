@@ -49,8 +49,15 @@ func getSeriesColor(theme string, index int) drawing.Color {
 	return SeriesColorsLight[index%len(SeriesColorsLight)]
 }
 
-func GetSeries(series []Series, theme string) []chart.Series {
+func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) []chart.Series {
 	arr := make([]chart.Series, len(series))
+	barCount := 0
+	barIndex := 0
+	for _, item := range series {
+		if item.Type == SeriesBar {
+			barCount++
+		}
+	}
 	for index, item := range series {
 		style := chart.Style{
 			StrokeWidth: lineStrokeWidth,
@@ -58,23 +65,28 @@ func GetSeries(series []Series, theme string) []chart.Series {
 			DotColor:    getSeriesColor(theme, index),
 			DotWidth:    dotWith,
 		}
+		item.Data = append([]float64{
+			0.0,
+		}, item.Data...)
+		baseSeries := BaseSeries{
+			Name:         item.Name,
+			XValues:      item.XValues,
+			Style:        style,
+			YValues:      item.Data,
+			TickPosition: tickPosition,
+		}
 		// TODO 判断类型
 		switch item.Type {
 		case SeriesBar:
 			arr[index] = BarSeries{
-				BaseSeries: BaseSeries{
-					Name:    item.Name,
-					XValues: item.XValues,
-					Style:   style,
-					YValues: item.Data,
-				},
+				Count:      barCount,
+				Index:      barIndex,
+				BaseSeries: baseSeries,
 			}
+			barIndex++
 		default:
-			arr[index] = chart.ContinuousSeries{
-				Name:    item.Name,
-				XValues: item.XValues,
-				Style:   style,
-				YValues: item.Data,
+			arr[index] = LineSeries{
+				BaseSeries: baseSeries,
 			}
 		}
 	}

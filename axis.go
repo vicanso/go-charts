@@ -42,10 +42,18 @@ type (
 
 const axisStrokeWidth = 1
 
-func GetXAxisAndValues(xAxis XAxis, theme string) (chart.XAxis, []float64) {
-	xValues := make([]float64, len(xAxis.Data))
-	ticks := make([]chart.Tick, len(xAxis.Data))
-	for index, key := range xAxis.Data {
+func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme string) (chart.XAxis, []float64) {
+	data := xAxis.Data
+	// 如果居中，则需要多添加一个值
+	if tickPosition == chart.TickPositionBetweenTicks {
+		data = append([]string{
+			"",
+		}, data...)
+	}
+
+	xValues := make([]float64, len(data))
+	ticks := make([]chart.Tick, len(data))
+	for index, key := range data {
 		f := float64(index)
 		xValues[index] = f
 		ticks[index] = chart.Tick{
@@ -60,7 +68,8 @@ func GetXAxisAndValues(xAxis XAxis, theme string) (chart.XAxis, []float64) {
 		}, xValues
 	}
 	return chart.XAxis{
-		Ticks: ticks,
+		Ticks:        ticks,
+		TickPosition: tickPosition,
 		Style: chart.Style{
 			FontColor:   AxisColorLight,
 			StrokeColor: AxisColorLight,

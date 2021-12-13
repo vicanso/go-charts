@@ -37,8 +37,9 @@ var (
 
 // BaseSeries represents a line on a chart.
 type BaseSeries struct {
-	Name  string
-	Style chart.Style
+	Name         string
+	Style        chart.Style
+	TickPosition chart.TickPosition
 
 	YAxis chart.YAxisType
 
@@ -61,16 +62,26 @@ func (cs BaseSeries) GetStyle() chart.Style {
 
 // Len returns the number of elements in the series.
 func (cs BaseSeries) Len() int {
-	return len(cs.XValues)
+	offset := 0
+	if cs.TickPosition == chart.TickPositionBetweenTicks {
+		offset = -1
+	}
+	return len(cs.XValues) + offset
 }
 
 // GetValues gets the x,y values at a given index.
 func (cs BaseSeries) GetValues(index int) (float64, float64) {
+	if cs.TickPosition == chart.TickPositionBetweenTicks {
+		index++
+	}
 	return cs.XValues[index], cs.YValues[index]
 }
 
 // GetFirstValues gets the first x,y values.
 func (cs BaseSeries) GetFirstValues() (float64, float64) {
+	if cs.TickPosition == chart.TickPositionBetweenTicks {
+		return cs.XValues[1], cs.YValues[1]
+	}
 	return cs.XValues[0], cs.YValues[0]
 }
 

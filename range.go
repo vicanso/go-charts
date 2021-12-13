@@ -26,53 +26,27 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-const defaultBarMargin = 10
-
-type BarSeries struct {
-	BaseSeries
-	Count int
-	Index int
-	// 间隔
-	Margin int
-	// 偏移量
-	Offset int
-	// 宽度
-	BarWidth int
+type Range struct {
+	TickPosition chart.TickPosition
+	chart.ContinuousRange
 }
 
-func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
-	if bs.Len() == 0 || bs.Count <= 0 {
-		return
+func wrapRange(r chart.Range, tickPosition chart.TickPosition) chart.Range {
+	xr, ok := r.(*chart.ContinuousRange)
+	if !ok {
+		return r
 	}
-	style := bs.Style.InheritFrom(defaults)
-	style.FillColor = style.StrokeColor
-	if !style.ShouldDrawStroke() {
-		return
+	return &Range{
+		TickPosition:    tickPosition,
+		ContinuousRange: *xr,
 	}
+}
 
-	cb := canvasBox.Bottom
-	cl := canvasBox.Left
-	margin := bs.Margin
-	if margin <= 0 {
-		margin = defaultBarMargin
+// Translate maps a given value into the ContinuousRange space.
+func (r Range) Translate(value float64) int {
+	v := r.ContinuousRange.Translate(value)
+	if r.TickPosition == chart.TickPositionBetweenTicks {
+		v -= int(float64(r.Domain) / (r.GetDelta() * 2))
 	}
-	barWidth := bs.BarWidth
-	if barWidth <= 0 {
-		barWidth = canvasBox.Width() / (bs.Len() * bs.Count)
-	}
-
-	for i := 0; i < bs.Len(); i++ {
-		vx, vy := bs.GetValues(i)
-
-		x := cl + xrange.Translate(vx) + bs.Index*(margin+barWidth) + bs.Offset
-		y := cb - yrange.Translate(vy)
-
-		chart.Draw.Box(r, chart.Box{
-			Left:   x,
-			Top:    y,
-			Right:  x + barWidth,
-			Bottom: canvasBox.Bottom - 1,
-		}, style)
-	}
-
+	return v
 }

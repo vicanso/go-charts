@@ -62,12 +62,16 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 		style := chart.Style{
 			StrokeWidth: lineStrokeWidth,
 			StrokeColor: getSeriesColor(theme, index),
-			DotColor:    getSeriesColor(theme, index),
-			DotWidth:    dotWith,
+			// TODO 调整为通过dot with color 生成
+			DotColor: getSeriesColor(theme, index),
+			DotWidth: dotWith,
 		}
-		item.Data = append([]float64{
-			0.0,
-		}, item.Data...)
+		// 如果居中，需要多增加一个点
+		if tickPosition == chart.TickPositionBetweenTicks {
+			item.Data = append([]float64{
+				0.0,
+			}, item.Data...)
+		}
 		baseSeries := BaseSeries{
 			Name:         item.Name,
 			XValues:      item.XValues,

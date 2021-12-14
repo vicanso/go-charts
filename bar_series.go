@@ -52,19 +52,39 @@ func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange
 
 	cb := canvasBox.Bottom
 	cl := canvasBox.Left
+
+	columnWidth := canvasBox.Width() / bs.Len()
+	// 块间隔
+	columnMargin := columnWidth / 10
+	minColumnMargin := 2
+	if columnMargin < minColumnMargin {
+		columnMargin = minColumnMargin
+	}
 	margin := bs.Margin
 	if margin <= 0 {
 		margin = defaultBarMargin
 	}
-	barWidth := bs.BarWidth
-	if barWidth <= 0 {
-		barWidth = canvasBox.Width() / (bs.Len() * bs.Count)
+	// 如果margin大于column margin
+	if margin > columnMargin {
+		margin = columnMargin
+	}
+
+	allBarMarginWidth := (bs.Count - 1) * margin
+	barWidth := ((columnWidth - 2*columnMargin) - allBarMarginWidth) / bs.Count
+	if bs.BarWidth > 0 && bs.BarWidth < barWidth {
+		barWidth = bs.BarWidth
+		// 重新计息columnMargin
+		columnMargin = (columnWidth - allBarMarginWidth - (bs.Count * barWidth)) / 2
 	}
 
 	for i := 0; i < bs.Len(); i++ {
 		vx, vy := bs.GetValues(i)
 
-		x := cl + xrange.Translate(vx) + bs.Index*(margin+barWidth) + bs.Offset
+		x := cl + xrange.Translate(vx)
+		// 由于bar是居中展示，因此需要往前移一个显示块
+		x += (-columnWidth + columnMargin)
+		// 计算是第几个bar，位置右偏
+		x += bs.Index * (margin + barWidth)
 		y := cb - yrange.Translate(vy)
 
 		chart.Draw.Box(r, chart.Box{
@@ -74,5 +94,4 @@ func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange
 			Bottom: canvasBox.Bottom - 1,
 		}, style)
 	}
-
 }

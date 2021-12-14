@@ -41,9 +41,24 @@ type (
 		Theme  string
 		XAxis  XAxis
 		// YAxis  Axis
-		Series []Series
-		Title  Title
-		Legend Legend
+		Series       []Series
+		Title        Title
+		Legend       Legend
+		TickPosition chart.TickPosition
+	}
+	ECharOption struct {
+		Title struct {
+			Text      string
+			TextStyle struct {
+				Color      string
+				FontFamily string
+			}
+		}
+		XAxis struct {
+			Type        string
+			BoundaryGap bool
+			Data        []string
+		}
 	}
 )
 
@@ -69,8 +84,7 @@ func ToSVG(c *chart.Chart) ([]byte, error) {
 	return render(c, chart.SVG)
 }
 func New(opt Option) *chart.Chart {
-	tickPosition := chart.TickPositionBetweenTicks
-	// tickPosition = chart.TickPositionUnset
+	tickPosition := opt.TickPosition
 
 	xAxis, xValues := GetXAxisAndValues(opt.XAxis, tickPosition, opt.Theme)
 
@@ -92,6 +106,7 @@ func New(opt Option) *chart.Chart {
 		YAxis:  GetYAxis(opt.Theme),
 		Series: GetSeries(opt.Series, tickPosition, opt.Theme),
 	}
+	// TODO 校验xAxis与yAxis的数量是否一致
 	// 设置secondary的样式
 	c.YAxisSecondary.Style = c.YAxis.Style
 	if legendSize != 0 {

@@ -79,10 +79,11 @@ func (cs BaseSeries) GetValues(index int) (float64, float64) {
 
 // GetFirstValues gets the first x,y values.
 func (cs BaseSeries) GetFirstValues() (float64, float64) {
+	index := 0
 	if cs.TickPosition == chart.TickPositionBetweenTicks {
-		return cs.XValues[1], cs.YValues[1]
+		index++
 	}
-	return cs.XValues[0], cs.YValues[0]
+	return cs.XValues[index], cs.YValues[index]
 }
 
 // GetLastValues gets the last x,y values.

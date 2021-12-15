@@ -28,6 +28,12 @@ import (
 
 const defaultBarMargin = 10
 
+type BarSeriesCustomStyle struct {
+	PointIndex int
+	Index      int
+	Style      chart.Style
+}
+
 type BarSeries struct {
 	BaseSeries
 	Count int
@@ -37,7 +43,17 @@ type BarSeries struct {
 	// 偏移量
 	Offset int
 	// 宽度
-	BarWidth int
+	BarWidth     int
+	CustomStyles []BarSeriesCustomStyle
+}
+
+func (bs BarSeries) GetBarStyle(index, pointIndex int) chart.Style {
+	for _, item := range bs.CustomStyles {
+		if item.Index == index && item.PointIndex == pointIndex {
+			return item.Style
+		}
+	}
+	return chart.Style{}
 }
 
 func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
@@ -79,6 +95,12 @@ func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange
 
 	for i := 0; i < bs.Len(); i++ {
 		vx, vy := bs.GetValues(i)
+		customStyle := bs.GetBarStyle(bs.Index, i)
+		cloneStyle := style
+		if !customStyle.IsZero() {
+			cloneStyle.FillColor = customStyle.FillColor
+			cloneStyle.StrokeColor = customStyle.StrokeColor
+		}
 
 		x := cl + xrange.Translate(vx)
 		// 由于bar是居中展示，因此需要往前移一个显示块
@@ -92,6 +114,6 @@ func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange
 			Top:    y,
 			Right:  x + barWidth,
 			Bottom: canvasBox.Bottom - 1,
-		}, style)
+		}, cloneStyle)
 	}
 }

@@ -22,7 +22,10 @@
 
 package charts
 
-import "github.com/wcharczuk/go-chart/v2/drawing"
+import (
+	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
+)
 
 var hiddenColor = drawing.Color{R: 110, G: 112, B: 121, A: 0}
 
@@ -64,4 +67,43 @@ var SeriesColorsLight = []drawing.Color{
 		B: 222,
 		A: 255,
 	},
+}
+
+type ThemeColorPalette struct {
+	Theme string
+}
+
+func (tp ThemeColorPalette) BackgroundColor() drawing.Color {
+	return chart.DefaultBackgroundColor
+}
+
+func (tp ThemeColorPalette) BackgroundStrokeColor() drawing.Color {
+	return chart.DefaultBackgroundStrokeColor
+}
+
+func (tp ThemeColorPalette) CanvasColor() drawing.Color {
+	return chart.DefaultCanvasColor
+}
+
+func (tp ThemeColorPalette) CanvasStrokeColor() drawing.Color {
+	return chart.DefaultCanvasStrokeColor
+}
+
+func (tp ThemeColorPalette) AxisStrokeColor() drawing.Color {
+	return chart.DefaultAxisColor
+}
+
+func (tp ThemeColorPalette) TextColor() drawing.Color {
+	return chart.DefaultTextColor
+}
+
+func (tp ThemeColorPalette) GetSeriesColor(index int) drawing.Color {
+	return getSeriesColor(tp.Theme, index)
+}
+
+func getSeriesColor(theme string, index int) drawing.Color {
+	// TODO
+	if theme == ThemeDark {
+	}
+	return SeriesColorsLight[index%len(SeriesColorsLight)]
 }

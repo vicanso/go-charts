@@ -24,8 +24,15 @@ package charts
 
 import (
 	"bytes"
+	"errors"
+	"io"
 
 	"github.com/wcharczuk/go-chart/v2"
+)
+
+const (
+	ThemeLight = "light"
+	ThemeDark  = "dark"
 )
 
 type (
@@ -46,28 +53,43 @@ type (
 		Legend       Legend
 		TickPosition chart.TickPosition
 	}
-	ECharOption struct {
-		Title struct {
-			Text      string
-			TextStyle struct {
-				Color      string
-				FontFamily string
-			}
-		}
-		XAxis struct {
-			Type        string
-			BoundaryGap bool
-			Data        []string
+)
+
+type Chart interface {
+	Render(rp chart.RendererProvider, w io.Writer) error
+}
+
+type ECharOption struct {
+	Title struct {
+		Text      string
+		TextStyle struct {
+			Color      string
+			FontFamily string
 		}
 	}
-)
+	XAxis struct {
+		Type        string
+		BoundaryGap *bool
+		SplitNumber int
+		Data        []string
+	}
+}
 
-const (
-	ThemeLight = "light"
-	ThemeDark  = "dark"
-)
+func (o *Option) validate() error {
+	xAxisCount := len(o.XAxis.Data)
+	if len(o.Series) == 0 {
+		return errors.New("series can not be empty")
+	}
 
-func render(c *chart.Chart, rp chart.RendererProvider) ([]byte, error) {
+	for _, item := range o.Series {
+		if len(item.Data) != xAxisCount {
+			return errors.New("series and xAxis is not matched")
+		}
+	}
+	return nil
+}
+
+func render(c Chart, rp chart.RendererProvider) ([]byte, error) {
 	buf := bytes.Buffer{}
 	err := c.Render(rp, &buf)
 	if err != nil {
@@ -76,14 +98,18 @@ func render(c *chart.Chart, rp chart.RendererProvider) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func ToPNG(c *chart.Chart) ([]byte, error) {
+func ToPNG(c Chart) ([]byte, error) {
 	return render(c, chart.PNG)
 }
 
-func ToSVG(c *chart.Chart) ([]byte, error) {
+func ToSVG(c Chart) ([]byte, error) {
 	return render(c, chart.SVG)
 }
-func New(opt Option) *chart.Chart {
+func New(opt Option) (Chart, error) {
+	err := opt.validate()
+	if err != nil {
+		return nil, err
+	}
 	tickPosition := opt.TickPosition
 
 	xAxis, xValues := GetXAxisAndValues(opt.XAxis, tickPosition, opt.Theme)
@@ -97,6 +123,25 @@ func New(opt Option) *chart.Chart {
 			opt.Series[index].Name = opt.Legend.Data[index]
 		}
 	}
+	if opt.Series[0].Type == SeriesPie {
+		values := make(chart.Values, len(opt.Series))
+		for index, item := range opt.Series {
+			values[index] = chart.Value{
+				Value: item.Data[0].Value,
+				Label: item.Name,
+			}
+		}
+		c := &chart.PieChart{
+			Title:  opt.Title.Text,
+			Width:  opt.Width,
+			Height: opt.Height,
+			Values: values,
+			ColorPalette: &ThemeColorPalette{
+				Theme: opt.Theme,
+			},
+		}
+		return c, nil
+	}
 
 	c := &chart.Chart{
 		Title:  opt.Title.Text,
@@ -106,7 +151,7 @@ func New(opt Option) *chart.Chart {
 		YAxis:  GetYAxis(opt.Theme),
 		Series: GetSeries(opt.Series, tickPosition, opt.Theme),
 	}
-	// TODO 校验xAxis与yAxis的数量是否一致
+
 	// 设置secondary的样式
 	c.YAxisSecondary.Style = c.YAxis.Style
 	if legendSize != 0 {
@@ -114,5 +159,5 @@ func New(opt Option) *chart.Chart {
 			DefaultLegend(c),
 		}
 	}
-	return c
+	return c, nil
 }

@@ -35,8 +35,9 @@ type (
 		// 'category' 类目轴，适用于离散的类目数据。为该类型时类目数据可自动从 series.data 或 dataset.source 中取，或者可通过 xAxis.data 设置类目数据。
 		// 'time' 时间轴，适用于连续的时序数据，与数值轴相比时间轴带有时间的格式化，在刻度计算上也有所不同，例如会根据跨度的范围来决定使用月，星期，日还是小时范围的刻度。
 		// 'log' 对数轴。适用于对数数据。
-		Type string
-		Data []string
+		Type        string
+		Data        []string
+		SplitNumber int
 	}
 )
 
@@ -44,6 +45,7 @@ const axisStrokeWidth = 1
 
 func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme string) (chart.XAxis, []float64) {
 	data := xAxis.Data
+	originalSize := len(data)
 	// 如果居中，则需要多添加一个值
 	if tickPosition == chart.TickPositionBetweenTicks {
 		data = append([]string{
@@ -51,14 +53,36 @@ func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme strin
 		}, data...)
 	}
 
-	xValues := make([]float64, len(data))
-	ticks := make([]chart.Tick, len(data))
+	size := len(data)
+
+	xValues := make([]float64, size)
+	ticks := make([]chart.Tick, 0)
+
+	maxTicks := xAxis.SplitNumber
+	if maxTicks == 0 {
+		maxTicks = 10
+	}
+
+	// 计息最多每个unit至少放多个
+	minUnitSize := originalSize / maxTicks
+	if originalSize%maxTicks != 0 {
+		minUnitSize++
+	}
+	unitSize := minUnitSize
+	for i := minUnitSize; i < 2*minUnitSize; i++ {
+		if originalSize%i == 0 {
+			unitSize = i
+		}
+	}
+
 	for index, key := range data {
 		f := float64(index)
 		xValues[index] = f
-		ticks[index] = chart.Tick{
-			Value: f,
-			Label: key,
+		if index%unitSize == 0 || index == size-1 {
+			ticks = append(ticks, chart.Tick{
+				Value: f,
+				Label: key,
+			})
 		}
 	}
 	// TODO

@@ -24,13 +24,16 @@ package charts
 
 import (
 	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+type SeriesData struct {
+	Value float64
+	Style chart.Style
+}
 type Series struct {
 	Type    string
 	Name    string
-	Data    []float64
+	Data    []SeriesData
 	XValues []float64
 }
 
@@ -40,14 +43,8 @@ const dotWith = 2
 const (
 	SeriesBar  = "bar"
 	SeriesLine = "line"
+	SeriesPie  = "pie"
 )
-
-func getSeriesColor(theme string, index int) drawing.Color {
-	// TODO
-	if theme == ThemeDark {
-	}
-	return SeriesColorsLight[index%len(SeriesColorsLight)]
-}
 
 func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) []chart.Series {
 	arr := make([]chart.Series, len(series))
@@ -58,34 +55,51 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 			barCount++
 		}
 	}
+
 	for index, item := range series {
 		style := chart.Style{
 			StrokeWidth: lineStrokeWidth,
 			StrokeColor: getSeriesColor(theme, index),
+			// FillColor:   getSeriesColor(theme, index),
 			// TODO 调整为通过dot with color 生成
 			DotColor: getSeriesColor(theme, index),
 			DotWidth: dotWith,
 		}
 		// 如果居中，需要多增加一个点
 		if tickPosition == chart.TickPositionBetweenTicks {
-			item.Data = append([]float64{
-				0.0,
+			item.Data = append([]SeriesData{
+				{
+					Value: 0.0,
+				},
 			}, item.Data...)
+		}
+		yValues := make([]float64, len(item.Data))
+		barCustomStyles := make([]BarSeriesCustomStyle, 0)
+		for i, item := range item.Data {
+			yValues[i] = item.Value
+			if !item.Style.IsZero() {
+				barCustomStyles = append(barCustomStyles, BarSeriesCustomStyle{
+					PointIndex: i,
+					Index:      barIndex,
+					Style:      item.Style,
+				})
+			}
 		}
 		baseSeries := BaseSeries{
 			Name:         item.Name,
 			XValues:      item.XValues,
 			Style:        style,
-			YValues:      item.Data,
+			YValues:      yValues,
 			TickPosition: tickPosition,
 		}
 		// TODO 判断类型
 		switch item.Type {
 		case SeriesBar:
 			arr[index] = BarSeries{
-				Count:      barCount,
-				Index:      barIndex,
-				BaseSeries: baseSeries,
+				Count:        barCount,
+				Index:        barIndex,
+				BaseSeries:   baseSeries,
+				CustomStyles: barCustomStyles,
 			}
 			barIndex++
 		default:

@@ -102,6 +102,32 @@ func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme strin
 	}, xValues
 }
 
+func GetSecondaryYAxis(theme string) chart.YAxis {
+	// TODO
+	if theme == ThemeDark {
+		return chart.YAxis{}
+	}
+	// strokeColor := drawing.Color{
+	// 	R: 224,
+	// 	G: 230,
+	// 	B: 241,
+	// 	A: 255,
+	// }
+	return chart.YAxis{
+		ValueFormatter: func(v interface{}) string {
+			value, ok := v.(float64)
+			if !ok {
+				return ""
+			}
+			return humanize.Commaf(value)
+		},
+		AxisType:       chart.YAxisPrimary,
+		GridMajorStyle: chart.Hidden(),
+		GridMinorStyle: chart.Hidden(),
+		Style:          chart.Hidden(),
+	}
+}
+
 func GetYAxis(theme string) chart.YAxis {
 	// TODO
 	if theme == ThemeDark {

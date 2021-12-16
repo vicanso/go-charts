@@ -30,6 +30,7 @@ type SeriesData struct {
 	Value float64
 	Style chart.Style
 }
+
 type Series struct {
 	Type    string
 	Name    string
@@ -46,6 +47,15 @@ const (
 	SeriesPie  = "pie"
 )
 
+func NewSeriesDataListFromFloat(values []float64) []SeriesData {
+	dataList := make([]SeriesData, len(values))
+	for index, value := range values {
+		dataList[index] = SeriesData{
+			Value: value,
+		}
+	}
+	return dataList
+}
 func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) []chart.Series {
 	arr := make([]chart.Series, len(series))
 	barCount := 0
@@ -60,11 +70,11 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 		style := chart.Style{
 			StrokeWidth: lineStrokeWidth,
 			StrokeColor: getSeriesColor(theme, index),
-			// FillColor:   getSeriesColor(theme, index),
 			// TODO 调整为通过dot with color 生成
 			DotColor: getSeriesColor(theme, index),
 			DotWidth: dotWith,
 		}
+		pointIndexOffset := 0
 		// 如果居中，需要多增加一个点
 		if tickPosition == chart.TickPositionBetweenTicks {
 			item.Data = append([]SeriesData{
@@ -72,6 +82,7 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 					Value: 0.0,
 				},
 			}, item.Data...)
+			pointIndexOffset = -1
 		}
 		yValues := make([]float64, len(item.Data))
 		barCustomStyles := make([]BarSeriesCustomStyle, 0)
@@ -79,7 +90,7 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 			yValues[i] = item.Value
 			if !item.Style.IsZero() {
 				barCustomStyles = append(barCustomStyles, BarSeriesCustomStyle{
-					PointIndex: i,
+					PointIndex: i + pointIndexOffset,
 					Index:      barIndex,
 					Style:      item.Style,
 				})

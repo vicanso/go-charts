@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"strings"
+
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
@@ -106,4 +108,15 @@ func getSeriesColor(theme string, index int) drawing.Color {
 	if theme == ThemeDark {
 	}
 	return SeriesColorsLight[index%len(SeriesColorsLight)]
+}
+
+func parseColor(color string) drawing.Color {
+	if color == "" {
+		return drawing.Color{}
+	}
+	if strings.HasPrefix(color, "#") {
+		return drawing.ColorFromHex(color[1:])
+	}
+	// TODO
+	return drawing.Color{}
 }

@@ -35,19 +35,25 @@ const (
 	ThemeDark  = "dark"
 )
 
+const (
+	DefaultChartWidth  = 800
+	DefaultChartHeight = 400
+)
+
 type (
 	Title struct {
-		Text string
+		Text  string
+		Style chart.Style
 	}
 	Legend struct {
 		Data []string
 	}
-	Option struct {
-		Width  int
-		Height int
-		Theme  string
-		XAxis  XAxis
-		// YAxis  Axis
+	Options struct {
+		Width        int
+		Height       int
+		Theme        string
+		XAxis        XAxis
+		YAxisList    []chart.YAxis
 		Series       []Series
 		Title        Title
 		Legend       Legend
@@ -55,27 +61,11 @@ type (
 	}
 )
 
-type Chart interface {
+type Graph interface {
 	Render(rp chart.RendererProvider, w io.Writer) error
 }
 
-type ECharOption struct {
-	Title struct {
-		Text      string
-		TextStyle struct {
-			Color      string
-			FontFamily string
-		}
-	}
-	XAxis struct {
-		Type        string
-		BoundaryGap *bool
-		SplitNumber int
-		Data        []string
-	}
-}
-
-func (o *Option) validate() error {
+func (o *Options) validate() error {
 	xAxisCount := len(o.XAxis.Data)
 	if len(o.Series) == 0 {
 		return errors.New("series can not be empty")
@@ -89,28 +79,36 @@ func (o *Option) validate() error {
 	return nil
 }
 
-func render(c Chart, rp chart.RendererProvider) ([]byte, error) {
+func render(g Graph, rp chart.RendererProvider) ([]byte, error) {
 	buf := bytes.Buffer{}
-	err := c.Render(rp, &buf)
+	err := g.Render(rp, &buf)
 	if err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func ToPNG(c Chart) ([]byte, error) {
-	return render(c, chart.PNG)
+func ToPNG(g Graph) ([]byte, error) {
+	return render(g, chart.PNG)
 }
 
-func ToSVG(c Chart) ([]byte, error) {
-	return render(c, chart.SVG)
+func ToSVG(g Graph) ([]byte, error) {
+	return render(g, chart.SVG)
 }
-func New(opt Option) (Chart, error) {
+func New(opt Options) (Graph, error) {
 	err := opt.validate()
 	if err != nil {
 		return nil, err
 	}
 	tickPosition := opt.TickPosition
+	width := opt.Width
+	if width <= 0 {
+		width = DefaultChartWidth
+	}
+	height := opt.Height
+	if height <= 0 {
+		height = DefaultChartHeight
+	}
 
 	xAxis, xValues := GetXAxisAndValues(opt.XAxis, tickPosition, opt.Theme)
 
@@ -131,33 +129,35 @@ func New(opt Option) (Chart, error) {
 				Label: item.Name,
 			}
 		}
-		c := &chart.PieChart{
-			Title:  opt.Title.Text,
-			Width:  opt.Width,
-			Height: opt.Height,
-			Values: values,
+		g := &chart.PieChart{
+			Title:      opt.Title.Text,
+			TitleStyle: opt.Title.Style,
+			Width:      width,
+			Height:     height,
+			Values:     values,
 			ColorPalette: &ThemeColorPalette{
 				Theme: opt.Theme,
 			},
 		}
-		return c, nil
+		return g, nil
 	}
 
-	c := &chart.Chart{
-		Title:  opt.Title.Text,
-		Width:  opt.Width,
-		Height: opt.Height,
-		XAxis:  xAxis,
-		YAxis:  GetYAxis(opt.Theme),
-		Series: GetSeries(opt.Series, tickPosition, opt.Theme),
+	g := &chart.Chart{
+		Title:          opt.Title.Text,
+		TitleStyle:     opt.Title.Style,
+		Width:          width,
+		Height:         height,
+		XAxis:          xAxis,
+		YAxis:          GetYAxis(opt.Theme),
+		YAxisSecondary: GetSecondaryYAxis(opt.Theme),
+		Series:         GetSeries(opt.Series, tickPosition, opt.Theme),
 	}
 
 	// 设置secondary的样式
-	c.YAxisSecondary.Style = c.YAxis.Style
 	if legendSize != 0 {
-		c.Elements = []chart.Renderable{
-			DefaultLegend(c),
+		g.Elements = []chart.Renderable{
+			DefaultLegend(g),
 		}
 	}
-	return c, nil
+	return g, nil
 }

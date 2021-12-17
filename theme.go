@@ -37,6 +37,50 @@ var AxisColorLight = drawing.Color{
 	B: 121,
 	A: 255,
 }
+var AxisColorDark = drawing.Color{
+	R: 185,
+	G: 184,
+	B: 206,
+	A: 255,
+}
+
+var BackgroundColorDark = drawing.Color{
+	R: 16,
+	G: 12,
+	B: 42,
+	A: 255,
+}
+
+var TextColorDark = drawing.Color{
+	R: 204,
+	G: 204,
+	B: 204,
+	A: 255,
+}
+
+func getAxisColor(theme string) drawing.Color {
+	if theme == ThemeDark {
+		return AxisColorDark
+	}
+	return AxisColorLight
+}
+
+func getGridColor(theme string) drawing.Color {
+	if theme == ThemeDark {
+		return drawing.Color{
+			R: 72,
+			G: 71,
+			B: 83,
+			A: 255,
+		}
+	}
+	return drawing.Color{
+		R: 224,
+		G: 230,
+		B: 241,
+		A: 255,
+	}
+}
 
 var SeriesColorsLight = []drawing.Color{
 	{
@@ -71,12 +115,26 @@ var SeriesColorsLight = []drawing.Color{
 	},
 }
 
+func getBackgroundColor(theme string) drawing.Color {
+	if theme == ThemeDark {
+		return BackgroundColorDark
+	}
+	return chart.DefaultBackgroundColor
+}
+
+func getTextColor(theme string) drawing.Color {
+	if theme == ThemeDark {
+		return TextColorDark
+	}
+	return chart.DefaultTextColor
+}
+
 type ThemeColorPalette struct {
 	Theme string
 }
 
 func (tp ThemeColorPalette) BackgroundColor() drawing.Color {
-	return chart.DefaultBackgroundColor
+	return getBackgroundColor(tp.Theme)
 }
 
 func (tp ThemeColorPalette) BackgroundStrokeColor() drawing.Color {
@@ -84,6 +142,9 @@ func (tp ThemeColorPalette) BackgroundStrokeColor() drawing.Color {
 }
 
 func (tp ThemeColorPalette) CanvasColor() drawing.Color {
+	if tp.Theme == ThemeDark {
+		return BackgroundColorDark
+	}
 	return chart.DefaultCanvasColor
 }
 
@@ -92,11 +153,14 @@ func (tp ThemeColorPalette) CanvasStrokeColor() drawing.Color {
 }
 
 func (tp ThemeColorPalette) AxisStrokeColor() drawing.Color {
+	if tp.Theme == ThemeDark {
+		return BackgroundColorDark
+	}
 	return chart.DefaultAxisColor
 }
 
 func (tp ThemeColorPalette) TextColor() drawing.Color {
-	return chart.DefaultTextColor
+	return getTextColor(tp.Theme)
 }
 
 func (tp ThemeColorPalette) GetSeriesColor(index int) drawing.Color {
@@ -104,9 +168,6 @@ func (tp ThemeColorPalette) GetSeriesColor(index int) drawing.Color {
 }
 
 func getSeriesColor(theme string, index int) drawing.Color {
-	// TODO
-	if theme == ThemeDark {
-	}
 	return SeriesColorsLight[index%len(SeriesColorsLight)]
 }
 
@@ -117,6 +178,6 @@ func parseColor(color string) drawing.Color {
 	if strings.HasPrefix(color, "#") {
 		return drawing.ColorFromHex(color[1:])
 	}
-	// TODO
+	// TODO rgba
 	return drawing.Color{}
 }

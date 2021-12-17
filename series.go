@@ -36,6 +36,7 @@ type Series struct {
 	Name    string
 	Data    []SeriesData
 	XValues []float64
+	YAxis   chart.YAxisType
 }
 
 const lineStrokeWidth = 2
@@ -102,6 +103,7 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 			Style:        style,
 			YValues:      yValues,
 			TickPosition: tickPosition,
+			YAxis:        item.YAxis,
 		}
 		// TODO 判断类型
 		switch item.Type {

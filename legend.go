@@ -65,22 +65,15 @@ func DefaultLegendIconDraw(r chart.Renderer, opt LegendIconDrawOption) {
 	r.MoveTo(opt.Box.Left, ly)
 	r.LineTo(opt.Box.Right, ly)
 	r.Stroke()
-	r.SetFillColor(chart.ColorWhite)
+	r.SetFillColor(getBackgroundColor(opt.Theme))
 	r.Circle(5, (opt.Box.Left+opt.Box.Right)/2, ly)
 	r.FillStroke()
-}
-
-func DefaultLegend(c *chart.Chart) chart.Renderable {
-	return LegendCustomize(c, LegendOption{
-		TextPosition: LegendTextPositionRight,
-		IconDraw:     DefaultLegendIconDraw,
-	})
 }
 
 func LegendCustomize(c *chart.Chart, opt LegendOption) chart.Renderable {
 	return func(r chart.Renderer, cb chart.Box, chartDefaults chart.Style) {
 		legendDefaults := chart.Style{
-			FontColor:   chart.DefaultTextColor,
+			FontColor:   getTextColor(opt.Theme),
 			FontSize:    8.0,
 			StrokeColor: chart.DefaultAxisColor,
 		}

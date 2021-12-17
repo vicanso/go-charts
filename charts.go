@@ -53,7 +53,7 @@ type (
 		Height       int
 		Theme        string
 		XAxis        XAxis
-		YAxisList    []chart.YAxis
+		YAxisOptions []*YAxisOption
 		Series       []Series
 		Title        Title
 		Legend       Legend
@@ -72,7 +72,7 @@ func (o *Options) validate() error {
 	}
 
 	for _, item := range o.Series {
-		if len(item.Data) != xAxisCount {
+		if item.Type != SeriesPie && len(item.Data) != xAxisCount {
 			return errors.New("series and xAxis is not matched")
 		}
 	}
@@ -109,18 +109,6 @@ func New(opt Options) (Graph, error) {
 	if height <= 0 {
 		height = DefaultChartHeight
 	}
-
-	xAxis, xValues := GetXAxisAndValues(opt.XAxis, tickPosition, opt.Theme)
-
-	legendSize := len(opt.Legend.Data)
-	for index, item := range opt.Series {
-		if len(item.XValues) == 0 {
-			opt.Series[index].XValues = xValues
-		}
-		if index < legendSize && opt.Series[index].Name == "" {
-			opt.Series[index].Name = opt.Legend.Data[index]
-		}
-	}
 	if opt.Series[0].Type == SeriesPie {
 		values := make(chart.Values, len(opt.Series))
 		for index, item := range opt.Series {
@@ -142,21 +130,49 @@ func New(opt Options) (Graph, error) {
 		return g, nil
 	}
 
+	xAxis, xValues := GetXAxisAndValues(opt.XAxis, tickPosition, opt.Theme)
+
+	legendSize := len(opt.Legend.Data)
+	for index, item := range opt.Series {
+		if len(item.XValues) == 0 {
+			opt.Series[index].XValues = xValues
+		}
+		if index < legendSize && opt.Series[index].Name == "" {
+			opt.Series[index].Name = opt.Legend.Data[index]
+		}
+	}
+
+	var yAxisOption *YAxisOption
+	if len(opt.YAxisOptions) != 0 {
+		yAxisOption = opt.YAxisOptions[0]
+	}
+	var secondaryYAxisOption *YAxisOption
+	if len(opt.YAxisOptions) > 1 {
+		secondaryYAxisOption = opt.YAxisOptions[1]
+	}
+
 	g := &chart.Chart{
+		ColorPalette: &ThemeColorPalette{
+			Theme: opt.Theme,
+		},
 		Title:          opt.Title.Text,
 		TitleStyle:     opt.Title.Style,
 		Width:          width,
 		Height:         height,
 		XAxis:          xAxis,
-		YAxis:          GetYAxis(opt.Theme),
-		YAxisSecondary: GetSecondaryYAxis(opt.Theme),
+		YAxis:          GetYAxis(opt.Theme, yAxisOption),
+		YAxisSecondary: GetSecondaryYAxis(opt.Theme, secondaryYAxisOption),
 		Series:         GetSeries(opt.Series, tickPosition, opt.Theme),
 	}
 
 	// 设置secondary的样式
 	if legendSize != 0 {
 		g.Elements = []chart.Renderable{
-			DefaultLegend(g),
+			LegendCustomize(g, LegendOption{
+				Theme:        opt.Theme,
+				TextPosition: LegendTextPositionRight,
+				IconDraw:     DefaultLegendIconDraw,
+			}),
 		}
 	}
 	return g, nil

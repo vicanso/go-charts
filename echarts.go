@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/wcharczuk/go-chart/v2"
 )
@@ -36,6 +37,7 @@ type EChartStyle struct {
 }
 type ECharsSeriesData struct {
 	Value     float64     `json:"value"`
+	Name      string      `json:"name"`
 	ItemStyle EChartStyle `json:"itemStyle"`
 }
 type _ECharsSeriesData ECharsSeriesData
@@ -58,6 +60,7 @@ func (es *ECharsSeriesData) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return err
 	}
+	es.Name = v.Name
 	es.Value = v.Value
 	es.ItemStyle = v.ItemStyle
 	return nil
@@ -86,6 +89,7 @@ func (ey *EChartsYAxis) UnmarshalJSON(data []byte) error {
 }
 
 type ECharsOptions struct {
+	Theme string `json:"theme"`
 	Title struct {
 		Text      string `json:"text"`
 		TextStyle struct {
@@ -104,30 +108,34 @@ type ECharsOptions struct {
 		Data []string `json:"data"`
 	} `json:"legend"`
 	Series []struct {
-		Data []ECharsSeriesData `json:"data"`
-		Type string             `json:"type"`
+		Data       []ECharsSeriesData `json:"data"`
+		Type       string             `json:"type"`
+		YAxisIndex int                `json:"yAxisIndex"`
 	} `json:"series"`
 }
 
-func (e *ECharsOptions) ToOptions() Options {
-	o := Options{}
-	o.Title = Title{
-		Text: e.Title.Text,
-	}
-
-	o.XAxis = XAxis{
-		Type:        e.XAxis.Type,
-		Data:        e.XAxis.Data,
-		SplitNumber: e.XAxis.SplitNumber,
-	}
-
-	o.Legend = Legend{
-		Data: e.Legend.Data,
-	}
-
-	// TODO 生成yAxis
-
+func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 	tickPosition := chart.TickPositionUnset
+
+	if len(e.Series) == 0 {
+		return nil, tickPosition
+	}
+	seriesType := e.Series[0].Type
+	if seriesType == SeriesPie {
+		series := make([]Series, len(e.Series[0].Data))
+		for index, item := range e.Series[0].Data {
+			series[index] = Series{
+				Data: []SeriesData{
+					{
+						Value: item.Value,
+					},
+				},
+				Type: seriesType,
+				Name: item.Name,
+			}
+		}
+		return series, tickPosition
+	}
 	series := make([]Series, len(e.Series))
 	for index, item := range e.Series {
 		// bar默认tick居中
@@ -146,11 +154,54 @@ func (e *ECharsOptions) ToOptions() Options {
 			}
 			data[j] = sd
 		}
+		yAxisType := chart.YAxisPrimary
+		if item.YAxisIndex != 0 {
+			yAxisType = chart.YAxisSecondary
+		}
 		series[index] = Series{
-			Data: data,
-			Type: item.Type,
+			YAxis: yAxisType,
+			Data:  data,
+			Type:  item.Type,
 		}
 	}
+	return series, tickPosition
+}
+
+func (e *ECharsOptions) ToOptions() Options {
+	o := Options{
+		Theme: e.Theme,
+	}
+	o.Title = Title{
+		Text: e.Title.Text,
+	}
+
+	o.XAxis = XAxis{
+		Type:        e.XAxis.Type,
+		Data:        e.XAxis.Data,
+		SplitNumber: e.XAxis.SplitNumber,
+	}
+
+	o.Legend = Legend{
+		Data: e.Legend.Data,
+	}
+	if len(e.YAxis.Data) != 0 {
+		yAxisOptions := make([]*YAxisOption, len(e.YAxis.Data))
+		for index, item := range e.YAxis.Data {
+			opt := &YAxisOption{}
+			template := item.AxisLabel.Formatter
+			if template != "" {
+				opt.Formater = func(v interface{}) string {
+					str := defaultFloatFormater(v)
+					return strings.ReplaceAll(template, "{value}", str)
+				}
+			}
+			yAxisOptions[index] = opt
+		}
+		o.YAxisOptions = yAxisOptions
+	}
+
+	series, tickPosition := convertEChartsSeries(e)
+
 	o.Series = series
 
 	if e.XAxis.BoundaryGap == nil || *e.XAxis.BoundaryGap {

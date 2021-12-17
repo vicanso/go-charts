@@ -25,7 +25,6 @@ package charts
 import (
 	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 type (
@@ -40,6 +39,10 @@ type (
 		SplitNumber int
 	}
 )
+
+type YAxisOption struct {
+	Formater chart.ValueFormatter
+}
 
 const axisStrokeWidth = 1
 
@@ -85,24 +88,29 @@ func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme strin
 			})
 		}
 	}
-	// TODO
-	if theme == ThemeDark {
-		return chart.XAxis{
-			Ticks: ticks,
-		}, xValues
-	}
 	return chart.XAxis{
 		Ticks:        ticks,
 		TickPosition: tickPosition,
 		Style: chart.Style{
-			FontColor:   AxisColorLight,
-			StrokeColor: AxisColorLight,
+			FontColor:   getAxisColor(theme),
+			StrokeColor: getAxisColor(theme),
 			StrokeWidth: axisStrokeWidth,
 		},
 	}, xValues
 }
 
-func GetSecondaryYAxis(theme string) chart.YAxis {
+func defaultFloatFormater(v interface{}) string {
+	value, ok := v.(float64)
+	if !ok {
+		return ""
+	}
+	if value >= 10 {
+		return humanize.CommafWithDigits(value, 0)
+	}
+	return humanize.CommafWithDigits(value, 2)
+}
+
+func GetSecondaryYAxis(theme string, option *YAxisOption) chart.YAxis {
 	// TODO
 	if theme == ThemeDark {
 		return chart.YAxis{}
@@ -113,41 +121,46 @@ func GetSecondaryYAxis(theme string) chart.YAxis {
 	// 	B: 241,
 	// 	A: 255,
 	// }
-	return chart.YAxis{
-		ValueFormatter: func(v interface{}) string {
-			value, ok := v.(float64)
-			if !ok {
-				return ""
-			}
-			return humanize.Commaf(value)
-		},
-		AxisType:       chart.YAxisPrimary,
-		GridMajorStyle: chart.Hidden(),
-		GridMinorStyle: chart.Hidden(),
-		Style:          chart.Hidden(),
+	formater := defaultFloatFormater
+	if option != nil {
+		if option.Formater != nil {
+			formater = option.Formater
+		}
 	}
+	hidden := chart.Hidden()
+	return chart.YAxis{
+		ValueFormatter: formater,
+		AxisType:       chart.YAxisPrimary,
+		GridMajorStyle: hidden,
+		GridMinorStyle: hidden,
+		Style: chart.Style{
+			FontColor: getAxisColor(theme),
+			// alpha 0，隐藏
+			StrokeColor: hiddenColor,
+			StrokeWidth: axisStrokeWidth,
+		},
+	}
+	// c := chart.Hidden()
+	// return chart.YAxis{
+	// 	ValueFormatter: defaultFloatFormater,
+	// 	AxisType:       chart.YAxisPrimary,
+	// 	GridMajorStyle: c,
+	// 	GridMinorStyle: c,
+	// 	Style:          c,
+	// }
 }
 
-func GetYAxis(theme string) chart.YAxis {
-	// TODO
-	if theme == ThemeDark {
-		return chart.YAxis{}
-	}
-	strokeColor := drawing.Color{
-		R: 224,
-		G: 230,
-		B: 241,
-		A: 255,
+func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
+	strokeColor := getGridColor(theme)
+	formater := defaultFloatFormater
+	if option != nil {
+		if option.Formater != nil {
+			formater = option.Formater
+		}
 	}
 	return chart.YAxis{
-		ValueFormatter: func(v interface{}) string {
-			value, ok := v.(float64)
-			if !ok {
-				return ""
-			}
-			return humanize.Commaf(value)
-		},
-		AxisType: chart.YAxisSecondary,
+		ValueFormatter: formater,
+		AxisType:       chart.YAxisSecondary,
 		GridMajorStyle: chart.Style{
 			StrokeColor: strokeColor,
 			StrokeWidth: axisStrokeWidth,
@@ -157,7 +170,7 @@ func GetYAxis(theme string) chart.YAxis {
 			StrokeWidth: axisStrokeWidth,
 		},
 		Style: chart.Style{
-			FontColor: AxisColorLight,
+			FontColor: getAxisColor(theme),
 			// alpha 0，隐藏
 			StrokeColor: hiddenColor,
 			StrokeWidth: axisStrokeWidth,

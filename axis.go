@@ -30,25 +30,27 @@ import (
 type (
 	// AxisData string
 	XAxis struct {
-		// 'value' 数值轴，适用于连续数据。
-		// 'category' 类目轴，适用于离散的类目数据。为该类型时类目数据可自动从 series.data 或 dataset.source 中取，或者可通过 xAxis.data 设置类目数据。
-		// 'time' 时间轴，适用于连续的时序数据，与数值轴相比时间轴带有时间的格式化，在刻度计算上也有所不同，例如会根据跨度的范围来决定使用月，星期，日还是小时范围的刻度。
-		// 'log' 对数轴。适用于对数数据。
-		Type        string
-		Data        []string
+		// data value of axis
+		Data []string
+		// number of segments
 		SplitNumber int
 	}
 )
 
 type YAxisOption struct {
+	// formater of axis
 	Formater chart.ValueFormatter
+	// disabled axis
 	Disabled bool
-	Min      *float64
-	Max      *float64
+	// min value of axis
+	Min *float64
+	// max value of axis
+	Max *float64
 }
 
 const axisStrokeWidth = 1
 
+// GetXAxisAndValues returns x axis by theme, and the values of axis.
 func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme string) (chart.XAxis, []float64) {
 	data := xAxis.Data
 	originalSize := len(data)
@@ -75,6 +77,7 @@ func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme strin
 		minUnitSize++
 	}
 	unitSize := minUnitSize
+	// 尽可能选择一格展示更多的块
 	for i := minUnitSize; i < 2*minUnitSize; i++ {
 		if originalSize%i == 0 {
 			unitSize = i
@@ -107,12 +110,14 @@ func defaultFloatFormater(v interface{}) string {
 	if !ok {
 		return ""
 	}
+	// 大于10的则直接取整展示
 	if value >= 10 {
 		return humanize.CommafWithDigits(value, 0)
 	}
 	return humanize.CommafWithDigits(value, 2)
 }
 
+// GetSecondaryYAxis returns the secondary y axis by theme
 func GetSecondaryYAxis(theme string, option *YAxisOption) chart.YAxis {
 	strokeColor := getGridColor(theme)
 	yAxis := chart.YAxis{
@@ -134,11 +139,11 @@ func GetSecondaryYAxis(theme string, option *YAxisOption) chart.YAxis {
 			StrokeWidth: axisStrokeWidth,
 		},
 	}
-	setYAxis(&yAxis, option)
+	setYAxisOption(&yAxis, option)
 	return yAxis
 }
 
-func setYAxis(yAxis *chart.YAxis, option *YAxisOption) {
+func setYAxisOption(yAxis *chart.YAxis, option *YAxisOption) {
 	if option == nil {
 		return
 	}
@@ -153,6 +158,7 @@ func setYAxis(yAxis *chart.YAxis, option *YAxisOption) {
 	}
 }
 
+// GetYAxis returns the primary y axis by theme
 func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
 	disabled := false
 	if option != nil {
@@ -173,10 +179,11 @@ func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
 			StrokeWidth: axisStrokeWidth,
 		},
 	}
+	// 如果禁用，则默认为隐藏，并设置range
 	if disabled {
 		yAxis.Range = &HiddenRange{}
 		yAxis.Style.Hidden = true
 	}
-	setYAxis(&yAxis, option)
+	setYAxisOption(&yAxis, option)
 	return yAxis
 }

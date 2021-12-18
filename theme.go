@@ -29,7 +29,7 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-var hiddenColor = drawing.Color{R: 110, G: 112, B: 121, A: 0}
+var hiddenColor = drawing.Color{R: 0, G: 0, B: 0, A: 0}
 
 var AxisColorLight = drawing.Color{
 	R: 110,

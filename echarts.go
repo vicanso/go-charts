@@ -262,7 +262,6 @@ func (e *ECharsOptions) ToOptions() Options {
 	if len(e.XAxis.Data) != 0 {
 		xAxis := e.XAxis.Data[0]
 		o.XAxis = XAxis{
-			Type:        xAxis.Type,
 			Data:        xAxis.Data,
 			SplitNumber: xAxis.SplitNumber,
 		}

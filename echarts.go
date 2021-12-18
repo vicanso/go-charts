@@ -42,6 +42,17 @@ type ECharsSeriesData struct {
 }
 type _ECharsSeriesData ECharsSeriesData
 
+func convertToArray(data []byte) []byte {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return nil
+	}
+	if data[0] != '[' {
+		data = []byte("[" + string(data) + "]")
+	}
+	return data
+}
+
 func (es *ECharsSeriesData) UnmarshalJSON(data []byte) error {
 	data = bytes.TrimSpace(data)
 	if len(data) == 0 {
@@ -66,11 +77,57 @@ func (es *ECharsSeriesData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+type EChartsPadding struct {
+	box chart.Box
+}
+
+func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
+	data = convertToArray(data)
+	if len(data) == 0 {
+		return nil
+	}
+	arr := make([]int, 0)
+	err := json.Unmarshal(data, &arr)
+	if err != nil {
+		return err
+	}
+	if len(arr) == 0 {
+		return nil
+	}
+	switch len(arr) {
+	case 1:
+		ep.box = chart.Box{
+			Left:   arr[0],
+			Top:    arr[0],
+			Bottom: arr[0],
+			Right:  arr[0],
+		}
+	case 2:
+		ep.box = chart.Box{
+			Top:    arr[0],
+			Bottom: arr[0],
+			Left:   arr[1],
+			Right:  arr[1],
+		}
+	default:
+		result := make([]int, 4)
+		copy(result, arr)
+		// 上右下左
+		ep.box = chart.Box{
+			Top:    arr[0],
+			Right:  arr[1],
+			Bottom: arr[2],
+			Left:   arr[3],
+		}
+	}
+	return nil
+}
+
 type EChartsYAxis struct {
 	Data []struct {
-		Min       int `json:"min"`
-		Max       int `json:"max"`
-		Interval  int `json:"interval"`
+		Min       *float64 `json:"min"`
+		Max       *float64 `json:"max"`
+		Interval  int      `json:"interval"`
 		AxisLabel struct {
 			Formatter string `json:"formatter"`
 		} `json:"axisLabel"`
@@ -78,34 +135,50 @@ type EChartsYAxis struct {
 }
 
 func (ey *EChartsYAxis) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
+	data = convertToArray(data)
 	if len(data) == 0 {
 		return nil
 	}
-	if data[0] != '[' {
-		data = []byte("[" + string(data) + "]")
-	}
 	return json.Unmarshal(data, &ey.Data)
+}
+
+type EChartsXAxis struct {
+	Data []struct {
+		Type        string   `json:"type"`
+		BoundaryGap *bool    `json:"boundaryGap"`
+		SplitNumber int      `json:"splitNumber"`
+		Data        []string `json:"data"`
+	}
+}
+
+func (ex *EChartsXAxis) UnmarshalJSON(data []byte) error {
+	data = convertToArray(data)
+	if len(data) == 0 {
+		return nil
+	}
+	return json.Unmarshal(data, &ex.Data)
 }
 
 type ECharsOptions struct {
 	Theme string `json:"theme"`
 	Title struct {
-		Text      string `json:"text"`
+		Text string `json:"text"`
+		// 暂不支持(go-chart默认title只能居中)
+		TextAlign string `json:"textAlign"`
 		TextStyle struct {
-			Color      string `json:"color"`
-			FontFamily string `json:"fontFamily"`
+			Color string `json:"color"`
+			// TODO 字体支持
+			FontFamily string  `json:"fontFamily"`
+			FontSize   float64 `json:"fontSize"`
+			Height     float64 `json:"height"`
 		} `json:"textStyle"`
 	} `json:"title"`
-	XAxis struct {
-		Type        string   `json:"type"`
-		BoundaryGap *bool    `json:"boundaryGap"`
-		SplitNumber int      `json:"splitNumber"`
-		Data        []string `json:"data"`
-	} `json:"xAxis"`
+	XAxis  EChartsXAxis `json:"xAxis"`
 	YAxis  EChartsYAxis `json:"yAxis"`
 	Legend struct {
-		Data []string `json:"data"`
+		Data    []string       `json:"data"`
+		Align   string         `json:"align"`
+		Padding EChartsPadding `json:"padding"`
 	} `json:"legend"`
 	Series []struct {
 		Data       []ECharsSeriesData `json:"data"`
@@ -167,23 +240,46 @@ func (e *ECharsOptions) ToOptions() Options {
 	o := Options{
 		Theme: e.Theme,
 	}
+	titleTextStyle := e.Title.TextStyle
 	o.Title = Title{
 		Text: e.Title.Text,
+		Style: chart.Style{
+			FontColor: parseColor(titleTextStyle.Color),
+			FontSize:  titleTextStyle.FontSize,
+		},
 	}
 
-	o.XAxis = XAxis{
-		Type:        e.XAxis.Type,
-		Data:        e.XAxis.Data,
-		SplitNumber: e.XAxis.SplitNumber,
+	if titleTextStyle.FontSize != 0 && titleTextStyle.Height > titleTextStyle.FontSize {
+		padding := int(titleTextStyle.Height-titleTextStyle.FontSize) / 2
+		o.Title.Style.Padding.Top = padding
+		o.Title.Style.Padding.Bottom = padding
+	}
+
+	boundaryGap := false
+	if len(e.XAxis.Data) != 0 {
+		xAxis := e.XAxis.Data[0]
+		o.XAxis = XAxis{
+			Type:        xAxis.Type,
+			Data:        xAxis.Data,
+			SplitNumber: xAxis.SplitNumber,
+		}
+		if xAxis.BoundaryGap == nil || *xAxis.BoundaryGap {
+			boundaryGap = true
+		}
 	}
 
 	o.Legend = Legend{
-		Data: e.Legend.Data,
+		Data:    e.Legend.Data,
+		Align:   e.Legend.Align,
+		Padding: e.Legend.Padding.box,
 	}
 	if len(e.YAxis.Data) != 0 {
 		yAxisOptions := make([]*YAxisOption, len(e.YAxis.Data))
 		for index, item := range e.YAxis.Data {
-			opt := &YAxisOption{}
+			opt := &YAxisOption{
+				Max: item.Max,
+				Min: item.Min,
+			}
 			template := item.AxisLabel.Formatter
 			if template != "" {
 				opt.Formater = func(v interface{}) string {
@@ -200,7 +296,7 @@ func (e *ECharsOptions) ToOptions() Options {
 
 	o.Series = series
 
-	if e.XAxis.BoundaryGap == nil || *e.XAxis.BoundaryGap {
+	if boundaryGap {
 		tickPosition = chart.TickPositionBetweenTicks
 	}
 	o.TickPosition = tickPosition

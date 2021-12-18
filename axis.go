@@ -43,6 +43,8 @@ type (
 type YAxisOption struct {
 	Formater chart.ValueFormatter
 	Disabled bool
+	Min      *float64
+	Max      *float64
 }
 
 const axisStrokeWidth = 1
@@ -113,14 +115,9 @@ func defaultFloatFormater(v interface{}) string {
 
 func GetSecondaryYAxis(theme string, option *YAxisOption) chart.YAxis {
 	strokeColor := getGridColor(theme)
-	formater := defaultFloatFormater
-	if option != nil {
-		if option.Formater != nil {
-			formater = option.Formater
-		}
-	}
-	return chart.YAxis{
-		ValueFormatter: formater,
+	yAxis := chart.YAxis{
+		Range:          &chart.ContinuousRange{},
+		ValueFormatter: defaultFloatFormater,
 		AxisType:       chart.YAxisSecondary,
 		GridMajorStyle: chart.Style{
 			StrokeColor: strokeColor,
@@ -137,22 +134,35 @@ func GetSecondaryYAxis(theme string, option *YAxisOption) chart.YAxis {
 			StrokeWidth: axisStrokeWidth,
 		},
 	}
+	setYAxis(&yAxis, option)
+	return yAxis
+}
+
+func setYAxis(yAxis *chart.YAxis, option *YAxisOption) {
+	if option == nil {
+		return
+	}
+	if option.Formater != nil {
+		yAxis.ValueFormatter = option.Formater
+	}
+	if option.Max != nil {
+		yAxis.Range.SetMax(*option.Max)
+	}
+	if option.Min != nil {
+		yAxis.Range.SetMin(*option.Min)
+	}
 }
 
 func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
-	// strokeColor := getGridColor(theme)
-	formater := defaultFloatFormater
 	disabled := false
 	if option != nil {
-		if option.Formater != nil {
-			formater = option.Formater
-		}
 		disabled = option.Disabled
 	}
 	hidden := chart.Hidden()
 
 	yAxis := chart.YAxis{
-		ValueFormatter: formater,
+		Range:          &chart.ContinuousRange{},
+		ValueFormatter: defaultFloatFormater,
 		AxisType:       chart.YAxisPrimary,
 		GridMajorStyle: hidden,
 		GridMinorStyle: hidden,
@@ -167,5 +177,6 @@ func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
 		yAxis.Range = &HiddenRange{}
 		yAxis.Style.Hidden = true
 	}
+	setYAxis(&yAxis, option)
 	return yAxis
 }

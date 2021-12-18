@@ -46,7 +46,9 @@ type (
 		Style chart.Style
 	}
 	Legend struct {
-		Data []string
+		Data    []string
+		Align   string
+		Padding chart.Box
 	}
 	Options struct {
 		Width        int
@@ -177,6 +179,8 @@ func New(opt Options) (Graph, error) {
 				Theme:        opt.Theme,
 				TextPosition: LegendTextPositionRight,
 				IconDraw:     DefaultLegendIconDraw,
+				Align:        opt.Legend.Align,
+				Padding:      opt.Legend.Padding,
 			}),
 		}
 	}

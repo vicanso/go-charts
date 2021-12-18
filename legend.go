@@ -28,6 +28,7 @@ import (
 
 type LegendOption struct {
 	Style        chart.Style
+	Padding      chart.Box
 	Align        string
 	TextPosition string
 	Theme        string
@@ -61,7 +62,7 @@ func DefaultLegendIconDraw(r chart.Renderer, opt LegendIconDrawOption) {
 	stokeWidth := opt.Style.GetStrokeWidth()
 	r.SetStrokeWidth(stokeWidth)
 	height := opt.Box.Bottom - opt.Box.Top
-	ly := (height / 2) + 1
+	ly := opt.Box.Top - (height / 2) + 2
 	r.MoveTo(opt.Box.Left, ly)
 	r.LineTo(opt.Box.Right, ly)
 	r.Stroke()
@@ -126,11 +127,14 @@ func LegendCustomize(c *chart.Chart, opt LegendOption) chart.Renderable {
 			left = (cb.Width() - labelWidth) / 2
 		}
 
+		left += opt.Padding.Left
+		top := opt.Padding.Top
+
 		legendBox := chart.Box{
 			Left:   left,
 			Right:  left + labelWidth,
-			Top:    0,
-			Bottom: 0 + legendBoxHeight,
+			Top:    top,
+			Bottom: top + legendBoxHeight,
 		}
 
 		chart.Draw.Box(r, legendBox, legendDefaults)
@@ -142,7 +146,7 @@ func LegendCustomize(c *chart.Chart, opt LegendOption) chart.Renderable {
 		lineTextGap := 5
 
 		startX := legendBox.Left + legendStyle.Padding.Left
-		ty := legendYMargin + legendStyle.Padding.Top + textHeight
+		ty := top + legendYMargin + legendStyle.Padding.Top + textHeight
 		var label string
 		var x int
 		iconDraw := opt.IconDraw

@@ -42,6 +42,19 @@ var chartOptions = []map[string]string{
 	{
 		"title": "折线图",
 		"option": `{
+	"title": {
+		"text": "line",
+		"textAlign": "left",
+		"textStyle": {
+			"color": "#333",
+			"fontSize": 24,
+			"height": 40
+		}
+	},
+	"yAxis": {
+		"min": 0,
+		"max": 300
+	},
 	"xAxis": {
 		"type": "category",
 		"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -61,6 +74,8 @@ var chartOptions = []map[string]string{
 		"text": "Multi Line"
 	},
 	"legend": {
+		"align": "left",
+		"padding": [5, 0, 0, 50],
 		"data": ["Email", "Union Ads", "Video Ads", "Direct", "Search Engine"]
 	},
 	"xAxis": {
@@ -288,6 +303,9 @@ var chartOptions = []map[string]string{
 func render(theme string) ([]byte, error) {
 	data := bytes.Buffer{}
 	for _, m := range chartOptions {
+		// if m["title"] != "多柱状图" {
+		// 	continue
+		// }
 		chartHTML := []byte(`<div>
 			<h1>{{title}}</h1>
 			<pre>{{option}}</pre>

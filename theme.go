@@ -133,6 +133,14 @@ type ThemeColorPalette struct {
 	Theme string
 }
 
+type PieThemeColorPalette struct {
+	ThemeColorPalette
+}
+
+func (tp PieThemeColorPalette) TextColor() drawing.Color {
+	return getTextColor("")
+}
+
 func (tp ThemeColorPalette) BackgroundColor() drawing.Color {
 	return getBackgroundColor(tp.Theme)
 }

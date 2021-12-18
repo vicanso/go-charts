@@ -160,8 +160,9 @@ func (ex *EChartsXAxis) UnmarshalJSON(data []byte) error {
 }
 
 type ECharsOptions struct {
-	Theme string `json:"theme"`
-	Title struct {
+	Theme   string         `json:"theme"`
+	Padding EChartsPadding `json:"padding"`
+	Title   struct {
 		Text string `json:"text"`
 		// 暂不支持(go-chart默认title只能居中)
 		TextAlign string `json:"textAlign"`
@@ -238,8 +239,10 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 
 func (e *ECharsOptions) ToOptions() Options {
 	o := Options{
-		Theme: e.Theme,
+		Theme:   e.Theme,
+		Padding: e.Padding.box,
 	}
+
 	titleTextStyle := e.Title.TextStyle
 	o.Title = Title{
 		Text: e.Title.Text,

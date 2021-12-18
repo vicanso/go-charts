@@ -51,6 +51,7 @@ type (
 		Padding chart.Box
 	}
 	Options struct {
+		Padding      chart.Box
 		Width        int
 		Height       int
 		Theme        string
@@ -112,6 +113,9 @@ func New(opt Options) (Graph, error) {
 	if height <= 0 {
 		height = DefaultChartHeight
 	}
+	bg := chart.Style{
+		Padding: opt.Padding,
+	}
 	if opt.Series[0].Type == SeriesPie {
 		values := make(chart.Values, len(opt.Series))
 		for index, item := range opt.Series {
@@ -121,13 +125,16 @@ func New(opt Options) (Graph, error) {
 			}
 		}
 		g := &chart.PieChart{
+			Background: bg,
 			Title:      opt.Title.Text,
 			TitleStyle: opt.Title.Style,
 			Width:      width,
 			Height:     height,
 			Values:     values,
-			ColorPalette: &ThemeColorPalette{
-				Theme: opt.Theme,
+			ColorPalette: &PieThemeColorPalette{
+				ThemeColorPalette: ThemeColorPalette{
+					Theme: opt.Theme,
+				},
 			},
 		}
 		return g, nil
@@ -158,7 +165,8 @@ func New(opt Options) (Graph, error) {
 	}
 
 	g := &chart.Chart{
-		Log: opt.Log,
+		Log:        opt.Log,
+		Background: bg,
 		ColorPalette: &ThemeColorPalette{
 			Theme: opt.Theme,
 		},

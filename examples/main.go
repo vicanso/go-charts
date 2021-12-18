@@ -288,9 +288,6 @@ var chartOptions = []map[string]string{
 func render(theme string) ([]byte, error) {
 	data := bytes.Buffer{}
 	for _, m := range chartOptions {
-		if m["title"] != "折柱混合" {
-			continue
-		}
 		chartHTML := []byte(`<div>
 			<h1>{{title}}</h1>
 			<pre>{{option}}</pre>

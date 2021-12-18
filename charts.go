@@ -58,6 +58,7 @@ type (
 		Title        Title
 		Legend       Legend
 		TickPosition chart.TickPosition
+		Log          chart.Logger
 	}
 )
 
@@ -142,16 +143,20 @@ func New(opt Options) (Graph, error) {
 		}
 	}
 
-	var yAxisOption *YAxisOption
-	if len(opt.YAxisOptions) != 0 {
-		yAxisOption = opt.YAxisOptions[0]
-	}
 	var secondaryYAxisOption *YAxisOption
+	if len(opt.YAxisOptions) != 0 {
+		secondaryYAxisOption = opt.YAxisOptions[0]
+	}
+
+	yAxisOption := &YAxisOption{
+		Disabled: true,
+	}
 	if len(opt.YAxisOptions) > 1 {
-		secondaryYAxisOption = opt.YAxisOptions[1]
+		yAxisOption = opt.YAxisOptions[1]
 	}
 
 	g := &chart.Chart{
+		Log: opt.Log,
 		ColorPalette: &ThemeColorPalette{
 			Theme: opt.Theme,
 		},

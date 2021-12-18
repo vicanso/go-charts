@@ -154,14 +154,10 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 			}
 			data[j] = sd
 		}
-		yAxisType := chart.YAxisPrimary
-		if item.YAxisIndex != 0 {
-			yAxisType = chart.YAxisSecondary
-		}
 		series[index] = Series{
-			YAxis: yAxisType,
-			Data:  data,
-			Type:  item.Type,
+			YAxisIndex: item.YAxisIndex,
+			Data:       data,
+			Type:       item.Type,
 		}
 	}
 	return series, tickPosition

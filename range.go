@@ -50,3 +50,11 @@ func (r Range) Translate(value float64) int {
 	}
 	return v
 }
+
+type HiddenRange struct {
+	chart.ContinuousRange
+}
+
+func (r HiddenRange) GetDelta() float64 {
+	return 0
+}

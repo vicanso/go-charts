@@ -32,11 +32,11 @@ type SeriesData struct {
 }
 
 type Series struct {
-	Type    string
-	Name    string
-	Data    []SeriesData
-	XValues []float64
-	YAxis   chart.YAxisType
+	Type       string
+	Name       string
+	Data       []SeriesData
+	XValues    []float64
+	YAxisIndex int
 }
 
 const lineStrokeWidth = 2
@@ -103,7 +103,10 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 			Style:        style,
 			YValues:      yValues,
 			TickPosition: tickPosition,
-			YAxis:        item.YAxis,
+			YAxis:        chart.YAxisSecondary,
+		}
+		if item.YAxisIndex != 0 {
+			baseSeries.YAxis = chart.YAxisPrimary
 		}
 		// TODO 判断类型
 		switch item.Type {

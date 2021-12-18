@@ -42,6 +42,7 @@ type (
 
 type YAxisOption struct {
 	Formater chart.ValueFormatter
+	Disabled bool
 }
 
 const axisStrokeWidth = 1
@@ -111,46 +112,6 @@ func defaultFloatFormater(v interface{}) string {
 }
 
 func GetSecondaryYAxis(theme string, option *YAxisOption) chart.YAxis {
-	// TODO
-	if theme == ThemeDark {
-		return chart.YAxis{}
-	}
-	// strokeColor := drawing.Color{
-	// 	R: 224,
-	// 	G: 230,
-	// 	B: 241,
-	// 	A: 255,
-	// }
-	formater := defaultFloatFormater
-	if option != nil {
-		if option.Formater != nil {
-			formater = option.Formater
-		}
-	}
-	hidden := chart.Hidden()
-	return chart.YAxis{
-		ValueFormatter: formater,
-		AxisType:       chart.YAxisPrimary,
-		GridMajorStyle: hidden,
-		GridMinorStyle: hidden,
-		Style: chart.Style{
-			FontColor: getAxisColor(theme),
-			// alpha 0，隐藏
-			StrokeColor: hiddenColor,
-			StrokeWidth: axisStrokeWidth,
-		},
-	}
-	// c := chart.Hidden()
-	// return chart.YAxis{
-	// 	ValueFormatter: defaultFloatFormater,
-	// 	AxisType:       chart.YAxisPrimary,
-	// 	GridMajorStyle: c,
-	// 	GridMinorStyle: c,
-	// 	Style:          c,
-	// }
-}
-
-func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
 	strokeColor := getGridColor(theme)
 	formater := defaultFloatFormater
 	if option != nil {
@@ -176,4 +137,35 @@ func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
 			StrokeWidth: axisStrokeWidth,
 		},
 	}
+}
+
+func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
+	// strokeColor := getGridColor(theme)
+	formater := defaultFloatFormater
+	disabled := false
+	if option != nil {
+		if option.Formater != nil {
+			formater = option.Formater
+		}
+		disabled = option.Disabled
+	}
+	hidden := chart.Hidden()
+
+	yAxis := chart.YAxis{
+		ValueFormatter: formater,
+		AxisType:       chart.YAxisPrimary,
+		GridMajorStyle: hidden,
+		GridMinorStyle: hidden,
+		Style: chart.Style{
+			FontColor: getAxisColor(theme),
+			// alpha 0，隐藏
+			StrokeColor: hiddenColor,
+			StrokeWidth: axisStrokeWidth,
+		},
+	}
+	if disabled {
+		yAxis.Range = &HiddenRange{}
+		yAxis.Style.Hidden = true
+	}
+	return yAxis
 }

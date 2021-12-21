@@ -51,55 +51,55 @@ type BaseSeries struct {
 }
 
 // GetName returns the name of the time series.
-func (cs BaseSeries) GetName() string {
-	return cs.Name
+func (bs BaseSeries) GetName() string {
+	return bs.Name
 }
 
 // GetStyle returns the line style.
-func (cs BaseSeries) GetStyle() chart.Style {
-	return cs.Style
+func (bs BaseSeries) GetStyle() chart.Style {
+	return bs.Style
 }
 
 // Len returns the number of elements in the series.
-func (cs BaseSeries) Len() int {
+func (bs BaseSeries) Len() int {
 	offset := 0
-	if cs.TickPosition == chart.TickPositionBetweenTicks {
+	if bs.TickPosition == chart.TickPositionBetweenTicks {
 		offset = -1
 	}
-	return len(cs.XValues) + offset
+	return len(bs.XValues) + offset
 }
 
 // GetValues gets the x,y values at a given index.
-func (cs BaseSeries) GetValues(index int) (float64, float64) {
-	if cs.TickPosition == chart.TickPositionBetweenTicks {
+func (bs BaseSeries) GetValues(index int) (float64, float64) {
+	if bs.TickPosition == chart.TickPositionBetweenTicks {
 		index++
 	}
-	return cs.XValues[index], cs.YValues[index]
+	return bs.XValues[index], bs.YValues[index]
 }
 
 // GetFirstValues gets the first x,y values.
-func (cs BaseSeries) GetFirstValues() (float64, float64) {
+func (bs BaseSeries) GetFirstValues() (float64, float64) {
 	index := 0
-	if cs.TickPosition == chart.TickPositionBetweenTicks {
+	if bs.TickPosition == chart.TickPositionBetweenTicks {
 		index++
 	}
-	return cs.XValues[index], cs.YValues[index]
+	return bs.XValues[index], bs.YValues[index]
 }
 
 // GetLastValues gets the last x,y values.
-func (cs BaseSeries) GetLastValues() (float64, float64) {
-	return cs.XValues[len(cs.XValues)-1], cs.YValues[len(cs.YValues)-1]
+func (bs BaseSeries) GetLastValues() (float64, float64) {
+	return bs.XValues[len(bs.XValues)-1], bs.YValues[len(bs.YValues)-1]
 }
 
 // GetValueFormatters returns value formatter defaults for the series.
-func (cs BaseSeries) GetValueFormatters() (x, y chart.ValueFormatter) {
-	if cs.XValueFormatter != nil {
-		x = cs.XValueFormatter
+func (bs BaseSeries) GetValueFormatters() (x, y chart.ValueFormatter) {
+	if bs.XValueFormatter != nil {
+		x = bs.XValueFormatter
 	} else {
 		x = chart.FloatValueFormatter
 	}
-	if cs.YValueFormatter != nil {
-		y = cs.YValueFormatter
+	if bs.YValueFormatter != nil {
+		y = bs.YValueFormatter
 	} else {
 		y = chart.FloatValueFormatter
 	}
@@ -107,26 +107,26 @@ func (cs BaseSeries) GetValueFormatters() (x, y chart.ValueFormatter) {
 }
 
 // GetYAxis returns which YAxis the series draws on.
-func (cs BaseSeries) GetYAxis() chart.YAxisType {
-	return cs.YAxis
+func (bs BaseSeries) GetYAxis() chart.YAxisType {
+	return bs.YAxis
 }
 
 // Render renders the series.
-func (cs BaseSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
+func (bs BaseSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
 	fmt.Println("should be override the function")
 }
 
 // Validate validates the series.
-func (cs BaseSeries) Validate() error {
-	if len(cs.XValues) == 0 {
+func (bs BaseSeries) Validate() error {
+	if len(bs.XValues) == 0 {
 		return fmt.Errorf("continuous series; must have xvalues set")
 	}
 
-	if len(cs.YValues) == 0 {
+	if len(bs.YValues) == 0 {
 		return fmt.Errorf("continuous series; must have yvalues set")
 	}
 
-	if len(cs.XValues) != len(cs.YValues) {
+	if len(bs.XValues) != len(bs.YValues) {
 		return fmt.Errorf("continuous series; must have same length xvalues as yvalues")
 	}
 	return nil

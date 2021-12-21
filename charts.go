@@ -70,10 +70,10 @@ type Graph interface {
 }
 
 func (o *Options) validate() error {
-	xAxisCount := len(o.XAxis.Data)
 	if len(o.Series) == 0 {
 		return errors.New("series can not be empty")
 	}
+	xAxisCount := len(o.XAxis.Data)
 
 	for _, item := range o.Series {
 		if item.Type != SeriesPie && len(item.Data) != xAxisCount {
@@ -81,6 +81,29 @@ func (o *Options) validate() error {
 		}
 	}
 	return nil
+}
+
+func (o *Options) getWidth() int {
+	width := o.Width
+	if width <= 0 {
+		width = DefaultChartWidth
+	}
+	return width
+}
+
+func (o *Options) getHeight() int {
+	height := o.Height
+	if height <= 0 {
+		height = DefaultChartHeight
+	}
+	return height
+}
+
+func (o *Options) getBackground() chart.Style {
+	bg := chart.Style{
+		Padding: o.Padding,
+	}
+	return bg
 }
 
 func render(g Graph, rp chart.RendererProvider) ([]byte, error) {
@@ -99,46 +122,32 @@ func ToPNG(g Graph) ([]byte, error) {
 func ToSVG(g Graph) ([]byte, error) {
 	return render(g, chart.SVG)
 }
-func New(opt Options) (Graph, error) {
-	err := opt.validate()
-	if err != nil {
-		return nil, err
-	}
-	tickPosition := opt.TickPosition
-	width := opt.Width
-	if width <= 0 {
-		width = DefaultChartWidth
-	}
-	height := opt.Height
-	if height <= 0 {
-		height = DefaultChartHeight
-	}
-	bg := chart.Style{
-		Padding: opt.Padding,
-	}
-	if opt.Series[0].Type == SeriesPie {
-		values := make(chart.Values, len(opt.Series))
-		for index, item := range opt.Series {
-			values[index] = chart.Value{
-				Value: item.Data[0].Value,
-				Label: item.Name,
-			}
+
+func newPieChart(opt Options) *chart.PieChart {
+	values := make(chart.Values, len(opt.Series))
+	for index, item := range opt.Series {
+		values[index] = chart.Value{
+			Value: item.Data[0].Value,
+			Label: item.Name,
 		}
-		g := &chart.PieChart{
-			Background: bg,
-			Title:      opt.Title.Text,
-			TitleStyle: opt.Title.Style,
-			Width:      width,
-			Height:     height,
-			Values:     values,
-			ColorPalette: &PieThemeColorPalette{
-				ThemeColorPalette: ThemeColorPalette{
-					Theme: opt.Theme,
-				},
+	}
+	return &chart.PieChart{
+		Background: opt.getBackground(),
+		Title:      opt.Title.Text,
+		TitleStyle: opt.Title.Style,
+		Width:      opt.getWidth(),
+		Height:     opt.getHeight(),
+		Values:     values,
+		ColorPalette: &PieThemeColorPalette{
+			ThemeColorPalette: ThemeColorPalette{
+				Theme: opt.Theme,
 			},
-		}
-		return g, nil
+		},
 	}
+}
+
+func newChart(opt Options) *chart.Chart {
+	tickPosition := opt.TickPosition
 
 	xAxis, xValues := GetXAxisAndValues(opt.XAxis, tickPosition, opt.Theme)
 
@@ -164,16 +173,16 @@ func New(opt Options) (Graph, error) {
 		yAxisOption = opt.YAxisOptions[1]
 	}
 
-	g := &chart.Chart{
+	c := &chart.Chart{
 		Log:        opt.Log,
-		Background: bg,
+		Background: opt.getBackground(),
 		ColorPalette: &ThemeColorPalette{
 			Theme: opt.Theme,
 		},
 		Title:          opt.Title.Text,
 		TitleStyle:     opt.Title.Style,
-		Width:          width,
-		Height:         height,
+		Width:          opt.getWidth(),
+		Height:         opt.getHeight(),
 		XAxis:          xAxis,
 		YAxis:          GetYAxis(opt.Theme, yAxisOption),
 		YAxisSecondary: GetSecondaryYAxis(opt.Theme, secondaryYAxisOption),
@@ -182,8 +191,8 @@ func New(opt Options) (Graph, error) {
 
 	// 设置secondary的样式
 	if legendSize != 0 {
-		g.Elements = []chart.Renderable{
-			LegendCustomize(g, LegendOption{
+		c.Elements = []chart.Renderable{
+			LegendCustomize(c.Series, LegendOption{
 				Theme:        opt.Theme,
 				TextPosition: LegendTextPositionRight,
 				IconDraw:     DefaultLegendIconDraw,
@@ -192,5 +201,17 @@ func New(opt Options) (Graph, error) {
 			}),
 		}
 	}
-	return g, nil
+	return c
+}
+
+func New(opt Options) (Graph, error) {
+	err := opt.validate()
+	if err != nil {
+		return nil, err
+	}
+	if opt.Series[0].Type == SeriesPie {
+		return newPieChart(opt), nil
+	}
+
+	return newChart(opt), nil
 }

@@ -59,8 +59,8 @@ func DefaultLegendIconDraw(r chart.Renderer, opt LegendIconDrawOption) {
 		return
 	}
 	r.SetStrokeColor(opt.Style.GetStrokeColor())
-	stokeWidth := opt.Style.GetStrokeWidth()
-	r.SetStrokeWidth(stokeWidth)
+	strokeWidth := opt.Style.GetStrokeWidth()
+	r.SetStrokeWidth(strokeWidth)
 	height := opt.Box.Bottom - opt.Box.Top
 	ly := opt.Box.Top - (height / 2) + 2
 	r.MoveTo(opt.Box.Left, ly)
@@ -71,7 +71,7 @@ func DefaultLegendIconDraw(r chart.Renderer, opt LegendIconDrawOption) {
 	r.FillStroke()
 }
 
-func LegendCustomize(c *chart.Chart, opt LegendOption) chart.Renderable {
+func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 	return func(r chart.Renderer, cb chart.Box, chartDefaults chart.Style) {
 		legendDefaults := chart.Style{
 			FontColor:   getTextColor(opt.Theme),
@@ -87,7 +87,7 @@ func LegendCustomize(c *chart.Chart, opt LegendOption) chart.Renderable {
 
 		var labels []string
 		var lines []chart.Style
-		for _, s := range c.Series {
+		for _, s := range series {
 			if !s.GetStyle().Hidden {
 				if _, isAnnotationSeries := s.(chart.AnnotationSeries); !isAnnotationSeries {
 					labels = append(labels, s.GetName())

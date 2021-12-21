@@ -72,6 +72,7 @@ func TestBarSeriesGetWidthValues(t *testing.T) {
 		barWidth:     80,
 	}, widthValues)
 
+	// 指定margin
 	bs.Margin = 5
 	widthValues = bs.getWidthValues(300)
 	assert.Equal(barSeriesWidthValues{
@@ -81,6 +82,7 @@ func TestBarSeriesGetWidthValues(t *testing.T) {
 		barWidth:     80,
 	}, widthValues)
 
+	// 指定bar的宽度
 	bs.BarWidth = 60
 	widthValues = bs.getWidthValues(300)
 	assert.Equal(barSeriesWidthValues{
@@ -89,7 +91,6 @@ func TestBarSeriesGetWidthValues(t *testing.T) {
 		margin:       5,
 		barWidth:     60,
 	}, widthValues)
-
 }
 
 func TestBarSeriesRender(t *testing.T) {

@@ -112,12 +112,15 @@ func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
 	default:
 		result := make([]int, 4)
 		copy(result, arr)
+		if len(arr) == 3 {
+			result[3] = result[1]
+		}
 		// 上右下左
 		ep.box = chart.Box{
-			Top:    arr[0],
-			Right:  arr[1],
-			Bottom: arr[2],
-			Left:   arr[3],
+			Top:    result[0],
+			Right:  result[1],
+			Bottom: result[2],
+			Left:   result[3],
 		}
 	}
 	return nil

@@ -23,23 +23,32 @@
 package charts
 
 import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-type LineSeries struct {
-	BaseSeries
-}
+func TestRange(t *testing.T) {
+	assert := assert.New(t)
 
-func (ls LineSeries) getXRange(xrange chart.Range) chart.Range {
-	if ls.TickPosition != chart.TickPositionBetweenTicks {
-		return xrange
+	r := Range{
+		ContinuousRange: chart.ContinuousRange{
+			Min:    0,
+			Max:    5,
+			Domain: 500,
+		},
 	}
-	// 如果是居中，画线时重新调整
-	return wrapRange(xrange, ls.TickPosition)
+
+	assert.Equal(100, r.Translate(1))
+
+	r.TickPosition = chart.TickPositionBetweenTicks
+	assert.Equal(50, r.Translate(1))
 }
 
-func (ls LineSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
-	style := ls.Style.InheritFrom(defaults)
-	xrange = ls.getXRange(xrange)
-	chart.Draw.LineSeries(r, canvasBox, xrange, yrange, style, ls)
+func TestHiddenRange(t *testing.T) {
+	assert := assert.New(t)
+	r := HiddenRange{}
+
+	assert.Equal(float64(0), r.GetDelta())
 }

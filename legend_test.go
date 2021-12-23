@@ -41,22 +41,39 @@ func TestLegendCustomize(t *testing.T) {
 			Name: "edge",
 		},
 	}, chart.TickPositionBetweenTicks, "")
-	r, err := chart.SVG(800, 600)
-	assert.Nil(err)
-	fn := LegendCustomize(series, LegendOption{
-		TextPosition: LegendTextPositionRight,
-		IconDraw:     DefaultLegendIconDraw,
-		Align:        LegendAlignLeft,
-		Padding: chart.Box{
-			Left: 100,
-			Top:  100,
+
+	tests := []struct {
+		textPosition string
+		svg          string
+	}{
+		{
+			textPosition: LegendTextPositionRight,
+			svg:          "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<path  d=\"M 100 100\nL 208 100\nL 208 110\nL 100 110\nL 100 100\" style=\"stroke-width:0;stroke:rgba(51,51,51,1.0);fill:none\"/><path  d=\"M 100 107\nL 125 107\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:none\"/><circle cx=\"112\" cy=\"107\" r=\"5\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"130\" y=\"110\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">chrome</text><path  d=\"M 185 107\nL 210 107\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"197\" cy=\"107\" r=\"5\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"215\" y=\"110\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">edge</text></svg>",
 		},
-	})
-	fn(r, chart.NewBox(11, 47, 784, 373), chart.Style{
-		Font: chart.StyleTextDefaults().Font,
-	})
-	buf := bytes.Buffer{}
-	err = r.Save(&buf)
-	assert.Nil(err)
-	assert.Equal("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<path  d=\"M 100 100\nL 208 100\nL 208 110\nL 100 110\nL 100 100\" style=\"stroke-width:0;stroke:rgba(51,51,51,1.0);fill:none\"/><path  d=\"M 100 107\nL 125 107\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:none\"/><circle cx=\"112\" cy=\"107\" r=\"5\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"130\" y=\"110\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">chrome</text><path  d=\"M 185 107\nL 210 107\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"197\" cy=\"107\" r=\"5\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"215\" y=\"110\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">edge</text></svg>", buf.String())
+		{
+			textPosition: LegendAlignLeft,
+			svg:          "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<path  d=\"M 100 100\nL 208 100\nL 208 110\nL 100 110\nL 100 100\" style=\"stroke-width:0;stroke:rgba(51,51,51,1.0);fill:none\"/><text x=\"100\" y=\"110\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">chrome</text><path  d=\"M 140 107\nL 165 107\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:none\"/><circle cx=\"152\" cy=\"107\" r=\"5\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"185\" y=\"110\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">edge</text><path  d=\"M 213 107\nL 238 107\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"225\" cy=\"107\" r=\"5\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/></svg>",
+		},
+	}
+
+	for _, tt := range tests {
+		r, err := chart.SVG(800, 600)
+		assert.Nil(err)
+		fn := LegendCustomize(series, LegendOption{
+			TextPosition: tt.textPosition,
+			IconDraw:     DefaultLegendIconDraw,
+			Align:        LegendAlignLeft,
+			Padding: chart.Box{
+				Left: 100,
+				Top:  100,
+			},
+		})
+		fn(r, chart.NewBox(11, 47, 784, 373), chart.Style{
+			Font: chart.StyleTextDefaults().Font,
+		})
+		buf := bytes.Buffer{}
+		err = r.Save(&buf)
+		assert.Nil(err)
+		assert.Equal(tt.svg, buf.String())
+	}
 }

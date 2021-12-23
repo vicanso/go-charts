@@ -87,6 +87,7 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 
 		var labels []string
 		var lines []chart.Style
+		// 计算label和lines
 		for _, s := range series {
 			if !s.GetStyle().Hidden {
 				if _, isAnnotationSeries := s.(chart.AnnotationSeries); !isAnnotationSeries {
@@ -100,6 +101,7 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 		var textWidth int
 		var textBox chart.Box
 		labelWidth := 0
+		// 计算文本宽度与高度（取最大值）
 		for x := 0; x < len(labels); x++ {
 			if len(labels[x]) > 0 {
 				textBox = r.MeasureText(labels[x])

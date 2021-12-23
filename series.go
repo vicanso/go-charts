@@ -108,7 +108,6 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 		if item.YAxisIndex != 0 {
 			baseSeries.YAxis = chart.YAxisPrimary
 		}
-		// TODO 判断类型
 		switch item.Type {
 		case SeriesBar:
 			arr[index] = BarSeries{

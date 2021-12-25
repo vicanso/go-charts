@@ -37,6 +37,7 @@ type Series struct {
 	Data       []SeriesData
 	XValues    []float64
 	YAxisIndex int
+	Style      chart.Style
 }
 
 const lineStrokeWidth = 2
@@ -74,6 +75,10 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 			// TODO 调整为通过dot with color 生成
 			DotColor: getSeriesColor(theme, index),
 			DotWidth: dotWith,
+		}
+		if !item.Style.StrokeColor.IsZero() {
+			style.StrokeColor = item.Style.StrokeColor
+			style.DotColor = item.Style.StrokeColor
 		}
 		pointIndexOffset := 0
 		// 如果居中，需要多增加一个点

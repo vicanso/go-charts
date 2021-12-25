@@ -28,6 +28,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func TestConvertToArray(t *testing.T) {
@@ -288,6 +289,9 @@ func TestParseECharsOptions(t *testing.T) {
 			{
 				"name": "Precipitation",
 				"type": "bar",
+				"itemStyle": {
+					"color": "#0052d9"
+				},
 				"data": [2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6]
 			},
 			{
@@ -368,6 +372,20 @@ func TestParseECharsOptions(t *testing.T) {
 					2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6,
 				}),
 				Type: SeriesBar,
+				Style: chart.Style{
+					StrokeColor: drawing.Color{
+						R: 0,
+						G: 82,
+						B: 217,
+						A: 255,
+					},
+					FillColor: drawing.Color{
+						R: 0,
+						G: 82,
+						B: 217,
+						A: 255,
+					},
+				},
 			},
 			{
 				Data: NewSeriesDataListFromFloat([]float64{

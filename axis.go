@@ -50,6 +50,16 @@ type YAxisOption struct {
 
 const axisStrokeWidth = 1
 
+func maxInt(values ...int) int {
+	result := 0
+	for _, v := range values {
+		if v > result {
+			result = v
+		}
+	}
+	return result
+}
+
 // GetXAxisAndValues returns x axis by theme, and the values of axis.
 func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme string) (chart.XAxis, []float64) {
 	data := xAxis.Data
@@ -66,10 +76,8 @@ func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme strin
 	xValues := make([]float64, size)
 	ticks := make([]chart.Tick, 0)
 
-	maxTicks := xAxis.SplitNumber
-	if maxTicks == 0 {
-		maxTicks = 10
-	}
+	// tick width
+	maxTicks := maxInt(xAxis.SplitNumber, 10)
 
 	// 计息最多每个unit至少放多个
 	minUnitSize := originalSize / maxTicks

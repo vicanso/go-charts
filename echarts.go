@@ -188,6 +188,7 @@ type ECharsOptions struct {
 		Data       []ECharsSeriesData `json:"data"`
 		Type       string             `json:"type"`
 		YAxisIndex int                `json:"yAxisIndex"`
+		ItemStyle  EChartStyle        `json:"itemStyle"`
 	} `json:"series"`
 }
 
@@ -201,7 +202,15 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 	if seriesType == SeriesPie {
 		series := make([]Series, len(e.Series[0].Data))
 		for index, item := range e.Series[0].Data {
+			style := chart.Style{}
+			if item.ItemStyle.Color != "" {
+				c := parseColor(item.ItemStyle.Color)
+				style.FillColor = c
+				style.StrokeColor = c
+			}
+
 			series[index] = Series{
+				Style: style,
 				Data: []SeriesData{
 					{
 						Value: item.Value,
@@ -219,6 +228,12 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 		if item.Type == SeriesBar {
 			tickPosition = chart.TickPositionBetweenTicks
 		}
+		style := chart.Style{}
+		if item.ItemStyle.Color != "" {
+			c := parseColor(item.ItemStyle.Color)
+			style.FillColor = c
+			style.StrokeColor = c
+		}
 		data := make([]SeriesData, len(item.Data))
 		for j, itemData := range item.Data {
 			sd := SeriesData{
@@ -232,6 +247,7 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 			data[j] = sd
 		}
 		series[index] = Series{
+			Style:      style,
 			YAxisIndex: item.YAxisIndex,
 			Data:       data,
 			Type:       item.Type,
@@ -316,4 +332,24 @@ func ParseECharsOptions(options string) (Options, error) {
 	}
 
 	return e.ToOptions(), nil
+}
+
+func echartsRender(options string, rp chart.RendererProvider) ([]byte, error) {
+	o, err := ParseECharsOptions(options)
+	if err != nil {
+		return nil, err
+	}
+	g, err := New(o)
+	if err != nil {
+		return nil, err
+	}
+	return render(g, rp)
+}
+
+func RenderEChartsToPNG(options string) ([]byte, error) {
+	return echartsRender(options, chart.PNG)
+}
+
+func RenderEChartsToSVG(options string) ([]byte, error) {
+	return echartsRender(options, chart.SVG)
 }

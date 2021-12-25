@@ -9,32 +9,44 @@ import (
 
 var html = `<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" href="/favicon.ico" />
-	<link type="text/css" rel="styleSheet" href="https://unpkg.com/normalize.css@8.0.1/normalize.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<style>
-		h1 {
-			text-align: center;
-		}
-		pre {
-			width: 800px;
-			margin: auto auto 20px auto;
-			max-height: 300px;
-			overflow: auto;
-			display: block;
-		}
-		svg{
-			margin: auto auto 50px auto;
-			display: block;
-		}
-	</style>
-    <title>go-echarts</title>
-  </head>
-  <body>
-	{{body}}
-  </body>
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="/favicon.ico" />
+		<link type="text/css" rel="styleSheet" href="https://unpkg.com/normalize.css@8.0.1/normalize.css" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<style>
+			.charts {
+				width: 830px;
+				margin: 10px auto;
+				overflow: hidden;
+			}
+			.grid {
+				float: left;
+				margin-right: 10px;
+			}
+			.grid svg {
+				margin-bottom: 10px;
+			}
+			h1 {
+				text-align: center;
+			}
+			pre {
+				width: 100%;
+				margin: auto auto 20px auto;
+				max-height: 300px;
+				overflow: auto;
+				display: block;
+			}
+			svg{
+				margin: auto auto 50px auto;
+				display: block;
+			}
+		</style>
+		<title>go-echarts</title>
+	</head>
+	<body>
+		<div class="charts">{{body}}</div>
+	</body>
 </html>
 `
 
@@ -43,10 +55,9 @@ var chartOptions = []map[string]string{
 		"title": "折线图",
 		"option": `{
 	"title": {
-		"text": "line",
+		"text": "Line",
 		"textAlign": "left",
 		"textStyle": {
-			"color": "#333",
 			"fontSize": 24,
 			"height": 40
 		}
@@ -214,6 +225,9 @@ var chartOptions = []map[string]string{
 		{
 			"name": "Evaporation",
 			"type": "bar",
+			"itemStyle": {
+				"color": "#0052d9"
+			},
 			"data": [2, 4.9, 7, 23.2, 25.6, 76.7, 135.6]
 		},
 		{
@@ -241,7 +255,7 @@ var chartOptions = []map[string]string{
 	},
 	"xAxis": {
 		"type": "category",
-		"splitNumber": 12,
+		"splitNumber": 6,
 		"data": ["01-01","01-02","01-03","01-04","01-05","01-06","01-07","01-08","01-09","01-10","01-11","01-12","01-13","01-14","01-15","01-16","01-17","01-18","01-19","01-20","01-21","01-22","01-23","01-24","01-25","01-26","01-27","01-28","01-29","01-30","01-31"]
 	},
 	"yAxis": {
@@ -300,19 +314,35 @@ var chartOptions = []map[string]string{
 	},
 }
 
-func render(theme string) ([]byte, error) {
+type renderOptions struct {
+	theme      string
+	width      int
+	height     int
+	onlyCharts bool
+}
+
+func render(opts renderOptions) ([]byte, error) {
 	data := bytes.Buffer{}
 	for _, m := range chartOptions {
-		// if m["title"] != "多柱状图" {
-		// 	continue
-		// }
 		chartHTML := []byte(`<div>
 			<h1>{{title}}</h1>
 			<pre>{{option}}</pre>
 			{{svg}}
 		</div>`)
+		if opts.onlyCharts {
+			chartHTML = []byte(`<div class="grid">
+				{{svg}}
+			</div>`)
+		}
 		o, err := charts.ParseECharsOptions(m["option"])
-		o.Theme = theme
+		if opts.width > 0 {
+			o.Width = opts.width
+		}
+		if opts.height > 0 {
+			o.Height = opts.height
+		}
+
+		o.Theme = opts.theme
 		if err != nil {
 			return nil, err
 		}
@@ -333,8 +363,17 @@ func render(theme string) ([]byte, error) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	opts := renderOptions{
+		theme: query.Get("theme"),
+	}
+	if query.Get("view") == "grid" {
+		opts.width = 400
+		opts.height = 200
+		opts.onlyCharts = true
+	}
 
-	buf, err := render(r.URL.Query().Get("theme"))
+	buf, err := render(opts)
 	if err != nil {
 		w.WriteHeader(400)
 		w.Write([]byte(err.Error()))

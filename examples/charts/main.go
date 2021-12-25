@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net/http"
 
-	charts "github.com/vicanso/echarts"
+	charts "github.com/vicanso/go-echarts"
 )
 
 var html = `<!DOCTYPE html>

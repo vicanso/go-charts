@@ -1,4 +1,4 @@
-module github.com/vicanso/echarts
+module github.com/vicanso/go-echarts
 
 go 1.17
 

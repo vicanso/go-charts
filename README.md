@@ -22,7 +22,7 @@ package main
 import (
 	"os"
 
-	charts "github.com/vicanso/echarts"
+	charts "github.com/vicanso/go-echarts"
 )
 
 func main() {

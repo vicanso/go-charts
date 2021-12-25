@@ -1,11 +1,11 @@
-# go-echarts
+# go-charts
 
-[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vicanso/go-echarts/blob/master/LICENSE)
-[![Build Status](https://github.com/vicanso/go-echarts/workflows/Test/badge.svg)](https://github.com/vicanso/go-echarts/actions)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vicanso/go-charts/blob/master/LICENSE)
+[![Build Status](https://github.com/vicanso/go-charts/workflows/Test/badge.svg)](https://github.com/vicanso/go-charts/actions)
 
-`go-echarts`基于[go-chart](https://github.com/wcharczuk/go-chart)生成数据图表，支持`svg`与`png`的输出，`Apache ECharts`在前端开发中得到众多开发者的认可，`go-echarts`兼容`Apache ECharts`的配置参数，简单快捷的生成相似的图表(`svg`或`png`)，方便插入至Email或分享使用。下面为常用的几种图表截图(黑夜模式)：
+`go-charts`基于[go-chart](https://github.com/wcharczuk/go-chart)生成数据图表，支持`svg`与`png`的输出，`Apache ECharts`在前端开发中得到众多开发者的认可，`go-charts`兼容`Apache ECharts`的配置参数，简单快捷的生成相似的图表(`svg`或`png`)，方便插入至Email或分享使用。下面为常用的几种图表截图(黑夜模式)：
 
-![](./assets/go-echarts.png)
+![](./assets/go-charts.png)
 
 ## 支持图表类型
 
@@ -14,7 +14,7 @@
 
 ## 示例
 
-`go-echarts`兼容了`echarts`的参数配置，可简单的使用json形式的配置字符串则可快速生成图表。
+`go-charts`兼容了`echarts`的参数配置，可简单的使用json形式的配置字符串则可快速生成图表。
 
 ```go
 package main
@@ -22,7 +22,7 @@ package main
 import (
 	"os"
 
-	charts "github.com/vicanso/go-echarts"
+	charts "github.com/vicanso/go-charts"
 )
 
 func main() {
@@ -59,7 +59,7 @@ func main() {
   - `title.textStyle.color` 标题文字颜色
   - `title.textStyle.fontSize` 标题文字字体大小
   - `title.textStyle.height` 标题高度
-- `xAxis` 直角坐标系grid中的x轴，由于go-echarts仅支持单一个x轴，因此若参数为数组多个x轴，只使用第一个配置
+- `xAxis` 直角坐标系grid中的x轴，由于go-charts仅支持单一个x轴，因此若参数为数组多个x轴，只使用第一个配置
   - `xAxis.boundaryGap` 坐标轴两边留白策略，仅支持三种设置方式`null`, `true`或者`false`。`null`或`true`时则数据点展示在两个刻度中间
   - `xAxis.splitNumber` 坐标轴的分割段数，需要注意的是这个分割段数只是个预估值，最后实际显示的段数会在这个基础上根据分割后坐标轴刻度显示的易读程度作调整
   - `xAxis.data` x轴的展示文案，暂只支持字符串数组，如["Mon", "Tue"]，其数量需要与展示点一致

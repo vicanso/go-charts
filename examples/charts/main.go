@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"net/http"
 
-	charts "github.com/vicanso/go-echarts"
+	charts "github.com/vicanso/go-charts"
 )
 
 var html = `<!DOCTYPE html>
@@ -42,7 +42,7 @@ var html = `<!DOCTYPE html>
 				display: block;
 			}
 		</style>
-		<title>go-echarts</title>
+		<title>go-charts</title>
 	</head>
 	<body>
 		<div class="charts">{{body}}</div>

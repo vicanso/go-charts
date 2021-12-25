@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	charts "github.com/vicanso/go-echarts"
+	charts "github.com/vicanso/go-charts"
 )
 
 func main() {

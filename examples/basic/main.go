@@ -24,5 +24,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	os.WriteFile("output.png", buf, 0600)
+	file, err := os.Create("output.png")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	file.Write(buf)
 }

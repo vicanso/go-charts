@@ -1,0 +1,50 @@
+body {
+    font-family: BlinkMacSystemFont,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    height: 100vh;
+    background-color: #242424;
+}
+.header {
+    height: 60px;
+    line-height: 60px;
+    color: #fff; 
+    font-size: 16px;
+    background-color: #383838;
+    text-indent: 2em;
+}
+.codeWrapper {
+    position: fixed;
+    left: 0;
+    right: 50%;
+    top: 60px;
+    bottom: 50px;
+    background-color: #d6dbe3;
+}
+.previewWrapper {
+    position: fixed;
+    left: 50%;
+    right: 0;
+    top: 60px;
+    bottom: 50px;
+}
+.run {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0; 
+    height: 50px;
+    line-height: 50px;
+    background-color: #0052D9;
+    color: #fff;
+    text-align: center;
+    font-size: 16px;
+    text-decoration: none;
+}
+.run:active, .run:visited {
+    color: #fff;
+}
+
+svg {
+    display: block;
+    margin: 30px auto;
+}

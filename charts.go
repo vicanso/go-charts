@@ -49,6 +49,10 @@ type (
 		Data    []string
 		Align   string
 		Padding chart.Box
+		Left    string
+		Right   string
+		Top     string
+		Bottom  string
 	}
 	Options struct {
 		Padding      chart.Box
@@ -193,11 +197,14 @@ func newChart(opt Options) *chart.Chart {
 	if legendSize != 0 {
 		c.Elements = []chart.Renderable{
 			LegendCustomize(c.Series, LegendOption{
-				Theme:        opt.Theme,
-				TextPosition: LegendTextPositionRight,
-				IconDraw:     DefaultLegendIconDraw,
-				Align:        opt.Legend.Align,
-				Padding:      opt.Legend.Padding,
+				Theme:    opt.Theme,
+				IconDraw: DefaultLegendIconDraw,
+				Align:    opt.Legend.Align,
+				Padding:  opt.Legend.Padding,
+				Left:     opt.Legend.Left,
+				Right:    opt.Legend.Right,
+				Top:      opt.Legend.Top,
+				Bottom:   opt.Legend.Bottom,
 			}),
 		}
 	}

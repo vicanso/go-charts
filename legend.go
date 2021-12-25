@@ -23,16 +23,22 @@
 package charts
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/wcharczuk/go-chart/v2"
 )
 
 type LegendOption struct {
-	Style        chart.Style
-	Padding      chart.Box
-	Align        string
-	TextPosition string
-	Theme        string
-	IconDraw     LegendIconDraw
+	Style    chart.Style
+	Padding  chart.Box
+	Left     string
+	Right    string
+	Top      string
+	Bottom   string
+	Align    string
+	Theme    string
+	IconDraw LegendIconDraw
 }
 
 type LegendIconDrawOption struct {
@@ -43,13 +49,8 @@ type LegendIconDrawOption struct {
 }
 
 const (
-	LegendAlignLeft   = "left"
-	LegendAlignCenter = "center"
-	LegendAlignRight  = "right"
-)
-
-const (
-	LegendTextPositionRight = "right"
+	LegendAlignLeft  = "left"
+	LegendAlignRight = "right"
 )
 
 type LegendIconDraw func(r chart.Renderer, opt LegendIconDrawOption)
@@ -69,6 +70,61 @@ func DefaultLegendIconDraw(r chart.Renderer, opt LegendIconDrawOption) {
 	r.SetFillColor(getBackgroundColor(opt.Theme))
 	r.Circle(5, (opt.Box.Left+opt.Box.Right)/2, ly)
 	r.FillStroke()
+}
+
+func covertPercent(value string) float64 {
+	if !strings.HasSuffix(value, "%") {
+		return -1
+	}
+	v, err := strconv.Atoi(strings.ReplaceAll(value, "%", ""))
+	if err != nil {
+		return -1
+	}
+	return float64(v) / 100
+}
+
+func getLegendLeft(width, legendBoxWidth int, opt LegendOption) int {
+	left := (width - legendBoxWidth) / 2
+	leftValue := opt.Left
+	if leftValue == "auto" || leftValue == "center" {
+		leftValue = ""
+	}
+	if leftValue == "left" {
+		leftValue = "0"
+	}
+
+	rightValue := opt.Right
+	if rightValue == "auto" || leftValue == "center" {
+		rightValue = ""
+	}
+	if rightValue == "right" {
+		rightValue = "0"
+	}
+	if leftValue == "" && rightValue == "" {
+		return left
+	}
+	if leftValue != "" {
+		percent := covertPercent(leftValue)
+		if percent >= 0 {
+			return int(float64(width) * percent)
+		}
+		v, _ := strconv.Atoi(leftValue)
+		return v
+	}
+	if rightValue != "" {
+		percent := covertPercent(rightValue)
+		if percent >= 0 {
+			return width - legendBoxWidth - int(float64(width)*percent)
+		}
+		v, _ := strconv.Atoi(rightValue)
+		return width - legendBoxWidth - v
+	}
+	return left
+}
+
+func getLegendTop(height, legendBoxHeight int, opt LegendOption) int {
+	// TODO 支持top的处理
+	return 0
 }
 
 func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
@@ -115,26 +171,23 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 		chartPadding := cb.Top
 		legendYMargin := (chartPadding - legendBoxHeight) >> 1
 
-		lineLengthMinimum := 25
+		iconWidth := 25
+		lineTextGap := 5
 
-		labelWidth += lineLengthMinimum * len(labels)
+		iconAllWidth := iconWidth * len(labels)
+		spaceAllWidth := chart.DefaultMinimumTickHorizontalSpacing * (len(labels) - 1)
 
-		left := 0
-		switch opt.Align {
-		case LegendAlignLeft:
-			left = 0
-		case LegendAlignRight:
-			left = cb.Width() - labelWidth
-		default:
-			left = (cb.Width() - labelWidth) / 2
-		}
+		legendBoxWidth := labelWidth + iconAllWidth + spaceAllWidth
+
+		left := getLegendLeft(cb.Width(), legendBoxWidth, opt)
+		top := getLegendTop(cb.Height(), legendBoxHeight, opt)
 
 		left += opt.Padding.Left
-		top := opt.Padding.Top
+		top += opt.Padding.Top
 
 		legendBox := chart.Box{
 			Left:   left,
-			Right:  left + labelWidth,
+			Right:  left + legendBoxWidth,
 			Top:    top,
 			Bottom: top + legendBoxHeight,
 		}
@@ -145,8 +198,6 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 		r.SetFontColor(legendStyle.GetFontColor())
 		r.SetFontSize(legendStyle.GetFontSize())
 
-		lineTextGap := 5
-
 		startX := legendBox.Left + legendStyle.Padding.Left
 		ty := top + legendYMargin + legendStyle.Padding.Top + textHeight
 		var label string
@@ -155,13 +206,17 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 		if iconDraw == nil {
 			iconDraw = DefaultLegendIconDraw
 		}
+		align := opt.Align
+		if align == "" {
+			align = LegendAlignLeft
+		}
 		for index := range labels {
 			label = labels[index]
 			if len(label) > 0 {
 				x = startX
 
-				// 如果文本靠左显示
-				if opt.TextPosition != LegendTextPositionRight {
+				// 如果图例标记靠右展示
+				if align == LegendAlignRight {
 					textBox = r.MeasureText(label)
 					r.Text(label, x, ty)
 					x = startX + textBox.Width() + lineTextGap
@@ -175,20 +230,21 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 					Box: chart.Box{
 						Left:   x,
 						Top:    ty,
-						Right:  x + lineLengthMinimum,
+						Right:  x + iconWidth,
 						Bottom: ty + textHeight,
 					},
 				})
-				x += (lineLengthMinimum + lineTextGap)
+				x += (iconWidth + lineTextGap)
 
-				// 如果文本靠右显示
-				if opt.TextPosition == LegendTextPositionRight {
+				// 如果图例标记靠左展示
+				if align == LegendAlignLeft {
 					textBox = r.MeasureText(label)
 					r.Text(label, x, ty)
+					x += textBox.Width()
 				}
 
 				// 计算下一个legend的位置
-				startX += textBox.Width() + chart.DefaultMinimumTickHorizontalSpacing + lineTextGap + lineLengthMinimum
+				startX = x + chart.DefaultMinimumTickHorizontalSpacing
 			}
 		}
 	}

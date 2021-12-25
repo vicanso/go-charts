@@ -25,6 +25,7 @@ package charts
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -81,6 +82,19 @@ type EChartsPadding struct {
 	box chart.Box
 }
 
+type LegendPostion string
+
+func (lp *LegendPostion) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+	if regexp.MustCompile(`^\d+`).Match(data) {
+		data = []byte(fmt.Sprintf(`"%s"`, string(data)))
+	}
+	s := (*string)(lp)
+	return json.Unmarshal(data, s)
+}
+
 func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
 	data = convertToArray(data)
 	if len(data) == 0 {
@@ -128,9 +142,9 @@ func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
 
 type EChartsYAxis struct {
 	Data []struct {
-		Min       *float64 `json:"min"`
-		Max       *float64 `json:"max"`
-		Interval  int      `json:"interval"`
+		Min *float64 `json:"min"`
+		Max *float64 `json:"max"`
+		// Interval  int      `json:"interval"`
 		AxisLabel struct {
 			Formatter string `json:"formatter"`
 		} `json:"axisLabel"`
@@ -147,7 +161,7 @@ func (ey *EChartsYAxis) UnmarshalJSON(data []byte) error {
 
 type EChartsXAxis struct {
 	Data []struct {
-		Type        string   `json:"type"`
+		// Type        string   `json:"type"`
 		BoundaryGap *bool    `json:"boundaryGap"`
 		SplitNumber int      `json:"splitNumber"`
 		Data        []string `json:"data"`
@@ -183,6 +197,10 @@ type ECharsOptions struct {
 		Data    []string       `json:"data"`
 		Align   string         `json:"align"`
 		Padding EChartsPadding `json:"padding"`
+		Left    LegendPostion  `json:"left"`
+		Right   LegendPostion  `json:"right"`
+		// Top     string         `json:"top"`
+		// Bottom  string         `json:"bottom"`
 	} `json:"legend"`
 	Series []struct {
 		Data       []ECharsSeriesData `json:"data"`
@@ -293,6 +311,8 @@ func (e *ECharsOptions) ToOptions() Options {
 		Data:    e.Legend.Data,
 		Align:   e.Legend.Align,
 		Padding: e.Legend.Padding.box,
+		Left:    string(e.Legend.Left),
+		Right:   string(e.Legend.Right),
 	}
 	if len(e.YAxis.Data) != 0 {
 		yAxisOptions := make([]*YAxisOption, len(e.YAxis.Data))

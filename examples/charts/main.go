@@ -86,7 +86,7 @@ var chartOptions = []map[string]string{
 	},
 	"legend": {
 		"align": "left",
-		"padding": [5, 0, 0, 50],
+		"right": 0,
 		"data": ["Email", "Union Ads", "Video Ads", "Direct", "Search Engine"]
 	},
 	"xAxis": {

@@ -80,3 +80,16 @@ func main() {
   - `series.data` 数据项对应的数据数组，支持以下形式的数据：
     - `数值` 常用形式，数组数据为浮点数组，如[1.1, 2,3, 5.2]
     - `结构体` pie图表或bar图表中指定样式使用，如[{"value": 1048, "name": "Search Engine"},{"value": 735,"name": "Direct"}]
+
+## 性能
+
+简单的图表生成PNG在20ms左右，而SVG的性能则更快，足已满足大量图表的生成需求。
+
+```bash
+goos: darwin
+goarch: amd64
+pkg: github.com/vicanso/go-charts
+cpu: Intel(R) Core(TM) i5-8257U CPU @ 1.40GHz
+BenchmarkEChartsRenderPNG-8           60          17765045 ns/op         2492854 B/op       1007 allocs/op
+BenchmarkEChartsRenderSVG-8          282           4303042 ns/op        32622688 B/op       2983 allocs/op
+```

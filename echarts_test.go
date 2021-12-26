@@ -398,9 +398,31 @@ func TestParseECharsOptions(t *testing.T) {
 	}, options)
 }
 
-func BenchmarkEChartsRender(b *testing.B) {
+func BenchmarkEChartsRenderPNG(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := RenderEChartsToPNG(`{
+			"title": {
+				"text": "Line"
+			},
+			"xAxis": {
+				"type": "category",
+				"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+			},
+			"series": [
+				{
+					"data": [150, 230, 224, 218, 135, 147, 260]
+				}
+			]
+		}`)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func BenchmarkEChartsRenderSVG(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_, err := RenderEChartsToSVG(`{
 			"title": {
 				"text": "Line"
 			},

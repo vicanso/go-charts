@@ -30,6 +30,6 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/go-
+        tags: ${{ secrets.DOCKER_HUB_USERNAME }}/go-charts
     - name: Image digest
       run: echo ${{ steps.docker_build.outputs.digest }}

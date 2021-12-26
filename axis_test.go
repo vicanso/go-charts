@@ -138,7 +138,7 @@ func TestSetYAxisOption(t *testing.T) {
 		Max: &max,
 	}
 	yAxis := &chart.YAxis{
-		Range: &chart.ContinuousRange{},
+		Range: newYContinuousRange(opt),
 	}
 	setYAxisOption(yAxis, opt)
 

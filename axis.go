@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"math"
+
 	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
 )
@@ -125,11 +127,26 @@ func defaultFloatFormater(v interface{}) string {
 	return humanize.CommafWithDigits(value, 2)
 }
 
+func newYContinuousRange(option *YAxisOption) *YContinuousRange {
+	m := YContinuousRange{}
+	m.Min = -math.MaxFloat64
+	m.Max = math.MaxFloat64
+	if option != nil {
+		if option.Min != nil {
+			m.Min = *option.Min
+		}
+		if option.Max != nil {
+			m.Max = *option.Max
+		}
+	}
+	return &m
+}
+
 // GetSecondaryYAxis returns the secondary y axis by theme
 func GetSecondaryYAxis(theme string, option *YAxisOption) chart.YAxis {
 	strokeColor := getGridColor(theme)
 	yAxis := chart.YAxis{
-		Range:          &chart.ContinuousRange{},
+		Range:          newYContinuousRange(option),
 		ValueFormatter: defaultFloatFormater,
 		AxisType:       chart.YAxisSecondary,
 		GridMajorStyle: chart.Style{
@@ -158,12 +175,6 @@ func setYAxisOption(yAxis *chart.YAxis, option *YAxisOption) {
 	if option.Formater != nil {
 		yAxis.ValueFormatter = option.Formater
 	}
-	if option.Max != nil {
-		yAxis.Range.SetMax(*option.Max)
-	}
-	if option.Min != nil {
-		yAxis.Range.SetMin(*option.Min)
-	}
 }
 
 // GetYAxis returns the primary y axis by theme
@@ -175,7 +186,7 @@ func GetYAxis(theme string, option *YAxisOption) chart.YAxis {
 	hidden := chart.Hidden()
 
 	yAxis := chart.YAxis{
-		Range:          &chart.ContinuousRange{},
+		Range:          newYContinuousRange(option),
 		ValueFormatter: defaultFloatFormater,
 		AxisType:       chart.YAxisPrimary,
 		GridMajorStyle: hidden,

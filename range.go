@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"math"
+
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -57,4 +59,35 @@ type HiddenRange struct {
 
 func (r HiddenRange) GetDelta() float64 {
 	return 0
+}
+
+// Y轴使用的continuous range
+// min 与max只允许设置一次
+// 如果是计算得出的max，增加20%的值并取整
+type YContinuousRange struct {
+	chart.ContinuousRange
+}
+
+func (m YContinuousRange) IsZero() bool {
+	// 默认返回true，允许修改
+	return true
+}
+
+func (m *YContinuousRange) SetMin(min float64) {
+	// 如果已修改，则忽略
+	if m.Min != -math.MaxFloat64 {
+		return
+	}
+	m.Min = min
+}
+
+func (m *YContinuousRange) SetMax(max float64) {
+	// 如果已修改，则忽略
+	if m.Max != math.MaxFloat64 {
+		return
+	}
+	// 此处为计算得来的最大值，放大20%
+	v := int(max * 1.2)
+	// TODO 是否要取整十整百
+	m.Max = float64(v)
 }

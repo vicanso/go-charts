@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"embed"
+	"fmt"
 	"time"
 
 	"github.com/vicanso/elton"
@@ -16,6 +17,12 @@ var webFS embed.FS
 func main() {
 	e := elton.New()
 
+	e.Use(middleware.NewLogger(middleware.LoggerConfig{
+		Format: middleware.LoggerCombined,
+		OnLog: func(s string, _ *elton.Context) {
+			fmt.Println(s)
+		},
+	}))
 	e.Use(middleware.NewDefaultError())
 	e.Use(middleware.NewDefaultBodyParser())
 
@@ -27,6 +34,11 @@ func main() {
 		DisableLastModified: true,
 		EnableStrongETag:    true,
 	}))
+
+	e.GET("/ping", func(c *elton.Context) error {
+		c.BodyBuffer = bytes.NewBufferString("pong")
+		return nil
+	})
 
 	e.GET("/", func(c *elton.Context) error {
 		buf, err := webFS.ReadFile("web/index.html")
@@ -46,7 +58,7 @@ func main() {
 		return nil
 	})
 
-	err := e.ListenAndServe(":3000")
+	err := e.ListenAndServe(":7001")
 	if err != nil {
 		panic(err)
 	}

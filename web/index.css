@@ -26,6 +26,17 @@ body {
     top: 60px;
     bottom: 50px;
 }
+.optionTips {
+    position: absolute;
+    top: 3px;
+    right: 10px;
+}
+.previewTips {
+    position: absolute;
+    top: 3px;
+    left: 10px;
+    color: #fff;
+}
 .run {
     display: block;
     position: fixed;
@@ -43,8 +54,12 @@ body {
 .run:active, .run:visited {
     color: #fff;
 }
-
+#svg {
+    position: absolute;
+    top: 50%;
+    margin-top: -200px;
+}
 svg {
     display: block;
-    margin: 30px auto;
+    margin: auto;
 }

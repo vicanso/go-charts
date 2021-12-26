@@ -3,7 +3,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vicanso/go-charts/blob/master/LICENSE)
 [![Build Status](https://github.com/vicanso/go-charts/workflows/Test/badge.svg)](https://github.com/vicanso/go-charts/actions)
 
-`go-charts`基于[go-chart](https://github.com/wcharczuk/go-chart)生成数据图表，支持`svg`与`png`的输出，`Apache ECharts`在前端开发中得到众多开发者的认可，`go-charts`兼容`Apache ECharts`的配置参数，简单快捷的生成相似的图表(`svg`或`png`)，方便插入至Email或分享使用。下面为常用的几种图表截图(黑夜模式)：
+`go-charts`基于[go-chart](https://github.com/wcharczuk/go-chart)生成数据图表，无其它模块的依赖纯golang的实现，支持`svg`与`png`的输出，`Apache ECharts`在前端开发中得到众多开发者的认可，`go-charts`兼容`Apache ECharts`的配置参数，简单快捷的生成相似的图表(`svg`或`png`)，方便插入至Email或分享使用。下面为常用的几种图表截图(黑夜模式)：
 
 ![go-charts](./assets/go-charts.png)
 

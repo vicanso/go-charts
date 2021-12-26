@@ -83,7 +83,9 @@ func main() {
 
 ## 性能
 
-简单的图表生成PNG在20ms左右，而SVG的性能则更快，足已满足大量图表的生成需求。
+
+
+简单的图表生成PNG在20ms左右，而SVG的性能则更快，性能上比起使用`chrome headless`加载`echarts`图表展示页面，截图生成的方式大幅度提升，基本能满足简单的图表生成需求。
 
 ```bash
 goos: darwin

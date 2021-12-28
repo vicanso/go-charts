@@ -184,8 +184,7 @@ type ECharsOptions struct {
 		// 暂不支持(go-chart默认title只能居中)
 		TextAlign string `json:"textAlign"`
 		TextStyle struct {
-			Color string `json:"color"`
-			// TODO 字体支持
+			Color      string  `json:"color"`
 			FontFamily string  `json:"fontFamily"`
 			FontSize   float64 `json:"fontSize"`
 			Height     float64 `json:"height"`
@@ -287,6 +286,10 @@ func (e *ECharsOptions) ToOptions() Options {
 			FontColor: parseColor(titleTextStyle.Color),
 			FontSize:  titleTextStyle.FontSize,
 		},
+	}
+	if e.Title.TextStyle.FontFamily != "" {
+		// 如果获取字体失败忽略
+		o.Font, _ = GetFont(e.Title.TextStyle.FontFamily)
 	}
 
 	if titleTextStyle.FontSize != 0 && titleTextStyle.Height > titleTextStyle.FontSize {

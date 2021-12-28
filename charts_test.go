@@ -28,7 +28,20 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/roboto"
 )
+
+func TestFont(t *testing.T) {
+	assert := assert.New(t)
+
+	fontFamily := "roboto"
+	err := InstallFont(fontFamily, roboto.Roboto)
+	assert.Nil(err)
+
+	font, err := GetFont(fontFamily)
+	assert.Nil(err)
+	assert.NotNil(font)
+}
 
 func TestChartsOptions(t *testing.T) {
 	assert := assert.New(t)

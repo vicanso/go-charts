@@ -26,7 +26,9 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"sync"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -66,8 +68,35 @@ type (
 		Legend       Legend
 		TickPosition chart.TickPosition
 		Log          chart.Logger
+		Font         *truetype.Font
 	}
 )
+
+var fonts = sync.Map{}
+var ErrFontNotExists = errors.New("font is not exists")
+
+// InstallFont installs the font for charts
+func InstallFont(fontFamily string, data []byte) error {
+	font, err := truetype.Parse(data)
+	if err != nil {
+		return err
+	}
+	fonts.Store(fontFamily, font)
+	return nil
+}
+
+// GetFont returns the font of font family
+func GetFont(fontFamily string) (*truetype.Font, error) {
+	value, ok := fonts.Load(fontFamily)
+	if !ok {
+		return nil, ErrFontNotExists
+	}
+	f, ok := value.(*truetype.Font)
+	if !ok {
+		return nil, ErrFontNotExists
+	}
+	return f, nil
+}
 
 type Graph interface {
 	Render(rp chart.RendererProvider, w io.Writer) error
@@ -136,6 +165,7 @@ func newPieChart(opt Options) *chart.PieChart {
 		}
 	}
 	return &chart.PieChart{
+		Font:       opt.Font,
 		Background: opt.getBackground(),
 		Title:      opt.Title.Text,
 		TitleStyle: opt.Title.Style,
@@ -178,6 +208,7 @@ func newChart(opt Options) *chart.Chart {
 	}
 
 	c := &chart.Chart{
+		Font:       opt.Font,
 		Log:        opt.Log,
 		Background: opt.getBackground(),
 		ColorPalette: &ThemeColorPalette{

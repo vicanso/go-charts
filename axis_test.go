@@ -168,5 +168,5 @@ func TestGetYAxis(t *testing.T) {
 	yAxis = GetSecondaryYAxis(ThemeDark, nil)
 	assert.False(yAxis.GridMajorStyle.Hidden)
 	assert.False(yAxis.GridMajorStyle.Hidden)
-	assert.True(yAxis.Style.StrokeColor.IsZero())
+	assert.True(yAxis.Style.StrokeColor.IsTransparent())
 }

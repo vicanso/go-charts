@@ -55,8 +55,8 @@ var chartOptions = []map[string]string{
 		"title": "折线图",
 		"option": `{
 	"title": {
-		"text": "Line",
-		"textAlign": "left",
+		"text": "Line\nHello World",
+		"left": "right",
 		"textStyle": {
 			"fontSize": 24,
 			"height": 40
@@ -363,6 +363,9 @@ func render(opts renderOptions) ([]byte, error) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.RequestURI != "/" {
+		return
+	}
 	query := r.URL.Query()
 	opts := renderOptions{
 		theme: query.Get("theme"),

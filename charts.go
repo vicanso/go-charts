@@ -30,6 +30,7 @@ import (
 
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 const (
@@ -46,6 +47,8 @@ type (
 	Title struct {
 		Text  string
 		Style chart.Style
+		Font  *truetype.Font
+		Left  string
 	}
 	Legend struct {
 		Data    []string
@@ -156,6 +159,17 @@ func ToSVG(g Graph) ([]byte, error) {
 	return render(g, chart.SVG)
 }
 
+func newTitleRenderable(title Title, font *truetype.Font, textColor drawing.Color) chart.Renderable {
+	if title.Text == "" || title.Style.Hidden {
+		return nil
+	}
+	title.Font = font
+	if title.Style.FontColor.IsZero() {
+		title.Style.FontColor = textColor
+	}
+	return NewTitleCustomize(title)
+}
+
 func newPieChart(opt Options) *chart.PieChart {
 	values := make(chart.Values, len(opt.Series))
 	for index, item := range opt.Series {
@@ -164,11 +178,9 @@ func newPieChart(opt Options) *chart.PieChart {
 			Label: item.Name,
 		}
 	}
-	return &chart.PieChart{
+	p := &chart.PieChart{
 		Font:       opt.Font,
 		Background: opt.getBackground(),
-		Title:      opt.Title.Text,
-		TitleStyle: opt.Title.Style,
 		Width:      opt.getWidth(),
 		Height:     opt.getHeight(),
 		Values:     values,
@@ -178,6 +190,17 @@ func newPieChart(opt Options) *chart.PieChart {
 			},
 		},
 	}
+	// pie 图表默认设置为居中
+	if opt.Title.Left == "" {
+		opt.Title.Left = "center"
+	}
+	titleRender := newTitleRenderable(opt.Title, p.GetFont(), p.GetColorPalette().TextColor())
+	if titleRender != nil {
+		p.Elements = []chart.Renderable{
+			titleRender,
+		}
+	}
+	return p
 }
 
 func newChart(opt Options) *chart.Chart {
@@ -214,8 +237,6 @@ func newChart(opt Options) *chart.Chart {
 		ColorPalette: &ThemeColorPalette{
 			Theme: opt.Theme,
 		},
-		Title:          opt.Title.Text,
-		TitleStyle:     opt.Title.Style,
 		Width:          opt.getWidth(),
 		Height:         opt.getHeight(),
 		XAxis:          xAxis,
@@ -224,20 +245,26 @@ func newChart(opt Options) *chart.Chart {
 		Series:         GetSeries(opt.Series, tickPosition, opt.Theme),
 	}
 
-	// 设置secondary的样式
+	elements := make([]chart.Renderable, 0)
+
 	if legendSize != 0 {
-		c.Elements = []chart.Renderable{
-			LegendCustomize(c.Series, LegendOption{
-				Theme:    opt.Theme,
-				IconDraw: DefaultLegendIconDraw,
-				Align:    opt.Legend.Align,
-				Padding:  opt.Legend.Padding,
-				Left:     opt.Legend.Left,
-				Right:    opt.Legend.Right,
-				Top:      opt.Legend.Top,
-				Bottom:   opt.Legend.Bottom,
-			}),
-		}
+		elements = append(elements, NewLegendCustomize(c.Series, LegendOption{
+			Theme:    opt.Theme,
+			IconDraw: DefaultLegendIconDraw,
+			Align:    opt.Legend.Align,
+			Padding:  opt.Legend.Padding,
+			Left:     opt.Legend.Left,
+			Right:    opt.Legend.Right,
+			Top:      opt.Legend.Top,
+			Bottom:   opt.Legend.Bottom,
+		}))
+	}
+	titleRender := newTitleRenderable(opt.Title, c.GetFont(), c.GetColorPalette().TextColor())
+	if titleRender != nil {
+		elements = append(elements, titleRender)
+	}
+	if len(elements) != 0 {
+		c.Elements = elements
 	}
 	return c
 }

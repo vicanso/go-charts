@@ -83,8 +83,8 @@ func covertPercent(value string) float64 {
 	return float64(v) / 100
 }
 
-func getLegendLeft(width, legendBoxWidth int, opt LegendOption) int {
-	left := (width - legendBoxWidth) / 2
+func getLegendLeft(canvasWidth, legendBoxWidth int, opt LegendOption) int {
+	left := (canvasWidth - legendBoxWidth) / 2
 	leftValue := opt.Left
 	if leftValue == "auto" || leftValue == "center" {
 		leftValue = ""
@@ -106,7 +106,7 @@ func getLegendLeft(width, legendBoxWidth int, opt LegendOption) int {
 	if leftValue != "" {
 		percent := covertPercent(leftValue)
 		if percent >= 0 {
-			return int(float64(width) * percent)
+			return int(float64(canvasWidth) * percent)
 		}
 		v, _ := strconv.Atoi(leftValue)
 		return v
@@ -114,10 +114,10 @@ func getLegendLeft(width, legendBoxWidth int, opt LegendOption) int {
 	if rightValue != "" {
 		percent := covertPercent(rightValue)
 		if percent >= 0 {
-			return width - legendBoxWidth - int(float64(width)*percent)
+			return canvasWidth - legendBoxWidth - int(float64(canvasWidth)*percent)
 		}
 		v, _ := strconv.Atoi(rightValue)
-		return width - legendBoxWidth - v
+		return canvasWidth - legendBoxWidth - v
 	}
 	return left
 }
@@ -127,7 +127,7 @@ func getLegendTop(height, legendBoxHeight int, opt LegendOption) int {
 	return 0
 }
 
-func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
+func NewLegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 	return func(r chart.Renderer, cb chart.Box, chartDefaults chart.Style) {
 		legendDefaults := chart.Style{
 			FontColor:   getTextColor(opt.Theme),
@@ -154,7 +154,6 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 		}
 
 		var textHeight int
-		var textWidth int
 		var textBox chart.Box
 		labelWidth := 0
 		// 计算文本宽度与高度（取最大值）
@@ -163,7 +162,6 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 				textBox = r.MeasureText(labels[x])
 				labelWidth += textBox.Width()
 				textHeight = chart.MaxInt(textBox.Height(), textHeight)
-				textWidth = chart.MaxInt(textBox.Width(), textWidth)
 			}
 		}
 
@@ -175,15 +173,15 @@ func LegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
 		lineTextGap := 5
 
 		iconAllWidth := iconWidth * len(labels)
-		spaceAllWidth := chart.DefaultMinimumTickHorizontalSpacing * (len(labels) - 1)
+		spaceAllWidth := (chart.DefaultMinimumTickHorizontalSpacing + lineTextGap) * (len(labels) - 1)
 
 		legendBoxWidth := labelWidth + iconAllWidth + spaceAllWidth
 
 		left := getLegendLeft(cb.Width(), legendBoxWidth, opt)
 		top := getLegendTop(cb.Height(), legendBoxHeight, opt)
 
-		left += opt.Padding.Left
-		top += opt.Padding.Top
+		left += (opt.Padding.Left + cb.Left)
+		top += (opt.Padding.Top + cb.Top)
 
 		legendBox := chart.Box{
 			Left:   left,

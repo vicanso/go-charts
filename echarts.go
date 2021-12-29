@@ -82,9 +82,9 @@ type EChartsPadding struct {
 	box chart.Box
 }
 
-type LegendPostion string
+type Position string
 
-func (lp *LegendPostion) UnmarshalJSON(data []byte) error {
+func (lp *Position) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
@@ -180,9 +180,8 @@ type ECharsOptions struct {
 	Theme   string         `json:"theme"`
 	Padding EChartsPadding `json:"padding"`
 	Title   struct {
-		Text string `json:"text"`
-		// 暂不支持(go-chart默认title只能居中)
-		TextAlign string `json:"textAlign"`
+		Text      string   `json:"text"`
+		Left      Position `json:"left"`
 		TextStyle struct {
 			Color      string  `json:"color"`
 			FontFamily string  `json:"fontFamily"`
@@ -196,8 +195,8 @@ type ECharsOptions struct {
 		Data    []string       `json:"data"`
 		Align   string         `json:"align"`
 		Padding EChartsPadding `json:"padding"`
-		Left    LegendPostion  `json:"left"`
-		Right   LegendPostion  `json:"right"`
+		Left    Position       `json:"left"`
+		Right   Position       `json:"right"`
 		// Top     string         `json:"top"`
 		// Bottom  string         `json:"bottom"`
 	} `json:"legend"`
@@ -282,6 +281,7 @@ func (e *ECharsOptions) ToOptions() Options {
 	titleTextStyle := e.Title.TextStyle
 	o.Title = Title{
 		Text: e.Title.Text,
+		Left: string(e.Title.Left),
 		Style: chart.Style{
 			FontColor: parseColor(titleTextStyle.Color),
 			FontSize:  titleTextStyle.FontSize,

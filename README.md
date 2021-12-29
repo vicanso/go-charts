@@ -56,9 +56,11 @@ func main() {
   - `padding:[5, 10, 5, 10]` 分别设置`上右下左`边距
 - `title` 图表标题，包括标题内容、高度、颜色等
   - `title.text` 标题内容
+  - `title.left` 标题与容器左侧的距离，可设置为`left`, `right`, `center`, `20%` 以及 `20` 这样的具体数值
   - `title.textStyle.color` 标题文字颜色
   - `title.textStyle.fontSize` 标题文字字体大小
   - `title.textStyle.height` 标题高度
+  - `title.textStyle.fontFamily` 标题文字的字体系列，需要注意此配置是会影响整个图表的字体
 - `xAxis` 直角坐标系grid中的x轴，由于go-charts仅支持单一个x轴，因此若参数为数组多个x轴，只使用第一个配置
   - `xAxis.boundaryGap` 坐标轴两边留白策略，仅支持三种设置方式`null`, `true`或者`false`。`null`或`true`时则数据点展示在两个刻度中间
   - `xAxis.splitNumber` 坐标轴的分割段数，需要注意的是这个分割段数只是个预估值，最后实际显示的段数会在这个基础上根据分割后坐标轴刻度显示的易读程度作调整

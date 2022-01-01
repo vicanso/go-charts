@@ -194,7 +194,10 @@ func newPieChart(opt Options) *chart.PieChart {
 	if opt.Title.Left == "" {
 		opt.Title.Left = "center"
 	}
-	titleRender := newTitleRenderable(opt.Title, p.GetFont(), p.GetColorPalette().TextColor())
+	themeColorPalette := &ThemeColorPalette{
+		Theme: opt.Theme,
+	}
+	titleRender := newTitleRenderable(opt.Title, p.GetFont(), themeColorPalette.TextColor())
 	if titleRender != nil {
 		p.Elements = []chart.Renderable{
 			titleRender,

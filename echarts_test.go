@@ -398,6 +398,18 @@ func TestParseECharsOptions(t *testing.T) {
 	}, options)
 }
 
+func TestUnmarshalJSON(t *testing.T) {
+	assert := assert.New(t)
+	var lp Position
+	err := lp.UnmarshalJSON([]byte("123"))
+	assert.Nil(err)
+	assert.Equal("123", string(lp))
+
+	err = lp.UnmarshalJSON([]byte(`"234"`))
+	assert.Nil(err)
+	assert.Equal("234", string(lp))
+}
+
 func BenchmarkEChartsRenderPNG(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_, err := RenderEChartsToPNG(`{

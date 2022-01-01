@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -51,4 +52,26 @@ func TestHiddenRange(t *testing.T) {
 	r := HiddenRange{}
 
 	assert.Equal(float64(0), r.GetDelta())
+}
+
+func TestYContinuousRange(t *testing.T) {
+	assert := assert.New(t)
+	r := YContinuousRange{}
+	r.Min = -math.MaxFloat64
+	r.Max = math.MaxFloat64
+
+	assert.True(r.IsZero())
+
+	r.SetMin(1.0)
+	assert.Equal(1.0, r.GetMin())
+	// 再次设置无效
+	r.SetMin(2.0)
+	assert.Equal(1.0, r.GetMin())
+
+	r.SetMax(5.0)
+	// *1.2
+	assert.Equal(6.0, r.GetMax())
+	// 再次设置无效
+	r.SetMax(10.0)
+	assert.Equal(6.0, r.GetMax())
 }

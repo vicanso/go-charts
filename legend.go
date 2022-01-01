@@ -72,7 +72,7 @@ func DefaultLegendIconDraw(r chart.Renderer, opt LegendIconDrawOption) {
 	r.FillStroke()
 }
 
-func covertPercent(value string) float64 {
+func convertPercent(value string) float64 {
 	if !strings.HasSuffix(value, "%") {
 		return -1
 	}
@@ -104,7 +104,7 @@ func getLegendLeft(canvasWidth, legendBoxWidth int, opt LegendOption) int {
 		return left
 	}
 	if leftValue != "" {
-		percent := covertPercent(leftValue)
+		percent := convertPercent(leftValue)
 		if percent >= 0 {
 			return int(float64(canvasWidth) * percent)
 		}
@@ -112,7 +112,7 @@ func getLegendLeft(canvasWidth, legendBoxWidth int, opt LegendOption) int {
 		return v
 	}
 	if rightValue != "" {
-		percent := covertPercent(rightValue)
+		percent := convertPercent(rightValue)
 		if percent >= 0 {
 			return canvasWidth - legendBoxWidth - int(float64(canvasWidth)*percent)
 		}

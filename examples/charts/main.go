@@ -363,7 +363,7 @@ func render(opts renderOptions) ([]byte, error) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if r.RequestURI != "/" {
+	if r.URL.Path != "/" {
 		return
 	}
 	query := r.URL.Query()

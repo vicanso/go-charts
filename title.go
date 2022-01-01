@@ -40,9 +40,11 @@ func NewTitleCustomize(title Title) chart.Renderable {
 		if len(title.Text) == 0 || title.Style.Hidden {
 			return
 		}
-		if title.Font != nil {
-			r.SetFont(title.Font)
+		font := title.Font
+		if font == nil {
+			font, _ = chart.GetDefaultFont()
 		}
+		r.SetFont(font)
 		r.SetFontColor(title.Style.FontColor)
 		titleFontSize := title.Style.GetFontSize(chart.DefaultTitleFontSize)
 		r.SetFontSize(titleFontSize)

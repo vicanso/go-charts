@@ -76,3 +76,38 @@ func TestNewLegendCustomize(t *testing.T) {
 		assert.Equal(tt.svg, buf.String())
 	}
 }
+
+func TestConvertPercent(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(-1.0, convertPercent("12"))
+
+	assert.Equal(0.12, convertPercent("12%"))
+}
+
+func TestGetLegendLeft(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(150, getLegendLeft(500, 200, LegendOption{}))
+
+	assert.Equal(0, getLegendLeft(500, 200, LegendOption{
+		Left: "left",
+	}))
+	assert.Equal(100, getLegendLeft(500, 200, LegendOption{
+		Left: "20%",
+	}))
+	assert.Equal(20, getLegendLeft(500, 200, LegendOption{
+		Left: "20",
+	}))
+
+	assert.Equal(300, getLegendLeft(500, 200, LegendOption{
+		Right: "right",
+	}))
+	assert.Equal(200, getLegendLeft(500, 200, LegendOption{
+		Right: "20%",
+	}))
+	assert.Equal(280, getLegendLeft(500, 200, LegendOption{
+		Right: "20",
+	}))
+
+}

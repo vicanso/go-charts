@@ -15,6 +15,9 @@ var html = `<!DOCTYPE html>
 		<link type="text/css" rel="styleSheet" href="https://unpkg.com/normalize.css@8.0.1/normalize.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<style>
+			body {
+				background-color: #e0e0e0;
+			}
 			.charts {
 				width: 830px;
 				margin: 10px auto;

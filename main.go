@@ -18,7 +18,7 @@ func main() {
 	e := elton.New()
 
 	e.Use(middleware.NewLogger(middleware.LoggerConfig{
-		Format: middleware.LoggerCombined,
+		Format: `{real-ip} {when-iso} "{method} {uri} {proto}" {status} {size-human} "{userAgent}"`,
 		OnLog: func(s string, _ *elton.Context) {
 			fmt.Println(s)
 		},

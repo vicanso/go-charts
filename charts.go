@@ -49,6 +49,7 @@ type (
 		Style chart.Style
 		Font  *truetype.Font
 		Left  string
+		Top   string
 	}
 	Legend struct {
 		Data    []string
@@ -194,10 +195,11 @@ func newPieChart(opt Options) *chart.PieChart {
 	if opt.Title.Left == "" {
 		opt.Title.Left = "center"
 	}
-	themeColorPalette := &ThemeColorPalette{
-		Theme: opt.Theme,
+	titleColor := drawing.ColorBlack
+	if opt.Theme == ThemeDark {
+		titleColor = drawing.ColorWhite
 	}
-	titleRender := newTitleRenderable(opt.Title, p.GetFont(), themeColorPalette.TextColor())
+	titleRender := newTitleRenderable(opt.Title, p.GetFont(), titleColor)
 	if titleRender != nil {
 		p.Elements = []chart.Renderable{
 			titleRender,

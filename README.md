@@ -57,6 +57,7 @@ func main() {
 - `title` 图表标题，包括标题内容、高度、颜色等
   - `title.text` 标题内容
   - `title.left` 标题与容器左侧的距离，可设置为`left`, `right`, `center`, `20%` 以及 `20` 这样的具体数值
+  - `title.top` 标题与容器顶部的距离，暂仅支持具体数值，如`20`
   - `title.textStyle.color` 标题文字颜色
   - `title.textStyle.fontSize` 标题文字字体大小
   - `title.textStyle.height` 标题高度
@@ -87,7 +88,7 @@ func main() {
 
 
 
-简单的图表生成PNG在20ms左右，而SVG的性能则更快，性能上比起使用`chrome headless`加载`echarts`图表展示页面，截图生成的方式大幅度提升，基本能满足简单的图表生成需求。
+简单的图表生成PNG在20ms左右，而SVG的性能则更快，性能上比起使用`chrome headless`加载`echarts`图表展示页面再截图生成的方式大幅度提升，满足简单的图表生成需求。
 
 ```bash
 goos: darwin

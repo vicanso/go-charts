@@ -88,6 +88,11 @@ func NewTitleCustomize(title Title) chart.Renderable {
 		}
 
 		titleY := cb.Top + title.Style.Padding.GetTop(chart.DefaultTitleTop) + (textHeight >> 1)
+		// TOP 暂只支持数值
+		if title.Top != "" {
+			value, _ := strconv.Atoi(title.Top)
+			titleY += value
+		}
 
 		for _, item := range measureOptions {
 			x := titleX + (textWidth-item.width)>>1

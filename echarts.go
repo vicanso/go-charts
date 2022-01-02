@@ -182,6 +182,7 @@ type ECharsOptions struct {
 	Title   struct {
 		Text      string   `json:"text"`
 		Left      Position `json:"left"`
+		Top       Position `json:"top"`
 		TextStyle struct {
 			Color      string  `json:"color"`
 			FontFamily string  `json:"fontFamily"`
@@ -282,6 +283,7 @@ func (e *ECharsOptions) ToOptions() Options {
 	o.Title = Title{
 		Text: e.Title.Text,
 		Left: string(e.Title.Left),
+		Top:  string(e.Title.Top),
 		Style: chart.Style{
 			FontColor: parseColor(titleTextStyle.Color),
 			FontSize:  titleTextStyle.FontSize,

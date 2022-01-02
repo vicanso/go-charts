@@ -87,7 +87,6 @@ func main() {
 ## 性能
 
 
-
 简单的图表生成PNG在20ms左右，而SVG的性能则更快，性能上比起使用`chrome headless`加载`echarts`图表展示页面再截图生成的方式大幅度提升，满足简单的图表生成需求。
 
 ```bash
@@ -98,3 +97,8 @@ cpu: Intel(R) Core(TM) i5-8257U CPU @ 1.40GHz
 BenchmarkEChartsRenderPNG-8           60          17765045 ns/op         2492854 B/op       1007 allocs/op
 BenchmarkEChartsRenderSVG-8          282           4303042 ns/op        32622688 B/op       2983 allocs/op
 ```
+
+## 中文字符
+
+默认使用的字符为`Roboto`为英文字体库，因此如果需要显示中文字符需要增加中文字体库，`InstallFont`函数可添加对应的字体库，成功添加之后则指定`title.textStyle.fontFamily`即可。
+在浏览器中使用`svg`时，如果指定的`fontFamily`不支持中文字符，展示的中文并不会乱码，但是会导致在计算字符宽度等错误。

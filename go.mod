@@ -4,14 +4,14 @@ go 1.17
 
 require (
 	github.com/vicanso/elton v1.8.1
-	github.com/vicanso/go-charts v0.0.2-0.20211226014821-6d53559d49cf
+	github.com/vicanso/go-charts v0.0.3-0.20220102014512-72896d1c3f54
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/tidwall/gjson v1.12.0 // indirect
+	github.com/tidwall/gjson v1.12.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/vicanso/hes v0.4.1 // indirect

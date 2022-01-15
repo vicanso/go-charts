@@ -28,6 +28,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/dustin/go-humanize"
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
@@ -174,9 +175,13 @@ func newTitleRenderable(title Title, font *truetype.Font, textColor drawing.Colo
 func newPieChart(opt Options) *chart.PieChart {
 	values := make(chart.Values, len(opt.Series))
 	for index, item := range opt.Series {
+		label := item.Name
+		if item.Label.Show {
+			label += ":" + humanize.CommafWithDigits(item.Data[0].Value, 2)
+		}
 		values[index] = chart.Value{
 			Value: item.Data[0].Value,
-			Label: item.Name,
+			Label: label,
 		}
 	}
 	p := &chart.PieChart{

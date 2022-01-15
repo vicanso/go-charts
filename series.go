@@ -38,6 +38,7 @@ type Series struct {
 	XValues    []float64
 	YAxisIndex int
 	Style      chart.Style
+	Label      SeriesLabel
 }
 
 const lineStrokeWidth = 2
@@ -73,8 +74,9 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 			StrokeWidth: lineStrokeWidth,
 			StrokeColor: getSeriesColor(theme, index),
 			// TODO 调整为通过dot with color 生成
-			DotColor: getSeriesColor(theme, index),
-			DotWidth: dotWith,
+			DotColor:  getSeriesColor(theme, index),
+			DotWidth:  dotWith,
+			FontColor: getAxisColor(theme),
 		}
 		if !item.Style.StrokeColor.IsZero() {
 			style.StrokeColor = item.Style.StrokeColor
@@ -109,6 +111,7 @@ func GetSeries(series []Series, tickPosition chart.TickPosition, theme string) [
 			YValues:      yValues,
 			TickPosition: tickPosition,
 			YAxis:        chart.YAxisSecondary,
+			Label:        item.Label,
 		}
 		if item.YAxisIndex != 0 {
 			baseSeries.YAxis = chart.YAxisPrimary

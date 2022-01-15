@@ -71,7 +71,11 @@ var chartOptions = []map[string]string{
 	"series": [
 		{
 			"data": [150, 230, 224, 218, 135, 147, 260],
-			"type": "line"
+			"type": "line",
+			"label": {
+				"show": true,
+				"distance": 5
+			}
 		}
 	]
 }`,
@@ -131,7 +135,11 @@ var chartOptions = []map[string]string{
 				110,
 				130
 			],
-			"type": "bar"
+			"type": "bar",
+			"label": {
+				"show": true,
+				"distance": 10
+			}
 		}
 	]
 }`,
@@ -267,6 +275,9 @@ var chartOptions = []map[string]string{
 			"name": "Access From",
 			"type": "pie",
 			"radius": "50%",
+			"label": {
+				"show": true
+			},
 			"data": [
 				{
 					"value": 1048,

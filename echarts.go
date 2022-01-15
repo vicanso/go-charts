@@ -176,6 +176,24 @@ func (ex *EChartsXAxis) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &ex.Data)
 }
 
+type EChartsLabelOption struct {
+	Show     bool `json:"show"`
+	Distance int  `json:"distance"`
+}
+
+func (elo EChartsLabelOption) ToLabel() SeriesLabel {
+	if !elo.Show {
+		return SeriesLabel{}
+	}
+	return SeriesLabel{
+		Show: true,
+		Offset: chart.Box{
+			// 默认位置为top，因此设置为负
+			Top: -elo.Distance,
+		},
+	}
+}
+
 type ECharsOptions struct {
 	Theme   string         `json:"theme"`
 	Padding EChartsPadding `json:"padding"`
@@ -206,6 +224,8 @@ type ECharsOptions struct {
 		Type       string             `json:"type"`
 		YAxisIndex int                `json:"yAxisIndex"`
 		ItemStyle  EChartStyle        `json:"itemStyle"`
+		// label的配置
+		Label EChartsLabelOption `json:"label"`
 	} `json:"series"`
 }
 
@@ -218,6 +238,7 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 	seriesType := e.Series[0].Type
 	if seriesType == SeriesPie {
 		series := make([]Series, len(e.Series[0].Data))
+		label := e.Series[0].Label.ToLabel()
 		for index, item := range e.Series[0].Data {
 			style := chart.Style{}
 			if item.ItemStyle.Color != "" {
@@ -233,8 +254,9 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 						Value: item.Value,
 					},
 				},
-				Type: seriesType,
-				Name: item.Name,
+				Type:  seriesType,
+				Name:  item.Name,
+				Label: label,
 			}
 		}
 		return series, tickPosition
@@ -268,6 +290,7 @@ func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
 			YAxisIndex: item.YAxisIndex,
 			Data:       data,
 			Type:       item.Type,
+			Label:      item.Label.ToLabel(),
 		}
 	}
 	return series, tickPosition

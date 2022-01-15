@@ -35,6 +35,11 @@ var (
 	_ chart.LastValuesProvider  = (*BaseSeries)(nil)
 )
 
+type SeriesLabel struct {
+	Show   bool
+	Offset chart.Box
+}
+
 // BaseSeries represents a line on a chart.
 type BaseSeries struct {
 	Name         string
@@ -48,6 +53,8 @@ type BaseSeries struct {
 
 	XValues []float64
 	YValues []float64
+
+	Label SeriesLabel
 }
 
 // GetName returns the name of the time series.

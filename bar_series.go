@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -110,6 +111,7 @@ func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange
 	cb := canvasBox.Bottom
 	cl := canvasBox.Left
 	widthValues := bs.getWidthValues(canvasBox.Width())
+	labelValues := make([]LabelValue, 0)
 
 	for i := 0; i < bs.Len(); i++ {
 		vx, vy := bs.GetValues(i)
@@ -133,5 +135,14 @@ func (bs BarSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange
 			Right:  x + widthValues.barWidth,
 			Bottom: canvasBox.Bottom - 1,
 		}, cloneStyle)
+		labelValues = append(labelValues, LabelValue{
+			Left: x + widthValues.barWidth/2,
+			Top:  y,
+			Text: humanize.CommafWithDigits(vy, 2),
+		})
 	}
+	lr := LabelRenderer{
+		Options: bs.Label,
+	}
+	lr.CustomizeRender(r, style, labelValues)
 }

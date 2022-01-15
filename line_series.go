@@ -42,4 +42,8 @@ func (ls LineSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrang
 	style := ls.Style.InheritFrom(defaults)
 	xrange = ls.getXRange(xrange)
 	chart.Draw.LineSeries(r, canvasBox, xrange, yrange, style, ls)
+	lr := LabelRenderer{
+		Options: ls.Label,
+	}
+	lr.Render(r, canvasBox, xrange, yrange, style, ls)
 }

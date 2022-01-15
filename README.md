@@ -78,6 +78,8 @@ func main() {
   - `legend.right` legend离容器右侧的距离，其值可以为具体的像素值(20)或百分比(20%)
 - `series` 图表的数据项列表
   - `series.type` 图表的展示类型，暂支持`line`, `bar`以及`pie`，需要注意`pie`只能单独使用
+  - `series.label.show` 是否显示文本标签(默认为对应的值)
+  - `series.label.distance` 距离图形元素的距离
   - `series.yAxisIndex` 该数据项使用的y轴，默认为0，对yAxis的配置对应
   - `series.itemStyle.color` 该数据项展示时使用的颜色 
   - `series.data` 数据项对应的数据数组，支持以下形式的数据：

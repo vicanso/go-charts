@@ -19,13 +19,16 @@ var html = `<!DOCTYPE html>
 				background-color: #e0e0e0;
 			}
 			.charts {
-				width: 830px;
+				width: 810px;
 				margin: 10px auto;
 				overflow: hidden;
 			}
 			.grid {
 				float: left;
 				margin-right: 10px;
+			}
+			.grid:nth-child(even) {
+				margin-right: 0px;
 			}
 			.grid svg {
 				margin-bottom: 10px;

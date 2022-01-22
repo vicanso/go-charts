@@ -52,16 +52,6 @@ type YAxisOption struct {
 
 const axisStrokeWidth = 1
 
-func maxInt(values ...int) int {
-	result := 0
-	for _, v := range values {
-		if v > result {
-			result = v
-		}
-	}
-	return result
-}
-
 // GetXAxisAndValues returns x axis by theme, and the values of axis.
 func GetXAxisAndValues(xAxis XAxis, tickPosition chart.TickPosition, theme string) (chart.XAxis, []float64) {
 	data := xAxis.Data

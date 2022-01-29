@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,20 +27,52 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestLineSeries(t *testing.T) {
+func TestBarStyle(t *testing.T) {
 	assert := assert.New(t)
 
-	ls := LineSeries{}
+	bs := BarStyle{
+		ClassName: "test",
+		StrokeDashArray: []float64{
+			1.0,
+		},
+		FillColor: drawing.ColorBlack,
+	}
 
-	originalRange := &chart.ContinuousRange{}
-	xrange := ls.getXRange(originalRange)
-	assert.Equal(originalRange, xrange)
+	assert.Equal(chart.Style{
+		ClassName: "test",
+		StrokeDashArray: []float64{
+			1.0,
+		},
+		StrokeWidth: 1,
+		FillColor:   drawing.ColorBlack,
+		StrokeColor: drawing.ColorBlack,
+	}, bs.Style())
+}
 
-	ls.TickPosition = chart.TickPositionBetweenTicks
-	xrange = ls.getXRange(originalRange)
-	value, ok := xrange.(*Range)
-	assert.True(ok)
-	assert.Equal(originalRange, &value.ContinuousRange)
+func TestDrawBar(t *testing.T) {
+	assert := assert.New(t)
+	d, err := NewDraw(DrawOption{
+		Width:  400,
+		Height: 300,
+	}, PaddingOption(chart.Box{
+		Left:   10,
+		Top:    20,
+		Right:  30,
+		Bottom: 40,
+	}))
+	assert.Nil(err)
+	d.Bar(chart.Box{
+		Left:   0,
+		Top:    0,
+		Right:  20,
+		Bottom: 200,
+	}, BarStyle{
+		FillColor: drawing.ColorBlack,
+	})
+	data, err := d.Bytes()
+	assert.Nil(err)
+	assert.Equal("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 10 20\nL 30 20\nL 30 220\nL 10 220\nL 10 20\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:rgba(0,0,0,1.0)\"/></svg>", string(data))
 }

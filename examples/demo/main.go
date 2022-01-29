@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	charts "github.com/vicanso/go-charts"
+	"github.com/wcharczuk/go-chart/v2"
 )
 
 var html = `<!DOCTYPE html>
@@ -17,6 +18,10 @@ var html = `<!DOCTYPE html>
 		<style>
 			body {
 				background-color: #e0e0e0;
+			}
+			* {
+				margin: 0;
+				padding: 0;
 			}
 			.charts {
 				width: 810px;
@@ -56,320 +61,116 @@ var html = `<!DOCTYPE html>
 </html>
 `
 
-var chartOptions = []map[string]string{
-	{
-		"option": `{
-	"title": {
-		"text": "Line",
-		"left": "center"
-	},
-	"yAxis": {
-		"min": 0,
-		"max": 300
-	},
-	"xAxis": {
-		"type": "category",
-		"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-	},
-	"series": [
-		{
-			"data": [150, 230, 224, 218, 135, 147, 260],
-			"type": "line",
-			"label": {
-				"show": true,
-				"distance": 5
-			}
-		}
-	]
-}`,
-	},
-	{
-		"option": `{
-	"legend": {
-		"align": "left",
-		"left": 0,
-		"data": ["Email", "Union Ads", "Video Ads", "Direct", "Search Engine"]
-	},
-	"xAxis": {
-		"type": "category",
-		"boundaryGap": false,
-		"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-	},
-	"series": [
-		{
-			"type": "line",
-			"data": [120, 132, 101, 134, 90, 230, 210]
-		},
-		{
-			"data": [220, 182, 191, 234, 290, 330, 310]
-		},
-		{
-			"data": [150, 232, 201, 154, 190, 330, 410]
-		},
-		{
-			"data": [320, 332, 301, 334, 390, 330, 320]
-		},
-		{
-			"data": [820, 932, 901, 934, 1290, 1330, 1320]
-		}
-	]
-}`,
-	},
-	{
-		"title": "柱状图（自定义颜色)",
-		"option": `{
-	"xAxis": {
-		"type": "category",
-		"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-	},
-	"series": [
-		{
-			"data": [
-				120,
-				{
-					"value": 200,
-					"itemStyle": {
-						"color": "#a90000"
-					}
-				},
-				150,
-				80,
-				70,
-				110,
-				130
-			],
-			"type": "bar",
-			"label": {
-				"show": true,
-				"distance": 10
-			}
-		}
-	]
-}`,
-	},
-	{
-		"title": "多柱状图",
-		"option": `{
-	"title": {
-		"text": "Rainfall vs Evaporation",
-		"top": 10
-	},
-	"legend": {
-		"data": ["Rainfall", "Evaporation"]
-	},
-	"xAxis": {
-		"type": "category",
-		"splitNumber": 12,
-		"data": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-	},
-	"series": [
-		{
-			"name": "Rainfall",
-			"type": "bar",
-			"data": [2, 4.9, 7, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20, 6.4, 3.3]
-		},
-		{
-			"name": "Evaporation",
-			"type": "bar",
-			"data": [2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6, 2.3]
-		}
-	]
-}`,
-	},
-	{
-		"title": "折柱混合",
-		"option": `{
-	"legend": {
-		"data": [
-			"Evaporation",
-			"Precipitation",
-			"Temperature"
-		]
-	},
-	"xAxis": {
-		"type": "category",
-		"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-	},
-	"yAxis": [
-		{
-			"type": "value",
-			"name": "Precipitation",
-			"min": 0,
-			"max": 250,
-			"interval": 50,
-			"axisLabel": {
-				"formatter": "{value} ml"
-			}
-		},
-		{
-			"type": "value",
-			"name": "Temperature",
-			"min": 0,
-			"max": 25,
-			"interval": 5,
-			"axisLabel": {
-				"formatter": "{value} °C"
-			}
-		}
-	],
-	"series": [
-		{
-			"name": "Evaporation",
-			"type": "bar",
-			"itemStyle": {
-				"color": "#0052d9"
-			},
-			"data": [2, 4.9, 7, 23.2, 25.6, 76.7, 135.6]
-		},
-		{
-			"name": "Precipitation",
-			"type": "bar",
-			"data": [2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6]
-		},
-		{
-			"name": "Temperature",
-			"type": "line",
-			"yAxisIndex": 1,
-			"data": [2, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3]
-		}
-	]
-}`,
-	},
-	{
-		"title": "降雨量",
-		"option": `{
-	"title": {
-		"text": "Rainfall",
-		"left": "right"
-	},
-	"legend": {
-		"data": ["GZ", "SH"]
-	},
-	"xAxis": {
-		"type": "category",
-		"splitNumber": 6,
-		"data": ["01-01","01-02","01-03","01-04","01-05","01-06","01-07","01-08","01-09","01-10","01-11","01-12","01-13","01-14","01-15","01-16","01-17","01-18","01-19","01-20","01-21","01-22","01-23","01-24","01-25","01-26","01-27","01-28","01-29","01-30","01-31"]
-	},
-	"yAxis": {
-		"axisLabel": {
-			"formatter": "{value} mm"
-		}
-	},
-	"series": [
-		{
-			"type": "bar",
-			"data": [928,821,889,600,547,783,197,853,430,346,63,465,309,334,141,538,792,58,922,807,298,243,744,885,812,231,330,220,984,221,429]
-		},
-		{
-			"type": "bar",
-			"data": [749,201,296,579,255,159,902,246,149,158,507,776,186,79,390,222,601,367,221,411,714,620,966,73,203,631,833,610,487,677,596]
-		}
-	]
-}`,
-	},
-	{
-		"title": "饼图",
-		"option": `{
-	"title": {
-		"text": "Referer of a Website"
-	},
-	"series": [
-		{
-			"name": "Access From",
-			"type": "pie",
-			"radius": "50%",
-			"label": {
-				"show": true
-			},
-			"data": [
-				{
-					"value": 1048,
-					"name": "Search Engine"
-				},
-				{
-					"value": 735,
-					"name": "Direct"
-				},
-				{
-					"value": 580,
-					"name": "Email"
-				},
-				{
-					"value": 484,
-					"name": "Union Ads"
-				},
-				{
-					"value": 300,
-					"name": "Video Ads"
-				}
-			]
-		}
-	]
-}`,
-	},
-}
-
-type renderOptions struct {
-	theme      string
-	width      int
-	height     int
-	onlyCharts bool
-}
-
-func render(opts renderOptions) ([]byte, error) {
-	data := bytes.Buffer{}
-	for _, m := range chartOptions {
-		chartHTML := []byte(`<div class="grid">
-				{{svg}}
-			</div>`)
-		o, err := charts.ParseECharsOptions(m["option"])
-		if err != nil {
-			return nil, err
-		}
-		if opts.width > 0 {
-			o.Width = opts.width
-		}
-		if opts.height > 0 {
-			o.Height = opts.height
-		}
-
-		for _, theme := range []string{
-			charts.ThemeDark,
-			charts.ThemeLight,
-		} {
-			o.Theme = theme
-			g, err := charts.New(o)
-			if err != nil {
-				return nil, err
-			}
-			buf, err := charts.ToSVG(g)
-			if err != nil {
-				return nil, err
-			}
-			buf = bytes.ReplaceAll(chartHTML, []byte("{{svg}}"), buf)
-			data.Write(buf)
-		}
-	}
-	return data.Bytes(), nil
-}
-
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		return
 	}
-	query := r.URL.Query()
-	opts := renderOptions{
-		theme:      query.Get("theme"),
-		width:      400,
-		height:     200,
-		onlyCharts: true,
-	}
-	buf, err := render(opts)
+
+	d, err := charts.NewLineChart(charts.LineChartOption{
+		ChartOption: charts.ChartOption{
+			Theme: "dark",
+			Padding: chart.Box{
+				Left:   5,
+				Top:    15,
+				Bottom: 5,
+				Right:  10,
+			},
+			XAxis: charts.XAxisOption{
+				Data: []string{
+					"Mon",
+					"Tue",
+					"Wed",
+					"Thu",
+					"Fri",
+					"Sat",
+					"Sun",
+				},
+				// BoundaryGap: charts.FalseFlag(),
+			},
+			SeriesList: []charts.Series{
+				{
+					Data: []charts.SeriesData{
+						{
+							Value: 150,
+						},
+						{
+							Value: 230,
+						},
+						{
+							Value: 224,
+						},
+						{
+							Value: 218,
+						},
+						{
+							Value: 135,
+						},
+						{
+							Value: 147,
+						},
+						{
+							Value: 260,
+						},
+					},
+				},
+				{
+					Data: []charts.SeriesData{
+						{
+							Value: 220,
+						},
+						{
+							Value: 182,
+						},
+						{
+							Value: 191,
+						},
+						{
+							Value: 234,
+						},
+						{
+							Value: 290,
+						},
+						{
+							Value: 330,
+						},
+						{
+							Value: 310,
+						},
+					},
+				},
+				{
+					Data: []charts.SeriesData{
+						{
+							Value: 150,
+						},
+						{
+							Value: 232,
+						},
+						{
+							Value: 201,
+						},
+						{
+							Value: 154,
+						},
+						{
+							Value: 190,
+						},
+						{
+							Value: 330,
+						},
+						{
+							Value: 410,
+						},
+					},
+				},
+			},
+		},
+	})
 	if err != nil {
-		w.WriteHeader(400)
-		w.Write([]byte(err.Error()))
-		return
+		panic(err)
 	}
+
+	buf, _ := d.Bytes()
 
 	data := bytes.ReplaceAll([]byte(html), []byte("{{body}}"), buf)
 	w.Header().Set("Content-Type", "text/html")

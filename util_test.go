@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,55 +23,99 @@
 package charts
 
 import (
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-func TestRange(t *testing.T) {
+func TestGetDefaultInt(t *testing.T) {
 	assert := assert.New(t)
 
-	r := Range{
-		ContinuousRange: chart.ContinuousRange{
-			Min:    0,
-			Max:    5,
-			Domain: 500,
-		},
+	assert.Equal(1, getDefaultInt(0, 1))
+	assert.Equal(10, getDefaultInt(10, 1))
+}
+
+func TestAutoDivide(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal([]int{
+		0,
+		86,
+		172,
+		258,
+		344,
+		430,
+		515,
+		600,
+	}, autoDivide(600, 7))
+}
+
+func TestMaxInt(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(5, maxInt(1, 3, 5, 2))
+}
+
+func TestMeasureTextMaxWidthHeight(t *testing.T) {
+	assert := assert.New(t)
+	r, err := chart.SVG(400, 300)
+	assert.Nil(err)
+	style := chart.Style{
+		FontSize: 10,
 	}
+	style.Font, _ = chart.GetDefaultFont()
+	style.WriteToRenderer(r)
 
-	assert.Equal(100, r.Translate(1))
-
-	r.TickPosition = chart.TickPositionBetweenTicks
-	assert.Equal(50, r.Translate(1))
+	maxWidth, maxHeight := measureTextMaxWidthHeight([]string{
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat",
+		"Sun",
+	}, r)
+	assert.Equal(26, maxWidth)
+	assert.Equal(12, maxHeight)
 }
 
-func TestHiddenRange(t *testing.T) {
+func TestReverseSlice(t *testing.T) {
 	assert := assert.New(t)
-	r := HiddenRange{}
 
-	assert.Equal(float64(0), r.GetDelta())
-}
+	arr := []string{
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat",
+		"Sun",
+	}
+	reverseStringSlice(arr)
+	assert.Equal([]string{
+		"Sun",
+		"Sat",
+		"Fri",
+		"Thu",
+		"Wed",
+		"Tue",
+		"Mon",
+	}, arr)
 
-func TestYContinuousRange(t *testing.T) {
-	assert := assert.New(t)
-	r := YContinuousRange{}
-	r.Min = -math.MaxFloat64
-	r.Max = math.MaxFloat64
-
-	assert.True(r.IsZero())
-
-	r.SetMin(1.0)
-	assert.Equal(1.0, r.GetMin())
-	// 再次设置无效
-	r.SetMin(2.0)
-	assert.Equal(1.0, r.GetMin())
-
-	r.SetMax(5.0)
-	// *1.2
-	assert.Equal(6.0, r.GetMax())
-	// 再次设置无效
-	r.SetMax(10.0)
-	assert.Equal(6.0, r.GetMax())
+	numbers := []int{
+		1,
+		3,
+		5,
+		7,
+		9,
+	}
+	reverseIntSlice(numbers)
+	assert.Equal([]int{
+		9,
+		7,
+		5,
+		3,
+		1,
+	}, numbers)
 }

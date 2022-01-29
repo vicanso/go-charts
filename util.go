@@ -24,6 +24,16 @@ package charts
 
 import "github.com/wcharczuk/go-chart/v2"
 
+func TrueFlag() *bool {
+	t := true
+	return &t
+}
+
+func FalseFlag() *bool {
+	f := false
+	return &f
+}
+
 func getDefaultInt(value, defaultValue int) int {
 	if value == 0 {
 		return defaultValue

@@ -23,16 +23,12 @@
 package charts
 
 import (
+	"math"
+
 	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
-
-type XAxisOption struct {
-	BoundaryGap *bool
-	Data        []string
-	// TODO split number
-}
 
 type SeriesData struct {
 	Value float64
@@ -41,31 +37,6 @@ type SeriesData struct {
 type Point struct {
 	X int
 	Y int
-}
-
-type Range struct {
-	originalMin float64
-	originalMax float64
-	divideCount int
-	Min         float64
-	Max         float64
-	Size        int
-	Boundary    bool
-}
-
-func (r *Range) getHeight(value float64) int {
-	v := 1 - value/(r.Max-r.Min)
-	return int(v * float64(r.Size))
-}
-
-func (r *Range) getWidth(value float64) int {
-	v := value / (r.Max - r.Min)
-	// 移至居中
-	if r.Boundary &&
-		r.divideCount != 0 {
-		v += 1 / float64(r.divideCount*2)
-	}
-	return int(v * float64(r.Size))
 }
 
 type Series struct {
@@ -78,6 +49,7 @@ type Series struct {
 
 type ChartOption struct {
 	Theme           string
+	Title           TitleOption
 	XAxis           XAxisOption
 	Width           int
 	Height          int
@@ -85,6 +57,29 @@ type ChartOption struct {
 	Padding         chart.Box
 	SeriesList      []Series
 	BackgroundColor drawing.Color
+}
+
+func (o *ChartOption) FillDefault(t *Theme) {
+	if o.BackgroundColor.IsZero() {
+		o.BackgroundColor = t.GetBackgroundColor()
+	}
+	if o.Title.Style.FontColor.IsZero() {
+		o.Title.Style.FontColor = t.GetTitleColor()
+	}
+	if o.Title.Style.FontSize == 0 {
+		o.Title.Style.FontSize = 14
+	}
+	if o.Title.Style.Font == nil {
+		o.Title.Style.Font, _ = chart.GetDefaultFont()
+	}
+	if o.Title.Style.Padding.IsZero() {
+		o.Title.Style.Padding = chart.Box{
+			Left:   5,
+			Top:    5,
+			Right:  5,
+			Bottom: 5,
+		}
+	}
 }
 
 func (o *ChartOption) getWidth() int {
@@ -102,8 +97,8 @@ func (o *ChartOption) getHeight() int {
 }
 
 func (o *ChartOption) getYRange(axisIndex int) Range {
-	min := float64(0)
-	max := float64(0)
+	min := math.MaxFloat64
+	max := -math.MaxFloat64
 
 	for _, series := range o.SeriesList {
 		if series.YAxisIndex != axisIndex {
@@ -118,18 +113,8 @@ func (o *ChartOption) getYRange(axisIndex int) Range {
 			}
 		}
 	}
-	// TODO 对于小数的处理
-
-	divideCount := 6
-	r := Range{
-		originalMin: min,
-		originalMax: max,
-		Min:         float64(int(min * 0.8)),
-		Max:         max * 1.2,
-		divideCount: divideCount,
-	}
-	value := int((r.Max - r.Min) / float64(divideCount))
-	r.Max = float64(int(float64(value*divideCount) + r.Min))
+	// y轴分设置默认划分为6块
+	r := NewRange(min*0.9, max*1.1, 6)
 	return r
 }
 

@@ -239,6 +239,10 @@ func (d *Draw) axisTick(opt *axisOption) {
 		tickCount--
 	}
 	labelMargin := style.GetLabelMargin()
+	tickShow := true
+	if opt.style.TickShow != nil && !*opt.style.TickShow {
+		tickShow = false
+	}
 
 	tickLengthValue := style.GetTickLength()
 	labelHeight := labelMargin + opt.textMaxHeight
@@ -254,17 +258,20 @@ func (d *Draw) axisTick(opt *axisOption) {
 		if style.Position == PositionLeft {
 			x0 = labelWidth
 		}
-		for _, v := range values {
-			x := x0
-			y := v
-			d.moveTo(x, y)
-			d.lineTo(x+tickLengthValue, y)
-			r.Stroke()
+		if tickShow {
+			for _, v := range values {
+				x := x0
+				y := v
+				d.moveTo(x, y)
+				d.lineTo(x+tickLengthValue, y)
+				r.Stroke()
+			}
 		}
 		// 辅助线
 		if style.SplitLineShow && !style.SplitLineColor.IsZero() {
 			r.SetStrokeColor(style.SplitLineColor)
-			splitLineWidth := width - labelWidth
+			splitLineWidth := width - labelWidth - tickLengthValue
+			x0 = labelWidth + tickLengthValue
 			if position == PositionRight {
 				x0 = 0
 				splitLineWidth = width - labelWidth - 1
@@ -284,12 +291,14 @@ func (d *Draw) axisTick(opt *axisOption) {
 		if position == PositionTop {
 			y0 = labelHeight
 		}
-		for _, v := range values {
-			x := v
-			y := y0
-			d.moveTo(x, y-tickLengthValue)
-			d.lineTo(x, y)
-			r.Stroke()
+		if tickShow {
+			for _, v := range values {
+				x := v
+				y := y0
+				d.moveTo(x, y-tickLengthValue)
+				d.lineTo(x, y)
+				r.Stroke()
+			}
 		}
 		// 辅助线
 		if style.SplitLineShow && !style.SplitLineColor.IsZero() {

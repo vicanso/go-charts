@@ -31,78 +31,6 @@ type LineChartOption struct {
 	ChartOption
 }
 
-const YAxisWidth = 50
-
-func drawXAxis(d *Draw, opt *XAxisOption, theme *Theme) (int, *Range, error) {
-	dXAxis, err := NewDraw(
-		DrawOption{
-			Parent: d,
-		},
-		PaddingOption(chart.Box{
-			Left: YAxisWidth,
-		}),
-	)
-	if err != nil {
-		return 0, nil, err
-	}
-	data := NewAxisDataListFromStringList(opt.Data)
-	style := AxisStyle{
-		BoundaryGap: opt.BoundaryGap,
-		StrokeColor: theme.GetAxisStrokeColor(),
-		FontColor:   theme.GetAxisStrokeColor(),
-		StrokeWidth: 1,
-	}
-
-	boundary := true
-	max := float64(len(opt.Data))
-	if opt.BoundaryGap != nil && !*opt.BoundaryGap {
-		boundary = false
-		max--
-	}
-
-	dXAxis.Axis(data, style)
-	return d.measureAxis(data, style), &Range{
-		divideCount: len(opt.Data),
-		Min:         0,
-		Max:         max,
-		Size:        dXAxis.Box.Width(),
-		Boundary:    boundary,
-	}, nil
-}
-
-func drawYAxis(d *Draw, opt *ChartOption, theme *Theme, xAxisHeight int) (*Range, error) {
-	yRange := opt.getYRange(0)
-	data := NewAxisDataListFromStringList(yRange.Values())
-	style := AxisStyle{
-		Position:    PositionLeft,
-		BoundaryGap: FalseFlag(),
-		// StrokeColor:    theme.GetAxisStrokeColor(),
-		FontColor:      theme.GetAxisStrokeColor(),
-		StrokeWidth:    1,
-		SplitLineColor: theme.GetAxisSplitLineColor(),
-		SplitLineShow:  true,
-	}
-	width := d.measureAxis(data, style)
-
-	dYAxis, err := NewDraw(
-		DrawOption{
-			Parent: d,
-			Width:  d.Box.Width(),
-			// 减去x轴的高
-			Height: d.Box.Height() - xAxisHeight,
-		},
-		PaddingOption(chart.Box{
-			Left: YAxisWidth - width,
-		}),
-	)
-	if err != nil {
-		return nil, err
-	}
-	dYAxis.Axis(data, style)
-	yRange.Size = dYAxis.Box.Height()
-	return &yRange, nil
-}
-
 func NewLineChart(opt LineChartOption) (*Draw, error) {
 	d, err := NewDraw(
 		DrawOption{
@@ -119,27 +47,35 @@ func NewLineChart(opt LineChartOption) (*Draw, error) {
 	theme := Theme{
 		mode: opt.Theme,
 	}
-	// 设置背景色
-	bg := opt.BackgroundColor
-	if bg.IsZero() {
-		bg = theme.GetBackgroundColor()
-	}
+	opt.FillDefault(&theme)
 	if opt.Parent == nil {
-		d.setBackground(opt.getWidth(), opt.getHeight(), bg)
+		d.setBackground(opt.getWidth(), opt.getHeight(), opt.BackgroundColor)
 	}
 
+	// 标题
+	_, titleHeight, err := drawTitle(d, &opt.Title)
+	if err != nil {
+		return nil, err
+	}
+
+	// xAxis
 	xAxisHeight, xRange, err := drawXAxis(d, &opt.XAxis, &theme)
 	if err != nil {
 		return nil, err
 	}
+
 	// 暂时仅支持单一yaxis
-	yRange, err := drawYAxis(d, &opt.ChartOption, &theme, xAxisHeight)
+	yRange, err := drawYAxis(d, &opt.ChartOption, &theme, xAxisHeight, chart.Box{
+		Top: titleHeight,
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	sd, err := NewDraw(DrawOption{
 		Parent: d,
 	}, PaddingOption(chart.Box{
+		Top:  titleHeight,
 		Left: YAxisWidth,
 	}))
 	if err != nil {
@@ -166,9 +102,7 @@ func NewLineChart(opt LineChartOption) (*Draw, error) {
 				DotFillColor: dotFillColor,
 			})
 		}
-
 	}
-	// fmt.Println(yRange)
 
 	return d, nil
 }

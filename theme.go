@@ -120,3 +120,20 @@ func (t *Theme) GetBackgroundColor() drawing.Color {
 	}
 	return drawing.ColorWhite
 }
+
+func (t *Theme) GetTitleColor() drawing.Color {
+	if t.IsDark() {
+		return drawing.Color{
+			R: 238,
+			G: 241,
+			B: 250,
+			A: 255,
+		}
+	}
+	return drawing.Color{
+		R: 70,
+		G: 70,
+		B: 70,
+		A: 255,
+	}
+}

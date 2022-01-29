@@ -67,6 +67,7 @@ func maxInt(values ...int) int {
 	return result
 }
 
+// measureTextMaxWidthHeight returns maxWidth and maxHeight of text list
 func measureTextMaxWidthHeight(textList []string, r chart.Renderer) (int, int) {
 	maxWidth := 0
 	maxHeight := 0

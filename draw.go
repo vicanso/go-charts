@@ -34,6 +34,7 @@ import (
 const (
 	PositionLeft   = "left"
 	PositionRight  = "right"
+	PositionCenter = "center"
 	PositionTop    = "top"
 	PositionBottom = "bottom"
 )

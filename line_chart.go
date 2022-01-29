@@ -53,7 +53,13 @@ func NewLineChart(opt LineChartOption) (*Draw, error) {
 	}
 
 	// 标题
-	_, titleHeight, err := drawTitle(d, &opt.Title)
+	titleBox, err := drawTitle(d, &opt.Title)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.Legend.Style.Padding.Left += titleBox.Right
+	_, err = drawLegend(d, &opt.Legend, &theme)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +72,7 @@ func NewLineChart(opt LineChartOption) (*Draw, error) {
 
 	// 暂时仅支持单一yaxis
 	yRange, err := drawYAxis(d, &opt.ChartOption, &theme, xAxisHeight, chart.Box{
-		Top: titleHeight,
+		Top: titleBox.Height(),
 	})
 	if err != nil {
 		return nil, err
@@ -75,7 +81,7 @@ func NewLineChart(opt LineChartOption) (*Draw, error) {
 	sd, err := NewDraw(DrawOption{
 		Parent: d,
 	}, PaddingOption(chart.Box{
-		Top:  titleHeight,
+		Top:  titleBox.Height(),
 		Left: YAxisWidth,
 	}))
 	if err != nil {

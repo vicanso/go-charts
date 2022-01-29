@@ -41,7 +41,6 @@ type Point struct {
 
 type Series struct {
 	Type       string
-	Name       string
 	Data       []SeriesData
 	YAxisIndex int
 	Style      chart.Style
@@ -50,6 +49,7 @@ type Series struct {
 type ChartOption struct {
 	Theme           string
 	Title           TitleOption
+	Legend          LegendOption
 	XAxis           XAxisOption
 	Width           int
 	Height          int
@@ -60,6 +60,7 @@ type ChartOption struct {
 }
 
 func (o *ChartOption) FillDefault(t *Theme) {
+	f, _ := chart.GetDefaultFont()
 	if o.BackgroundColor.IsZero() {
 		o.BackgroundColor = t.GetBackgroundColor()
 	}
@@ -70,7 +71,7 @@ func (o *ChartOption) FillDefault(t *Theme) {
 		o.Title.Style.FontSize = 14
 	}
 	if o.Title.Style.Font == nil {
-		o.Title.Style.Font, _ = chart.GetDefaultFont()
+		o.Title.Style.Font = f
 	}
 	if o.Title.Style.Padding.IsZero() {
 		o.Title.Style.Padding = chart.Box{
@@ -79,6 +80,15 @@ func (o *ChartOption) FillDefault(t *Theme) {
 			Right:  5,
 			Bottom: 5,
 		}
+	}
+	if o.Legend.Style.FontSize == 0 {
+		o.Legend.Style.FontSize = 8
+	}
+	if o.Legend.Style.Font == nil {
+		o.Legend.Style.Font = f
+	}
+	if o.Legend.Style.FontColor.IsZero() {
+		o.Legend.Style.FontColor = t.GetTitleColor()
 	}
 }
 

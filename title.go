@@ -41,9 +41,9 @@ type titleMeasureOption struct {
 	text   string
 }
 
-func drawTitle(d *Draw, opt *TitleOption) (int, int, error) {
+func drawTitle(d *Draw, opt *TitleOption) (chart.Box, error) {
 	if len(opt.Text) == 0 {
-		return 0, 0, nil
+		return chart.BoxZero, nil
 	}
 
 	padding := opt.Style.Padding
@@ -51,7 +51,7 @@ func drawTitle(d *Draw, opt *TitleOption) (int, int, error) {
 		Parent: d,
 	}, PaddingOption(padding))
 	if err != nil {
-		return 0, 0, err
+		return chart.BoxZero, err
 	}
 
 	r := titleDraw.Render
@@ -107,6 +107,9 @@ func drawTitle(d *Draw, opt *TitleOption) (int, int, error) {
 		titleY += textMaxHeight
 	}
 	height := titleY + padding.Top + padding.Bottom
+	box := padding.Clone()
+	box.Right = box.Left + width
+	box.Bottom = box.Top + height
 
-	return width, height, nil
+	return box, nil
 }

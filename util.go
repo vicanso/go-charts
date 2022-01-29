@@ -22,7 +22,12 @@
 
 package charts
 
-import "github.com/wcharczuk/go-chart/v2"
+import (
+	"strconv"
+	"strings"
+
+	"github.com/wcharczuk/go-chart/v2"
+)
 
 func TrueFlag() *bool {
 	t := true
@@ -89,4 +94,15 @@ func reverseIntSlice(intList []int) {
 	for i, j := 0, len(intList)-1; i < j; i, j = i+1, j-1 {
 		intList[i], intList[j] = intList[j], intList[i]
 	}
+}
+
+func convertPercent(value string) float64 {
+	if !strings.HasSuffix(value, "%") {
+		return -1
+	}
+	v, err := strconv.Atoi(strings.ReplaceAll(value, "%", ""))
+	if err != nil {
+		return -1
+	}
+	return float64(v) / 100
 }

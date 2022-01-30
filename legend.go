@@ -54,6 +54,23 @@ func drawLegend(p *Draw, opt *LegendOption, theme *Theme) (chart.Box, error) {
 	legendDotHeight := 5
 	textPadding := 5
 	legendMargin := 10
+
+	widthCount := 0
+	// 文本宽度
+	for _, text := range opt.Data {
+		b := r.MeasureText(text)
+		widthCount += b.Width()
+	}
+	// 加上标记
+	widthCount += legendWidth * len(opt.Data)
+	// 文本的padding
+	widthCount += 2 * textPadding * len(opt.Data)
+	// margin的宽度
+	widthCount += legendMargin * (len(opt.Data) - 1)
+
+	// TODO 支持更多的定位方式
+	// 居中
+	x = (legendDraw.Box.Width() - widthCount) >> 1
 	for index, text := range opt.Data {
 		if index != 0 {
 			x += legendMargin
@@ -61,12 +78,12 @@ func drawLegend(p *Draw, opt *LegendOption, theme *Theme) (chart.Box, error) {
 		style := chart.Style{
 			StrokeColor: theme.GetSeriesColor(index),
 			FillColor:   theme.GetSeriesColor(index),
-			StrokeWidth: 2,
+			StrokeWidth: 3,
 		}
 		textBox := r.MeasureText(text)
 		renderText := func() {
 			x += textPadding
-			legendDraw.text(text, x, y+legendDotHeight-1)
+			legendDraw.text(text, x, y+legendDotHeight-2)
 			x += textBox.Width()
 			x += textPadding
 		}

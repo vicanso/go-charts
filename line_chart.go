@@ -58,7 +58,6 @@ func NewLineChart(opt LineChartOption) (*Draw, error) {
 		return nil, err
 	}
 
-	opt.Legend.Style.Padding.Left += titleBox.Right
 	_, err = drawLegend(d, &opt.Legend, &theme)
 	if err != nil {
 		return nil, err

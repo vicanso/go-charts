@@ -28,7 +28,8 @@ import (
 
 const YAxisWidth = 40
 
-func drawYAxis(p *Draw, opt *ChartOption, theme *Theme, xAxisHeight int, padding chart.Box) (*Range, error) {
+func drawYAxis(p *Draw, opt *ChartOption, xAxisHeight int, padding chart.Box) (*Range, error) {
+	theme := NewTheme(opt.Theme)
 	yRange := opt.getYRange(0)
 	data := NewAxisDataListFromStringList(yRange.Values())
 	style := AxisStyle{

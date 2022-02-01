@@ -32,60 +32,25 @@ type LineChartOption struct {
 }
 
 func NewLineChart(opt LineChartOption) (*Draw, error) {
-	d, err := NewDraw(
-		DrawOption{
-			Parent: opt.Parent,
-			Width:  opt.getWidth(),
-			Height: opt.getHeight(),
-		},
-		PaddingOption(opt.Padding),
-	)
+	result, err := chartBasicRender(&opt.ChartOption)
 	if err != nil {
 		return nil, err
 	}
 
-	theme := Theme{
-		mode: opt.Theme,
-	}
-	opt.FillDefault(&theme)
-	if opt.Parent == nil {
-		d.setBackground(opt.getWidth(), opt.getHeight(), opt.BackgroundColor)
-	}
-
-	// 标题
-	titleBox, err := drawTitle(d, &opt.Title)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = NewLegend(d, opt.Legend).Render()
-	if err != nil {
-		return nil, err
-	}
-
-	// xAxis
-	xAxisHeight, xRange, err := drawXAxis(d, &opt.XAxis, &theme)
-	if err != nil {
-		return nil, err
-	}
-
-	// 暂时仅支持单一yaxis
-	yRange, err := drawYAxis(d, &opt.ChartOption, &theme, xAxisHeight, chart.Box{
-		Top: titleBox.Height(),
-	})
-	if err != nil {
-		return nil, err
-	}
+	d := result.d
+	theme := NewTheme(opt.Theme)
 
 	sd, err := NewDraw(DrawOption{
 		Parent: d,
 	}, PaddingOption(chart.Box{
-		Top:  titleBox.Height(),
+		Top:  result.titleBox.Height(),
 		Left: YAxisWidth,
 	}))
 	if err != nil {
 		return nil, err
 	}
+	yRange := result.yRange
+	xRange := result.xRange
 	for i, series := range opt.SeriesList {
 		points := make([]Point, 0)
 		for j, item := range series.Data {

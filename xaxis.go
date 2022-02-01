@@ -27,11 +27,12 @@ import "github.com/wcharczuk/go-chart/v2"
 type XAxisOption struct {
 	BoundaryGap *bool
 	Data        []string
+	Theme       string
 	// TODO split number
 }
 
 // drawXAxis draws x axis, and returns the height, range of if.
-func drawXAxis(p *Draw, opt *XAxisOption, theme *Theme) (int, *Range, error) {
+func drawXAxis(p *Draw, opt *XAxisOption) (int, *Range, error) {
 	dXAxis, err := NewDraw(
 		DrawOption{
 			Parent: p,
@@ -43,6 +44,7 @@ func drawXAxis(p *Draw, opt *XAxisOption, theme *Theme) (int, *Range, error) {
 	if err != nil {
 		return 0, nil, err
 	}
+	theme := NewTheme(opt.Theme)
 	data := NewAxisDataListFromStringList(opt.Data)
 	style := AxisStyle{
 		BoundaryGap: opt.BoundaryGap,

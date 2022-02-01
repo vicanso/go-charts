@@ -59,7 +59,8 @@ type ChartOption struct {
 	BackgroundColor drawing.Color
 }
 
-func (o *ChartOption) FillDefault(t *Theme) {
+func (o *ChartOption) FillDefault(theme string) {
+	t := NewTheme(theme)
 	f, _ := chart.GetDefaultFont()
 	if o.BackgroundColor.IsZero() {
 		o.BackgroundColor = t.GetBackgroundColor()
@@ -90,6 +91,9 @@ func (o *ChartOption) FillDefault(t *Theme) {
 	}
 	if o.Legend.Style.FontColor.IsZero() {
 		o.Legend.Style.FontColor = t.GetTextColor()
+	}
+	if o.XAxis.Theme == "" {
+		o.XAxis.Theme = theme
 	}
 }
 
@@ -138,4 +142,61 @@ func (r Range) Values() []string {
 		values = append(values, value)
 	}
 	return values
+}
+
+type basicRenderResult struct {
+	xRange   *Range
+	yRange   *Range
+	d        *Draw
+	titleBox chart.Box
+}
+
+func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
+	d, err := NewDraw(
+		DrawOption{
+			Parent: opt.Parent,
+			Width:  opt.getWidth(),
+			Height: opt.getHeight(),
+		},
+		PaddingOption(opt.Padding),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	opt.FillDefault(opt.Theme)
+	if opt.Parent == nil {
+		d.setBackground(opt.getWidth(), opt.getHeight(), opt.BackgroundColor)
+	}
+
+	// 标题
+	titleBox, err := drawTitle(d, &opt.Title)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = NewLegend(d, opt.Legend).Render()
+	if err != nil {
+		return nil, err
+	}
+
+	// xAxis
+	xAxisHeight, xRange, err := drawXAxis(d, &opt.XAxis)
+	if err != nil {
+		return nil, err
+	}
+
+	// 暂时仅支持单一yaxis
+	yRange, err := drawYAxis(d, opt, xAxisHeight, chart.Box{
+		Top: titleBox.Height(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &basicRenderResult{
+		xRange:   xRange,
+		yRange:   yRange,
+		d:        d,
+		titleBox: titleBox,
+	}, nil
 }

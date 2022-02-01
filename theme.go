@@ -31,6 +31,12 @@ type Theme struct {
 	mode string
 }
 
+func NewTheme(mode string) *Theme {
+	return &Theme{
+		mode: mode,
+	}
+}
+
 func (t *Theme) IsDark() bool {
 	return t.mode == ThemeDark
 }

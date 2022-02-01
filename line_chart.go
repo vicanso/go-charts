@@ -58,7 +58,7 @@ func NewLineChart(opt LineChartOption) (*Draw, error) {
 		return nil, err
 	}
 
-	_, err = drawLegend(d, &opt.Legend, &theme)
+	_, err = NewLegend(d, opt.Legend).Render()
 	if err != nil {
 		return nil, err
 	}

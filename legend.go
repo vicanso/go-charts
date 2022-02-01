@@ -27,20 +27,35 @@ import (
 )
 
 type LegendOption struct {
+	Theme *Theme
 	Style chart.Style
 	Data  []string
 	Left  string
 	Right string
 	Align string
 }
+type legend struct {
+	d   *Draw
+	opt *LegendOption
+}
 
-func drawLegend(p *Draw, opt *LegendOption, theme *Theme) (chart.Box, error) {
+func NewLegend(d *Draw, opt LegendOption) *legend {
+	return &legend{
+		d:   d,
+		opt: &opt,
+	}
+}
+
+func (l *legend) Render() (chart.Box, error) {
+	d := l.d
+	opt := l.opt
 	if len(opt.Data) == 0 {
 		return chart.BoxZero, nil
 	}
+	theme := opt.Theme
 	padding := opt.Style.Padding
 	legendDraw, err := NewDraw(DrawOption{
-		Parent: p,
+		Parent: d,
 	}, PaddingOption(padding))
 	if err != nil {
 		return chart.BoxZero, err

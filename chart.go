@@ -81,6 +81,7 @@ func (o *ChartOption) FillDefault(t *Theme) {
 			Bottom: 5,
 		}
 	}
+	o.Legend.Theme = t
 	if o.Legend.Style.FontSize == 0 {
 		o.Legend.Style.FontSize = 8
 	}

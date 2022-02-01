@@ -31,10 +31,10 @@ type XAxisOption struct {
 }
 
 // drawXAxis draws x axis, and returns the height, range of if.
-func drawXAxis(d *Draw, opt *XAxisOption, theme *Theme) (int, *Range, error) {
+func drawXAxis(p *Draw, opt *XAxisOption, theme *Theme) (int, *Range, error) {
 	dXAxis, err := NewDraw(
 		DrawOption{
-			Parent: d,
+			Parent: p,
 		},
 		PaddingOption(chart.Box{
 			Left: YAxisWidth,
@@ -57,9 +57,10 @@ func drawXAxis(d *Draw, opt *XAxisOption, theme *Theme) (int, *Range, error) {
 		boundary = false
 		max--
 	}
+	axis := NewAxis(dXAxis, data, style)
+	axis.Render()
 
-	dXAxis.Axis(data, style)
-	return d.measureAxis(data, style), &Range{
+	return axis.measureAxis(), &Range{
 		divideCount: len(opt.Data),
 		Min:         0,
 		Max:         max,

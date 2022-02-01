@@ -45,6 +45,21 @@ type AxisStyle struct {
 	SplitLineColor drawing.Color
 }
 
+type axis struct {
+	d     *Draw
+	data  *AxisDataList
+	style *AxisStyle
+}
+
+func NewAxis(d *Draw, data AxisDataList, style AxisStyle) *axis {
+	return &axis{
+		d:     d,
+		data:  &data,
+		style: &style,
+	}
+
+}
+
 func (as *AxisStyle) GetLabelMargin() int {
 	return getDefaultInt(as.LabelMargin, 8)
 }
@@ -85,8 +100,6 @@ func (l AxisDataList) TextList() []string {
 }
 
 type axisOption struct {
-	data          *AxisDataList
-	style         *AxisStyle
 	textMaxWith   int
 	textMaxHeight int
 	boundaryGap   bool
@@ -102,9 +115,10 @@ func NewAxisDataListFromStringList(textList []string) AxisDataList {
 	return list
 }
 
-func (d *Draw) axisLabel(opt *axisOption) {
-	style := opt.style
-	data := *opt.data
+func (a *axis) axisLabel(opt *axisOption) {
+	style := a.style
+	data := *a.data
+	d := a.d
 	if style.FontColor.IsZero() || len(data) == 0 {
 		return
 	}
@@ -177,9 +191,10 @@ func (d *Draw) axisLabel(opt *axisOption) {
 	}
 }
 
-func (d *Draw) axisLine(opt *axisOption) {
+func (a *axis) axisLine(opt *axisOption) {
+	d := a.d
 	r := d.Render
-	style := opt.style
+	style := a.style
 	s := style.Style(d.Font)
 	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
 
@@ -224,23 +239,24 @@ func (d *Draw) axisLine(opt *axisOption) {
 	r.FillStroke()
 }
 
-func (d *Draw) axisTick(opt *axisOption) {
+func (a *axis) axisTick(opt *axisOption) {
+	d := a.d
 	r := d.Render
 
-	style := opt.style
+	style := a.style
 	s := style.Style(d.Font)
 	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
 
 	width := d.Box.Width()
 	height := d.Box.Height()
-	data := *opt.data
+	data := *a.data
 	tickCount := len(data)
 	if !opt.boundaryGap {
 		tickCount--
 	}
 	labelMargin := style.GetLabelMargin()
 	tickShow := true
-	if opt.style.TickShow != nil && !*opt.style.TickShow {
+	if style.TickShow != nil && !*style.TickShow {
 		tickShow = false
 	}
 
@@ -322,9 +338,11 @@ func (d *Draw) axisTick(opt *axisOption) {
 	}
 }
 
-func (d *Draw) axisMeasureTextMaxWidthHeight(data AxisDataList, style AxisStyle) (int, int) {
+func (a *axis) axisMeasureTextMaxWidthHeight() (int, int) {
+	d := a.d
 	r := d.Render
-	s := style.Style(d.Font)
+	s := a.style.Style(d.Font)
+	data := a.data
 	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
 	s.GetTextOptions().WriteTextOptionsToRenderer(r)
 	return measureTextMaxWidthHeight(data.TextList(), r)
@@ -333,9 +351,10 @@ func (d *Draw) axisMeasureTextMaxWidthHeight(data AxisDataList, style AxisStyle)
 // measureAxis return the measurement of axis.
 // If the position is left or right, it will be textMaxWidth + labelMargin + tickLength.
 // If the position is top or bottom, it will be textMaxHeight + labelMargin + tickLength.
-func (d *Draw) measureAxis(data AxisDataList, style AxisStyle) int {
+func (a *axis) measureAxis() int {
+	style := a.style
 	value := style.GetLabelMargin() + style.GetTickLength()
-	textMaxWidth, textMaxHeight := d.axisMeasureTextMaxWidthHeight(data, style)
+	textMaxWidth, textMaxHeight := a.axisMeasureTextMaxWidthHeight()
 	if style.Position == PositionLeft ||
 		style.Position == PositionRight {
 		return textMaxWidth + value
@@ -343,14 +362,13 @@ func (d *Draw) measureAxis(data AxisDataList, style AxisStyle) int {
 	return textMaxHeight + value
 }
 
-func (d *Draw) Axis(data AxisDataList, style AxisStyle) {
+func (a *axis) Render() {
+	style := a.style
 	if style.Show != nil && !*style.Show {
 		return
 	}
-	textMaxWidth, textMaxHeight := d.axisMeasureTextMaxWidthHeight(data, style)
+	textMaxWidth, textMaxHeight := a.axisMeasureTextMaxWidthHeight()
 	opt := &axisOption{
-		data:          &data,
-		style:         &style,
 		textMaxWith:   textMaxWidth,
 		textMaxHeight: textMaxHeight,
 		boundaryGap:   true,
@@ -360,8 +378,8 @@ func (d *Draw) Axis(data AxisDataList, style AxisStyle) {
 	}
 
 	// 坐标轴线
-	d.axisLine(opt)
-	d.axisTick(opt)
+	a.axisLine(opt)
+	a.axisTick(opt)
 	// 坐标文本
-	d.axisLabel(opt)
+	a.axisLabel(opt)
 }

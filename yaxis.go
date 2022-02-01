@@ -28,7 +28,7 @@ import (
 
 const YAxisWidth = 40
 
-func drawYAxis(d *Draw, opt *ChartOption, theme *Theme, xAxisHeight int, padding chart.Box) (*Range, error) {
+func drawYAxis(p *Draw, opt *ChartOption, theme *Theme, xAxisHeight int, padding chart.Box) (*Range, error) {
 	yRange := opt.getYRange(0)
 	data := NewAxisDataListFromStringList(yRange.Values())
 	style := AxisStyle{
@@ -40,23 +40,23 @@ func drawYAxis(d *Draw, opt *ChartOption, theme *Theme, xAxisHeight int, padding
 		SplitLineColor: theme.GetAxisSplitLineColor(),
 		SplitLineShow:  true,
 	}
-	width := d.measureAxis(data, style)
+	width := NewAxis(p, data, style).measureAxis()
 
 	padding.Left += (YAxisWidth - width)
 
 	dYAxis, err := NewDraw(
 		DrawOption{
-			Parent: d,
-			Width:  d.Box.Width(),
+			Parent: p,
+			Width:  p.Box.Width(),
 			// 减去x轴的高
-			Height: d.Box.Height() - xAxisHeight,
+			Height: p.Box.Height() - xAxisHeight,
 		},
 		PaddingOption(padding),
 	)
 	if err != nil {
 		return nil, err
 	}
-	dYAxis.Axis(data, style)
+	NewAxis(dYAxis, data, style).Render()
 	yRange.Size = dYAxis.Box.Height()
 	return &yRange, nil
 }

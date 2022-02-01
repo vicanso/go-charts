@@ -121,7 +121,7 @@ func (t *Theme) GetBackgroundColor() drawing.Color {
 	return drawing.ColorWhite
 }
 
-func (t *Theme) GetTitleColor() drawing.Color {
+func (t *Theme) GetTextColor() drawing.Color {
 	if t.IsDark() {
 		return drawing.Color{
 			R: 238,

@@ -65,7 +65,7 @@ func (o *ChartOption) FillDefault(t *Theme) {
 		o.BackgroundColor = t.GetBackgroundColor()
 	}
 	if o.Title.Style.FontColor.IsZero() {
-		o.Title.Style.FontColor = t.GetTitleColor()
+		o.Title.Style.FontColor = t.GetTextColor()
 	}
 	if o.Title.Style.FontSize == 0 {
 		o.Title.Style.FontSize = 14
@@ -88,7 +88,7 @@ func (o *ChartOption) FillDefault(t *Theme) {
 		o.Legend.Style.Font = f
 	}
 	if o.Legend.Style.FontColor.IsZero() {
-		o.Legend.Style.FontColor = t.GetTitleColor()
+		o.Legend.Style.FontColor = t.GetTextColor()
 	}
 }
 

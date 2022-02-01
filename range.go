@@ -60,8 +60,18 @@ func NewRange(min, max float64, divideCount int) Range {
 }
 
 func (r *Range) getHeight(value float64) int {
+	v := (value - r.Min) / (r.Max - r.Min)
+	return int(v * float64(r.Size))
+}
+
+func (r *Range) getRestHeight(value float64) int {
 	v := 1 - (value-r.Min)/(r.Max-r.Min)
 	return int(v * float64(r.Size))
+}
+
+func (r *Range) GetRange(index int) (float64, float64) {
+	unit := float64(r.Size) / float64(r.divideCount)
+	return unit * float64(index), unit * float64(index+1)
 }
 
 func (r *Range) getWidth(value float64) int {

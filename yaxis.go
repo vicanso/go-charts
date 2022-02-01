@@ -26,6 +26,11 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
+type YAxisOption struct {
+	Min *float64
+	Max *float64
+}
+
 const YAxisWidth = 40
 
 func drawYAxis(p *Draw, opt *ChartOption, xAxisHeight int, padding chart.Box) (*Range, error) {

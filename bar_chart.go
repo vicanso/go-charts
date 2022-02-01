@@ -24,19 +24,16 @@ package charts
 
 import (
 	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func LineChartRender(opt ChartOption) (*Draw, error) {
+func BarChartRender(opt ChartOption) (*Draw, error) {
 	result, err := chartBasicRender(&opt)
 	if err != nil {
 		return nil, err
 	}
-
 	d := result.d
-	theme := NewTheme(opt.Theme)
 
-	sd, err := NewDraw(DrawOption{
+	bd, err := NewDraw(DrawOption{
 		Parent: d,
 	}, PaddingOption(chart.Box{
 		Top:  result.titleBox.Height(),
@@ -47,25 +44,38 @@ func LineChartRender(opt ChartOption) (*Draw, error) {
 	}
 	yRange := result.yRange
 	xRange := result.xRange
+	x0, x1 := xRange.GetRange(0)
+	width := int(x1 - x0)
+	// 每一块之间的margin
+	margin := 10
+	// 每一个bar之间的margin
+	barMargin := 5
+
+	seriesCount := len(opt.SeriesList)
+	// 总的宽度-两个margin-(总数-1)的barMargin
+	barWidth := (width - 2*margin - barMargin*(seriesCount-1)) / len(opt.SeriesList)
+
+	barMaxHeight := yRange.Size
+	theme := NewTheme(opt.Theme)
+
 	for i, series := range opt.SeriesList {
-		points := make([]Point, 0)
 		for j, item := range series.Data {
-			y := yRange.getRestHeight(item.Value)
-			points = append(points, Point{
-				Y: y,
-				X: xRange.getWidth(float64(j)),
-			})
-			seriesColor := theme.GetSeriesColor(i)
-			dotFillColor := drawing.ColorWhite
-			if theme.IsDark() {
-				dotFillColor = seriesColor
+			x0, _ := xRange.GetRange(j)
+			x := int(x0)
+			x += margin
+			if i != 0 {
+				x += i * (barWidth + barMargin)
 			}
-			sd.Line(points, LineStyle{
-				StrokeColor:  seriesColor,
-				StrokeWidth:  2,
-				DotColor:     seriesColor,
-				DotWidth:     2,
-				DotFillColor: dotFillColor,
+
+			h := int(yRange.getHeight(item.Value))
+
+			bd.Bar(chart.Box{
+				Top:    barMaxHeight - h,
+				Left:   x,
+				Right:  x + barWidth,
+				Bottom: barMaxHeight - 1,
+			}, BarStyle{
+				FillColor: theme.GetSeriesColor(i),
 			})
 		}
 	}

@@ -51,6 +51,7 @@ type ChartOption struct {
 	Title           TitleOption
 	Legend          LegendOption
 	XAxis           XAxisOption
+	YAxis           YAxisOption
 	Width           int
 	Height          int
 	Parent          *Draw
@@ -128,8 +129,16 @@ func (o *ChartOption) getYRange(axisIndex int) Range {
 			}
 		}
 	}
+	min = min * 0.9
+	max = max * 1.1
+	if o.YAxis.Min != nil {
+		min = *o.YAxis.Min
+	}
+	if o.YAxis.Max != nil {
+		max = *o.YAxis.Max
+	}
 	// y轴分设置默认划分为6块
-	r := NewRange(min*0.9, max*1.1, 6)
+	r := NewRange(min, max, 6)
 	return r
 }
 

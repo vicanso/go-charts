@@ -27,11 +27,7 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func LineChartRender(opt ChartOption) (*Draw, error) {
-	result, err := chartBasicRender(&opt)
-	if err != nil {
-		return nil, err
-	}
+func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 
 	d := result.d
 	theme := NewTheme(opt.Theme)
@@ -55,7 +51,7 @@ func LineChartRender(opt ChartOption) (*Draw, error) {
 				Y: y,
 				X: xRange.getWidth(float64(j)),
 			})
-			seriesColor := theme.GetSeriesColor(i)
+			seriesColor := theme.GetSeriesColor(i + result.seriesOffset)
 			dotFillColor := drawing.ColorWhite
 			if theme.IsDark() {
 				dotFillColor = seriesColor

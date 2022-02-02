@@ -30,6 +30,12 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+const (
+	ChartTypeLine = "line"
+	ChartTypeBar  = "bar"
+	ChartTypePie  = "pie"
+)
+
 type SeriesData struct {
 	Value float64
 	Style chart.Style
@@ -154,10 +160,46 @@ func (r Range) Values() []string {
 }
 
 type basicRenderResult struct {
-	xRange   *Range
-	yRange   *Range
-	d        *Draw
-	titleBox chart.Box
+	xRange       *Range
+	yRange       *Range
+	d            *Draw
+	titleBox     chart.Box
+	seriesOffset int
+}
+
+func ChartRender(opt ChartOption) (*Draw, error) {
+	result, err := chartBasicRender(&opt)
+	if err != nil {
+		return nil, err
+	}
+	lineSeries := make([]Series, 0)
+	barSeries := make([]Series, 0)
+	for _, item := range opt.SeriesList {
+		switch item.Type {
+		case ChartTypeBar:
+			barSeries = append(barSeries, item)
+		default:
+			lineSeries = append(lineSeries, item)
+		}
+	}
+	if len(barSeries) != 0 {
+		o := opt
+		o.SeriesList = barSeries
+		_, err = barChartRender(o, result)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if len(lineSeries) != 0 {
+		o := opt
+		o.SeriesList = lineSeries
+		result.seriesOffset = len(barSeries)
+		_, err = lineChartRender(o, result)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return result.d, nil
 }
 
 func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {

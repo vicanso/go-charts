@@ -26,11 +26,7 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-func BarChartRender(opt ChartOption) (*Draw, error) {
-	result, err := chartBasicRender(&opt)
-	if err != nil {
-		return nil, err
-	}
+func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 	d := result.d
 
 	bd, err := NewDraw(DrawOption{

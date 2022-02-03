@@ -138,6 +138,10 @@ func (d *Draw) moveTo(x, y int) {
 	d.Render.MoveTo(x+d.Box.Left, y+d.Box.Top)
 }
 
+func (d *Draw) arcTo(cx, cy int, rx, ry, startAngle, delta float64) {
+	d.Render.ArcTo(cx+d.Box.Left, cy+d.Box.Top, rx, ry, startAngle, delta)
+}
+
 func (d *Draw) lineTo(x, y int) {
 	d.Render.LineTo(x+d.Box.Left, y+d.Box.Top)
 }

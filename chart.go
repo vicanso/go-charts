@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"errors"
 	"math"
 
 	"github.com/dustin/go-humanize"
@@ -168,20 +169,36 @@ type basicRenderResult struct {
 }
 
 func ChartRender(opt ChartOption) (*Draw, error) {
-	result, err := chartBasicRender(&opt)
-	if err != nil {
-		return nil, err
+	if len(opt.SeriesList) == 0 {
+		return nil, errors.New("series can not be nil")
 	}
+
 	lineSeries := make([]Series, 0)
 	barSeries := make([]Series, 0)
+	isPieChart := false
 	for index, item := range opt.SeriesList {
 		item.index = index
 		switch item.Type {
+		case ChartTypePie:
+			isPieChart = true
 		case ChartTypeBar:
 			barSeries = append(barSeries, item)
 		default:
 			lineSeries = append(lineSeries, item)
 		}
+	}
+	// 如果指定了pie，则以pie的形式处理，不支持多类型图表
+	// pie不需要axis
+	if isPieChart {
+		opt.XAxis.Hidden = true
+		opt.YAxis.Hidden = true
+	}
+	result, err := chartBasicRender(&opt)
+	if err != nil {
+		return nil, err
+	}
+	if isPieChart {
+		return pieChartRender(opt, result)
 	}
 	if len(barSeries) != 0 {
 		o := opt
@@ -231,18 +248,26 @@ func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 		return nil, err
 	}
 
-	// xAxis
-	xAxisHeight, xRange, err := drawXAxis(d, &opt.XAxis)
-	if err != nil {
-		return nil, err
+	xAxisHeight := 0
+	var xRange *Range
+
+	if !opt.XAxis.Hidden {
+		// xAxis
+		xAxisHeight, xRange, err = drawXAxis(d, &opt.XAxis)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// 暂时仅支持单一yaxis
-	yRange, err := drawYAxis(d, opt, xAxisHeight, chart.Box{
-		Top: titleBox.Height(),
-	})
-	if err != nil {
-		return nil, err
+	var yRange *Range
+	if !opt.YAxis.Hidden {
+		yRange, err = drawYAxis(d, opt, xAxisHeight, chart.Box{
+			Top: titleBox.Height(),
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &basicRenderResult{
 		xRange:   xRange,

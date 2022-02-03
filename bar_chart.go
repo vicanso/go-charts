@@ -27,10 +27,9 @@ import (
 )
 
 func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
-	d := result.d
 
-	bd, err := NewDraw(DrawOption{
-		Parent: d,
+	d, err := NewDraw(DrawOption{
+		Parent: result.d,
 	}, PaddingOption(chart.Box{
 		Top:  result.titleBox.Height(),
 		Left: YAxisWidth,
@@ -65,7 +64,7 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 
 			h := int(yRange.getHeight(item.Value))
 
-			bd.Bar(chart.Box{
+			d.Bar(chart.Box{
 				Top:    barMaxHeight - h,
 				Left:   x,
 				Right:  x + barWidth,
@@ -76,5 +75,5 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 		}
 	}
 
-	return d, nil
+	return result.d, nil
 }

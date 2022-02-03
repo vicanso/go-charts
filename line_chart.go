@@ -29,11 +29,10 @@ import (
 
 func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 
-	d := result.d
 	theme := NewTheme(opt.Theme)
 
-	sd, err := NewDraw(DrawOption{
-		Parent: d,
+	d, err := NewDraw(DrawOption{
+		Parent: result.d,
 	}, PaddingOption(chart.Box{
 		Top:  result.titleBox.Height(),
 		Left: YAxisWidth,
@@ -60,7 +59,7 @@ func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) 
 			if theme.IsDark() {
 				dotFillColor = seriesColor
 			}
-			sd.Line(points, LineStyle{
+			d.Line(points, LineStyle{
 				StrokeColor:  seriesColor,
 				StrokeWidth:  2,
 				DotColor:     seriesColor,
@@ -70,5 +69,5 @@ func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) 
 		}
 	}
 
-	return d, nil
+	return result.d, nil
 }

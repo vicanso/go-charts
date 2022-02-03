@@ -28,6 +28,7 @@ type XAxisOption struct {
 	BoundaryGap *bool
 	Data        []string
 	Theme       string
+	Hidden      bool
 	// TODO split number
 }
 

@@ -27,8 +27,9 @@ import (
 )
 
 type YAxisOption struct {
-	Min *float64
-	Max *float64
+	Min    *float64
+	Max    *float64
+	Hidden bool
 }
 
 const YAxisWidth = 40

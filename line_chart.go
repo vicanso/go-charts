@@ -51,7 +51,11 @@ func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) 
 				Y: y,
 				X: xRange.getWidth(float64(j)),
 			})
-			seriesColor := theme.GetSeriesColor(i + result.seriesOffset)
+			index := series.index
+			if index == 0 {
+				index = i
+			}
+			seriesColor := theme.GetSeriesColor(index)
 			dotFillColor := drawing.ColorWhite
 			if theme.IsDark() {
 				dotFillColor = seriesColor

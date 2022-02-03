@@ -46,6 +46,7 @@ type Point struct {
 }
 
 type Series struct {
+	index      int
 	Type       string
 	Data       []SeriesData
 	YAxisIndex int
@@ -160,11 +161,10 @@ func (r Range) Values() []string {
 }
 
 type basicRenderResult struct {
-	xRange       *Range
-	yRange       *Range
-	d            *Draw
-	titleBox     chart.Box
-	seriesOffset int
+	xRange   *Range
+	yRange   *Range
+	d        *Draw
+	titleBox chart.Box
 }
 
 func ChartRender(opt ChartOption) (*Draw, error) {
@@ -174,7 +174,8 @@ func ChartRender(opt ChartOption) (*Draw, error) {
 	}
 	lineSeries := make([]Series, 0)
 	barSeries := make([]Series, 0)
-	for _, item := range opt.SeriesList {
+	for index, item := range opt.SeriesList {
+		item.index = index
 		switch item.Type {
 		case ChartTypeBar:
 			barSeries = append(barSeries, item)
@@ -193,7 +194,6 @@ func ChartRender(opt ChartOption) (*Draw, error) {
 	if len(lineSeries) != 0 {
 		o := opt
 		o.SeriesList = lineSeries
-		result.seriesOffset = len(barSeries)
 		_, err = lineChartRender(o, result)
 		if err != nil {
 			return nil, err

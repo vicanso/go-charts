@@ -30,12 +30,21 @@ import (
 )
 
 type TitleOption struct {
-	Text         string
-	Subtext      string
-	Style        chart.Style
+	// Title text, support \n for new line
+	Text string
+	// Subtitle text, support \n for new line
+	Subtext string
+	// Title style
+	Style chart.Style
+	// Subtitle style
 	SubtextStyle chart.Style
-	Left         string
-	Top          string
+	// Distance between title component and the left side of the container.
+	// It can be pixel value: 20, percentage value: 20%,
+	// or position value: right, center.
+	Left string
+	// Distance between title component and the top side of the container.
+	// It can be pixel value: 20.
+	Top string
 }
 type titleMeasureOption struct {
 	width  int
@@ -138,7 +147,7 @@ func drawTitle(p *Draw, opt *TitleOption) (chart.Box, error) {
 	}
 	height := titleY + padding.Top + padding.Bottom
 	box := padding.Clone()
-	box.Right = box.Left + width
+	box.Right = box.Left + titleX + width
 	box.Bottom = box.Top + height
 
 	return box, nil

@@ -56,7 +56,7 @@ func drawXAxis(p *Draw, opt *XAxisOption) (int, *Range, error) {
 
 	boundary := true
 	max := float64(len(opt.Data))
-	if opt.BoundaryGap != nil && !*opt.BoundaryGap {
+	if isFalse(opt.BoundaryGap) {
 		boundary = false
 		max--
 	}

@@ -256,7 +256,7 @@ func (a *axis) axisTick(opt *axisOption) {
 	}
 	labelMargin := style.GetLabelMargin()
 	tickShow := true
-	if style.TickShow != nil && !*style.TickShow {
+	if isFalse(style.TickShow) {
 		tickShow = false
 	}
 
@@ -364,7 +364,7 @@ func (a *axis) measureAxis() int {
 
 func (a *axis) Render() {
 	style := a.style
-	if style.Show != nil && !*style.Show {
+	if isFalse(style.Show) {
 		return
 	}
 	textMaxWidth, textMaxHeight := a.axisMeasureTextMaxWidthHeight()
@@ -373,7 +373,7 @@ func (a *axis) Render() {
 		textMaxHeight: textMaxHeight,
 		boundaryGap:   true,
 	}
-	if style.BoundaryGap != nil && !*style.BoundaryGap {
+	if isFalse(style.BoundaryGap) {
 		opt.boundaryGap = false
 	}
 

@@ -106,3 +106,10 @@ func convertPercent(value string) float64 {
 	}
 	return float64(v) / 100
 }
+
+func isFalse(flag *bool) bool {
+	if flag != nil && !*flag {
+		return true
+	}
+	return false
+}

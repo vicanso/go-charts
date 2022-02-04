@@ -30,39 +30,71 @@ import (
 )
 
 type TitleOption struct {
-	Text  string
-	Style chart.Style
-	Left  string
-	Top   string
+	Text         string
+	Subtext      string
+	Style        chart.Style
+	SubtextStyle chart.Style
+	Left         string
+	Top          string
 }
 type titleMeasureOption struct {
 	width  int
 	height int
 	text   string
+	style  chart.Style
 }
 
-func drawTitle(d *Draw, opt *TitleOption) (chart.Box, error) {
+func splitTitleText(text string) []string {
+	arr := strings.Split(text, "\n")
+	result := make([]string, 0)
+	for _, v := range arr {
+		v = strings.TrimSpace(v)
+		if v == "" {
+			continue
+		}
+		result = append(result, v)
+	}
+	return result
+}
+
+func drawTitle(p *Draw, opt *TitleOption) (chart.Box, error) {
 	if len(opt.Text) == 0 {
 		return chart.BoxZero, nil
 	}
 
 	padding := opt.Style.Padding
-	titleDraw, err := NewDraw(DrawOption{
-		Parent: d,
+	d, err := NewDraw(DrawOption{
+		Parent: p,
 	}, PaddingOption(padding))
 	if err != nil {
 		return chart.BoxZero, err
 	}
 
-	r := titleDraw.Render
-	opt.Style.GetTextOptions().WriteToRenderer(r)
-	arr := strings.Split(opt.Text, "\n")
+	r := d.Render
+
+	measureOptions := make([]titleMeasureOption, 0)
+
+	// 主标题
+	for _, v := range splitTitleText(opt.Text) {
+		measureOptions = append(measureOptions, titleMeasureOption{
+			text:  v,
+			style: opt.Style.GetTextOptions(),
+		})
+	}
+	// 副标题
+	for _, v := range splitTitleText(opt.Subtext) {
+		measureOptions = append(measureOptions, titleMeasureOption{
+			text:  v,
+			style: opt.SubtextStyle.GetTextOptions(),
+		})
+	}
+
 	textMaxWidth := 0
 	textMaxHeight := 0
 	width := 0
-	measureOptions := make([]titleMeasureOption, len(arr))
-	for index, str := range arr {
-		textBox := r.MeasureText(str)
+	for index, item := range measureOptions {
+		item.style.WriteTextOptionsToRenderer(r)
+		textBox := r.MeasureText(item.text)
 
 		w := textBox.Width()
 		h := textBox.Height()
@@ -72,15 +104,12 @@ func drawTitle(d *Draw, opt *TitleOption) (chart.Box, error) {
 		if h > textMaxHeight {
 			textMaxHeight = h
 		}
-		measureOptions[index] = titleMeasureOption{
-			text:   str,
-			width:  w,
-			height: h,
-		}
+		measureOptions[index].height = h
+		measureOptions[index].width = w
 	}
 	width = textMaxWidth
 	titleX := 0
-	b := titleDraw.Box
+	b := d.Box
 	switch opt.Left {
 	case PositionRight:
 		titleX = b.Width() - textMaxWidth
@@ -102,9 +131,10 @@ func drawTitle(d *Draw, opt *TitleOption) (chart.Box, error) {
 		titleY += value
 	}
 	for _, item := range measureOptions {
+		item.style.WriteTextOptionsToRenderer(r)
 		x := titleX + (textMaxWidth-item.width)>>1
-		titleDraw.text(item.text, x, titleY)
-		titleY += textMaxHeight
+		d.text(item.text, x, titleY)
+		titleY += item.height
 	}
 	height := titleY + padding.Top + padding.Bottom
 	box := padding.Clone()

@@ -72,11 +72,14 @@ type ChartOption struct {
 
 func (o *ChartOption) FillDefault(theme string) {
 	t := NewTheme(theme)
-	f, _ := chart.GetDefaultFont()
-	o.Font = f
+	if o.Font == nil {
+		o.Font, _ = chart.GetDefaultFont()
+	}
 	if o.BackgroundColor.IsZero() {
 		o.BackgroundColor = t.GetBackgroundColor()
 	}
+
+	// 标题的默认值
 	if o.Title.Style.FontColor.IsZero() {
 		o.Title.Style.FontColor = t.GetTextColor()
 	}
@@ -84,7 +87,7 @@ func (o *ChartOption) FillDefault(theme string) {
 		o.Title.Style.FontSize = 14
 	}
 	if o.Title.Style.Font == nil {
-		o.Title.Style.Font = f
+		o.Title.Style.Font = o.Font
 	}
 	if o.Title.Style.Padding.IsZero() {
 		o.Title.Style.Padding = chart.Box{
@@ -94,12 +97,23 @@ func (o *ChartOption) FillDefault(theme string) {
 			Bottom: 5,
 		}
 	}
+	// 副标题
+	if o.Title.SubtextStyle.FontColor.IsZero() {
+		o.Title.SubtextStyle.FontColor = o.Title.Style.FontColor.WithAlpha(180)
+	}
+	if o.Title.SubtextStyle.FontSize == 0 {
+		o.Title.SubtextStyle.FontSize = 10
+	}
+	if o.Title.SubtextStyle.Font == nil {
+		o.Title.SubtextStyle.Font = o.Font
+	}
+
 	o.Legend.Theme = t
 	if o.Legend.Style.FontSize == 0 {
-		o.Legend.Style.FontSize =10 
+		o.Legend.Style.FontSize = 10
 	}
 	if o.Legend.Style.Font == nil {
-		o.Legend.Style.Font = f
+		o.Legend.Style.Font = o.Font
 	}
 	if o.Legend.Style.FontColor.IsZero() {
 		o.Legend.Style.FontColor = t.GetTextColor()

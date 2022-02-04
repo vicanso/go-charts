@@ -27,6 +27,7 @@ import (
 	"math"
 
 	"github.com/dustin/go-humanize"
+	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
@@ -55,6 +56,7 @@ type Series struct {
 }
 
 type ChartOption struct {
+	Font            *truetype.Font
 	Theme           string
 	Title           TitleOption
 	Legend          LegendOption
@@ -71,6 +73,7 @@ type ChartOption struct {
 func (o *ChartOption) FillDefault(theme string) {
 	t := NewTheme(theme)
 	f, _ := chart.GetDefaultFont()
+	o.Font = f
 	if o.BackgroundColor.IsZero() {
 		o.BackgroundColor = t.GetBackgroundColor()
 	}
@@ -93,7 +96,7 @@ func (o *ChartOption) FillDefault(theme string) {
 	}
 	o.Legend.Theme = t
 	if o.Legend.Style.FontSize == 0 {
-		o.Legend.Style.FontSize = 8
+		o.Legend.Style.FontSize =10 
 	}
 	if o.Legend.Style.Font == nil {
 		o.Legend.Style.Font = f

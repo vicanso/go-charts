@@ -25,6 +25,7 @@ package charts
 import (
 	"math"
 
+	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -78,11 +79,13 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 	} else {
 		currentValue := float64(0)
 		for index, v := range values {
-			getPieStyle(theme, index).WriteToRenderer(r)
+			pieStyle := getPieStyle(theme, index)
+			pieStyle.WriteToRenderer(r)
 			d.moveTo(cx, cy)
 			start := chart.PercentToRadians(currentValue/total) - math.Pi/2
 			currentValue += v
-			delta := chart.PercentToRadians(v / total)
+			percent := (v / total)
+			delta := chart.PercentToRadians(percent)
 			d.arcTo(cx, cy, radius, radius, start, delta)
 			d.lineTo(cx, cy)
 			r.Close()
@@ -102,9 +105,25 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 				offset *= -1
 			}
 			d.moveTo(endx, endy)
-			d.lineTo(endx+offset, endy)
+			endx += offset
+			d.lineTo(endx, endy)
 			r.Stroke()
-			// TODO label show
+			textStyle := chart.Style{
+				FontColor: theme.GetTextColor(),
+				FontSize:  10,
+				Font:      opt.Font,
+			}
+			textStyle.GetTextOptions().WriteToRenderer(r)
+			text := humanize.FtoaWithDigits(percent*100, 2) + "%"
+			textBox := r.MeasureText(text)
+			textMargin := 3
+			x := endx + textMargin
+			y := endy + textBox.Height()>>1 - 1
+			if offset < 0 {
+				textWidth := textBox.Width()
+				x = endx - textWidth - textMargin
+			}
+			d.text(text, x, y)
 		}
 	}
 	return result.d, nil

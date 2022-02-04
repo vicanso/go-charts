@@ -39,6 +39,11 @@ const (
 	PositionBottom = "bottom"
 )
 
+const (
+	OrientHorizontal = "horizontal"
+	OrientVertical   = "vertical"
+)
+
 type Draw struct {
 	Render chart.Renderer
 	Box    chart.Box

@@ -108,9 +108,12 @@ func (o *ChartOption) FillDefault(theme string) {
 		o.Title.SubtextStyle.Font = o.Font
 	}
 
-	o.Legend.Theme = t
+	o.Legend.Theme = theme
 	if o.Legend.Style.FontSize == 0 {
 		o.Legend.Style.FontSize = 10
+	}
+	if o.Legend.Left == "" {
+		o.Legend.Left = PositionCenter
 	}
 	if o.Legend.Style.Font == nil {
 		o.Legend.Style.Font = o.Font

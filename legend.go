@@ -23,16 +23,31 @@
 package charts
 
 import (
+	"strconv"
+	"strings"
+
 	"github.com/wcharczuk/go-chart/v2"
 )
 
 type LegendOption struct {
-	Theme *Theme
+	Theme string
+	// Legend show flag, if nil or true, the legend will be shown
+	Show *bool
+	// Legend text style
 	Style chart.Style
-	Data  []string
-	Left  string
-	Right string
+	// Text array of legend
+	Data []string
+	// Distance between legend component and the left side of the container.
+	// It can be pixel value: 20, percentage value: 20%,
+	// or position value: right, center.
+	Left string
+	// Distance between legend component and the top side of the container.
+	// It can be pixel value: 20.
+	Top string
+	// Legend marker and text aligning, it can be left or right, default is left.
 	Align string
+	// The layout orientation of legend, it can be horizontal or vertical, default is horizontal.
+	Orient string
 }
 type legend struct {
 	d   *Draw
@@ -49,10 +64,10 @@ func NewLegend(d *Draw, opt LegendOption) *legend {
 func (l *legend) Render() (chart.Box, error) {
 	d := l.d
 	opt := l.opt
-	if len(opt.Data) == 0 {
+	if len(opt.Data) == 0 || isFalse(opt.Show) {
 		return chart.BoxZero, nil
 	}
-	theme := opt.Theme
+	theme := NewTheme(opt.Theme)
 	padding := opt.Style.Padding
 	legendDraw, err := NewDraw(DrawOption{
 		Parent: d,
@@ -65,49 +80,91 @@ func (l *legend) Render() (chart.Box, error) {
 
 	x := 0
 	y := 0
+	top := 0
+	// TODO TOP 暂只支持数值
+	if opt.Top != "" {
+		top, _ = strconv.Atoi(opt.Top)
+		y += top
+	}
 	legendWidth := 30
 	legendDotHeight := 5
 	textPadding := 5
 	legendMargin := 10
 
 	widthCount := 0
+	maxTextWidth := 0
 	// 文本宽度
 	for _, text := range opt.Data {
 		b := r.MeasureText(text)
+		if b.Width() > maxTextWidth {
+			maxTextWidth = b.Width()
+		}
 		widthCount += b.Width()
 	}
-	// 加上标记
-	widthCount += legendWidth * len(opt.Data)
-	// 文本的padding
-	widthCount += 2 * textPadding * len(opt.Data)
-	// margin的宽度
-	widthCount += legendMargin * (len(opt.Data) - 1)
+	if opt.Orient == OrientVertical {
+		widthCount = maxTextWidth + legendWidth + textPadding
+	} else {
+		// 加上标记
+		widthCount += legendWidth * len(opt.Data)
+		// 文本的padding
+		widthCount += 2 * textPadding * len(opt.Data)
+		// margin的宽度
+		widthCount += legendMargin * (len(opt.Data) - 1)
+	}
 
-	// TODO 支持更多的定位方式
-	// 居中
-	x = (legendDraw.Box.Width() - widthCount) >> 1
-	for index, text := range opt.Data {
-		if index != 0 {
-			x += legendMargin
+	left := 0
+	switch opt.Left {
+	case PositionRight:
+		left = legendDraw.Box.Width() - widthCount
+	case PositionCenter:
+		left = (legendDraw.Box.Width() - widthCount) >> 1
+	default:
+		if strings.HasSuffix(opt.Left, "%") {
+			value, _ := strconv.Atoi(strings.ReplaceAll(opt.Left, "%", ""))
+			left = legendDraw.Box.Width() * value / 100
+		} else {
+			value, _ := strconv.Atoi(opt.Left)
+			left = value
 		}
+	}
+	x = left
+	for index, text := range opt.Data {
 		style := chart.Style{
 			StrokeColor: theme.GetSeriesColor(index),
 			FillColor:   theme.GetSeriesColor(index),
 			StrokeWidth: 3,
 		}
-		textBox := r.MeasureText(text)
-		renderText := func() {
-			x += textPadding
-			legendDraw.text(text, x, y+legendDotHeight-2)
-			x += textBox.Width()
-			x += textPadding
-		}
+		style.GetFillAndStrokeOptions().WriteDrawingOptionsToRenderer(r)
 
+		textBox := r.MeasureText(text)
+		var renderText func()
+		if opt.Orient == OrientVertical {
+			// 垂直
+			// 重置x的位置
+			x = left
+			renderText = func() {
+				x += textPadding
+				legendDraw.text(text, x, y+legendDotHeight-2)
+				x += textBox.Width()
+				y += (2*legendDotHeight + legendMargin)
+			}
+
+		} else {
+			// 水平
+			if index != 0 {
+				x += legendMargin
+			}
+			renderText = func() {
+				x += textPadding
+				legendDraw.text(text, x, y+legendDotHeight-2)
+				x += textBox.Width()
+				x += textPadding
+			}
+		}
 		if opt.Align == PositionRight {
 			renderText()
 		}
 
-		style.GetFillAndStrokeOptions().WriteDrawingOptionsToRenderer(r)
 		legendDraw.moveTo(x, y)
 		legendDraw.lineTo(x+legendWidth, y)
 		r.Stroke()
@@ -120,8 +177,13 @@ func (l *legend) Render() (chart.Box, error) {
 		}
 	}
 	legendBox := padding.Clone()
-	legendBox.Right = legendBox.Left + x
-	legendBox.Bottom = legendBox.Top + 2*legendDotHeight
-
+	// 计算展示区域
+	if opt.Orient == OrientVertical {
+		legendBox.Right = legendBox.Left + left + maxTextWidth + legendWidth + textPadding
+		legendBox.Bottom = legendBox.Top + y
+	} else {
+		legendBox.Right = legendBox.Left + x
+		legendBox.Bottom = legendBox.Top + 2*legendDotHeight + top + textPadding
+	}
 	return legendBox, nil
 }

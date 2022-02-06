@@ -31,6 +31,8 @@ import (
 )
 
 type AxisOption struct {
+	// The boundary gap on both sides of a coordinate axis.
+	// Nil or *true means the center part of two axis ticks
 	BoundaryGap *bool
 	// The flag for show axis, set this to *false will hide axis
 	Show *bool
@@ -379,7 +381,7 @@ func (a *axis) axisMeasureTextMaxWidthHeight() (int, int) {
 	return measureTextMaxWidthHeight(data.TextList(), r)
 }
 
-// measureAxis return the measurement of axis.
+// measureAxis returns the measurement of axis.
 // If the position is left or right, it will be textMaxWidth + labelMargin + tickLength.
 // If the position is top or bottom, it will be textMaxHeight + labelMargin + tickLength.
 func (a *axis) measureAxis() int {

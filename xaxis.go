@@ -25,16 +25,24 @@ package charts
 import "github.com/wcharczuk/go-chart/v2"
 
 type XAxisOption struct {
+	// The boundary gap on both sides of a coordinate axis.
+	// Nil or *true means the center part of two axis ticks
 	BoundaryGap *bool
-	Data        []string
-	Theme       string
-	Hidden      bool
+	// The data value of x axis
+	Data []string
+	// The theme of chart
+	Theme string
+	// Hidden x axis
+	Hidden bool
+	// Number of segments that the axis is split into. Note that this number serves only as a recommendation.
 	SplitNumber int
-	// TODO split number
 }
 
 // drawXAxis draws x axis, and returns the height, range of if.
 func drawXAxis(p *Draw, opt *XAxisOption) (int, *Range, error) {
+	if opt.Hidden {
+		return 0, nil, nil
+	}
 	dXAxis, err := NewDraw(
 		DrawOption{
 			Parent: p,

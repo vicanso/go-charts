@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"fmt"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -224,6 +226,20 @@ func TestDraw(t *testing.T) {
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 0 0\nL 400 0\nL 400 300\nL 0 300\nL 0 0\" style=\"stroke-width:0;stroke:none;fill:rgba(255,255,255,1.0)\"/></svg>",
 		},
+		// arcTo
+		{
+			fn: func(d *Draw) {
+				chart.Style{
+					StrokeWidth: 1,
+					StrokeColor: drawing.ColorBlack,
+					FillColor:   drawing.ColorBlue,
+				}.WriteToRenderer(d.Render)
+				d.arcTo(100, 100, 100, 100, 0, math.Pi/2)
+				d.Render.Close()
+				d.Render.FillStroke()
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 205 110\nA 100 100 90.00 0 1 105 210\nZ\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:rgba(0,0,255,1.0)\"/></svg>",
+		},
 	}
 	for _, tt := range tests {
 		d, err := NewDraw(DrawOption{
@@ -237,6 +253,7 @@ func TestDraw(t *testing.T) {
 		tt.fn(d)
 		data, err := d.Bytes()
 		assert.Nil(err)
+		fmt.Println(string(data))
 		assert.Equal(tt.result, string(data))
 	}
 }

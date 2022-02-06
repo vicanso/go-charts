@@ -43,6 +43,7 @@ func (bs *BarStyle) Style() chart.Style {
 	}
 }
 
+// Bar renders bar for chart
 func (d *Draw) Bar(b chart.Box, style BarStyle) {
 	s := style.Style()
 

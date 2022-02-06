@@ -31,20 +31,33 @@ import (
 )
 
 type AxisOption struct {
-	BoundaryGap    *bool
-	Show           *bool
-	Position       string
-	SplitNumber    int
-	ClassName      string
-	StrokeColor    drawing.Color
-	StrokeWidth    float64
-	TickLength     int
-	TickShow       *bool
-	LabelMargin    int
-	FontSize       float64
-	Font           *truetype.Font
-	FontColor      drawing.Color
-	SplitLineShow  bool
+	BoundaryGap *bool
+	// The flag for show axis, set this to *false will hide axis
+	Show *bool
+	// The position of axis, it can be 'left', 'top', 'right' or 'bottom'
+	Position string
+	// Number of segments that the axis is split into. Note that this number serves only as a recommendation.
+	SplitNumber int
+	ClassName   string
+	// The line color of axis
+	StrokeColor drawing.Color
+	// The line width
+	StrokeWidth float64
+	// The length of the axis tick
+	TickLength int
+	// The flag for show axis tick, set this to *false will hide axis tick
+	TickShow *bool
+	// The margin value of label
+	LabelMargin int
+	// The font size of label
+	FontSize float64
+	// The font of label
+	Font *truetype.Font
+	// The color of label
+	FontColor drawing.Color
+	// The flag for show axis split line, set this to true will show axis split line
+	SplitLineShow bool
+	// The color of split line
 	SplitLineColor drawing.Color
 }
 
@@ -380,6 +393,7 @@ func (a *axis) measureAxis() int {
 	return textMaxHeight + value
 }
 
+// Render renders the axis for chart
 func (a *axis) Render() {
 	style := a.style
 	if isFalse(style.Show) {

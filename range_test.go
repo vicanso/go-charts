@@ -33,7 +33,7 @@ func TestRange(t *testing.T) {
 
 	r := NewRange(0, 8, 6)
 	assert.Equal(0.0, r.Min)
-	assert.Equal(30.0, r.Max)
+	assert.Equal(12.0, r.Max)
 
 	r = NewRange(0, 12, 6)
 	assert.Equal(0.0, r.Min)
@@ -46,4 +46,31 @@ func TestRange(t *testing.T) {
 	r = NewRange(0, 400, 6)
 	assert.Equal(0.0, r.Min)
 	assert.Equal(480.0, r.Max)
+}
+
+func TestRangeHeightWidth(t *testing.T) {
+	assert := assert.New(t)
+	r := NewRange(0, 8, 6)
+	r.Size = 100
+
+	assert.Equal(33, r.getHeight(4))
+	assert.Equal(67, r.getRestHeight(4))
+
+	assert.Equal(33, r.getWidth(4))
+	r.Boundary = true
+	assert.Equal(41, r.getWidth(4))
+}
+
+func TestRangeGetRange(t *testing.T) {
+	assert := assert.New(t)
+	r := NewRange(0, 8, 6)
+	r.Size = 120
+
+	f1, f2 := r.GetRange(0)
+	assert.Equal(0.0, f1)
+	assert.Equal(20.0, f2)
+
+	f1, f2 = r.GetRange(2)
+	assert.Equal(40.0, f1)
+	assert.Equal(60.0, f2)
 }

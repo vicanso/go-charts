@@ -38,7 +38,10 @@ func NewRange(min, max float64, divideCount int) Range {
 	r := math.Abs(max - min)
 
 	// 最小单位计算
-	unit := 5
+	unit := 2
+	if r > 10 {
+		unit = 5
+	}
 	if r > 100 {
 		unit = 20
 	}
@@ -65,8 +68,7 @@ func (r *Range) getHeight(value float64) int {
 }
 
 func (r *Range) getRestHeight(value float64) int {
-	v := 1 - (value-r.Min)/(r.Max-r.Min)
-	return int(v * float64(r.Size))
+	return r.Size - r.getHeight(value)
 }
 
 func (r *Range) GetRange(index int) (float64, float64) {

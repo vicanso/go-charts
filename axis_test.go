@@ -31,10 +31,10 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestAxisStyle(t *testing.T) {
+func TestAxisOption(t *testing.T) {
 	assert := assert.New(t)
 
-	as := AxisStyle{}
+	as := AxisOption{}
 
 	assert.Equal(8, as.GetLabelMargin())
 	as.LabelMargin = 10
@@ -64,7 +64,7 @@ func TestAxisDataList(t *testing.T) {
 func TestAxis(t *testing.T) {
 	assert := assert.New(t)
 
-	data := NewAxisDataListFromStringList([]string{
+	axisData := NewAxisDataListFromStringList([]string{
 		"Mon",
 		"Tue",
 		"Wed",
@@ -73,8 +73,8 @@ func TestAxis(t *testing.T) {
 		"Sat",
 		"Sun",
 	})
-	getDefaultStyle := func() AxisStyle {
-		return AxisStyle{
+	getDefaultOption := func() AxisOption {
+		return AxisOption{
 			StrokeColor:    drawing.ColorBlack,
 			StrokeWidth:    1,
 			FontColor:      drawing.ColorBlack,
@@ -85,14 +85,15 @@ func TestAxis(t *testing.T) {
 		}
 	}
 	tests := []struct {
-		newStyle func() AxisStyle
-		result   string
+		newOption func() AxisOption
+		newData   func() AxisDataList
+		result    string
 	}{
 		// 文本按起始位置展示
 		// axis位于bottom
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				opt.BoundaryGap = FalseFlag()
 				return opt
 			},
@@ -101,8 +102,8 @@ func TestAxis(t *testing.T) {
 		// 文本居中展示
 		// axis位于bottom
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				return opt
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 270\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 270\nL 5 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 61 270\nL 61 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 117 270\nL 117 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 173 270\nL 173 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 229 270\nL 229 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 285 270\nL 285 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 340 270\nL 340 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 395 270\nL 395 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 5 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 61 5\nL 61 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 117 5\nL 117 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 173 5\nL 173 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 229 5\nL 229 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 285 5\nL 285 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 340 5\nL 340 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 395 5\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"20\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"78\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"132\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"190\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"249\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"303\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"356\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
@@ -110,8 +111,8 @@ func TestAxis(t *testing.T) {
 		// 文本按起始位置展示
 		// axis位于top
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				opt.Position = PositionTop
 				opt.BoundaryGap = FalseFlag()
 				return opt
@@ -121,8 +122,8 @@ func TestAxis(t *testing.T) {
 		// 文本居中展示
 		// axis位于top
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				opt.Position = PositionTop
 				return opt
 			},
@@ -131,8 +132,8 @@ func TestAxis(t *testing.T) {
 		// 文本按起始位置展示
 		// axis位于left
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				opt.Position = PositionLeft
 				opt.BoundaryGap = FalseFlag()
 				return opt
@@ -142,8 +143,8 @@ func TestAxis(t *testing.T) {
 		// 文本居中展示
 		// axis位于left
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				opt.Position = PositionLeft
 				return opt
 			},
@@ -152,8 +153,8 @@ func TestAxis(t *testing.T) {
 		// 文本按起始位置展示
 		// axis位于right
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				opt.Position = PositionRight
 				opt.BoundaryGap = FalseFlag()
 				return opt
@@ -163,12 +164,46 @@ func TestAxis(t *testing.T) {
 		// 文本居中展示
 		// axis位于right
 		{
-			newStyle: func() AxisStyle {
-				opt := getDefaultStyle()
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
 				opt.Position = PositionRight
 				return opt
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 361 5\nL 361 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 5\nL 366 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 47\nL 366 47\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 89\nL 366 89\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 131\nL 366 131\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 172\nL 366 172\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 213\nL 366 213\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 254\nL 366 254\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 295\nL 366 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 360 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 47\nL 360 47\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 89\nL 360 89\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 131\nL 360 131\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 172\nL 360 172\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 213\nL 360 213\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 254\nL 360 254\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"369\" y=\"280\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"369\" y=\"239\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"369\" y=\"198\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"369\" y=\"157\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"369\" y=\"115\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"369\" y=\"73\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"369\" y=\"31\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// text较多，仅展示部分
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionBottom
+				return opt
+			},
+			newData: func() AxisDataList {
+				return NewAxisDataListFromStringList([]string{
+					"01-01",
+					"01-02",
+					"01-03",
+					"01-04",
+					"01-05",
+					"01-06",
+					"01-07",
+					"01-08",
+					"01-09",
+					"01-10",
+					"01-11",
+					"01-12",
+					"01-13",
+					"01-14",
+					"01-15",
+					"01-16",
+					"01-17",
+					"01-18",
+					"01-19",
+					"01-20",
+					"01-21",
+				})
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 270\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 270\nL 5 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 62 270\nL 62 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 119 270\nL 119 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 176 270\nL 176 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 233 270\nL 233 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 287 270\nL 287 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 341 270\nL 341 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 395 270\nL 395 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 5 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 62 5\nL 62 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 119 5\nL 119 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 176 5\nL 176 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 233 5\nL 233 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 287 5\nL 287 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 341 5\nL 341 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 395 5\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"16\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-02</text><text x=\"73\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-05</text><text x=\"130\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-08</text><text x=\"187\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-11</text><text x=\"243\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-14</text><text x=\"297\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-17</text><text x=\"351\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-20</text></svg>",
 		},
 	}
 	for _, tt := range tests {
@@ -182,7 +217,11 @@ func TestAxis(t *testing.T) {
 			Bottom: 5,
 		}))
 		assert.Nil(err)
-		style := tt.newStyle()
+		style := tt.newOption()
+		data := axisData
+		if tt.newData != nil {
+			data = tt.newData()
+		}
 		NewAxis(d, data, style).Render()
 
 		result, err := d.Bytes()
@@ -204,14 +243,14 @@ func TestMeasureAxis(t *testing.T) {
 		"Sun",
 	})
 	f, _ := chart.GetDefaultFont()
-	width := NewAxis(d, data, AxisStyle{
+	width := NewAxis(d, data, AxisOption{
 		FontSize: 12,
 		Font:     f,
 		Position: PositionLeft,
 	}).measureAxis()
 	assert.Equal(44, width)
 
-	height := NewAxis(d, data, AxisStyle{
+	height := NewAxis(d, data, AxisOption{
 		FontSize: 12,
 		Font:     f,
 		Position: PositionTop,

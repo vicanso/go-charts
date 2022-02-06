@@ -29,6 +29,7 @@ type XAxisOption struct {
 	Data        []string
 	Theme       string
 	Hidden      bool
+	SplitNumber int
 	// TODO split number
 }
 
@@ -47,11 +48,12 @@ func drawXAxis(p *Draw, opt *XAxisOption) (int, *Range, error) {
 	}
 	theme := NewTheme(opt.Theme)
 	data := NewAxisDataListFromStringList(opt.Data)
-	style := AxisStyle{
+	style := AxisOption{
 		BoundaryGap: opt.BoundaryGap,
 		StrokeColor: theme.GetAxisStrokeColor(),
 		FontColor:   theme.GetAxisStrokeColor(),
 		StrokeWidth: 1,
+		SplitNumber: opt.SplitNumber,
 	}
 
 	boundary := true

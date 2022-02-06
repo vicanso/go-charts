@@ -38,7 +38,7 @@ func drawYAxis(p *Draw, opt *ChartOption, xAxisHeight int, padding chart.Box) (*
 	theme := NewTheme(opt.Theme)
 	yRange := opt.getYRange(0)
 	data := NewAxisDataListFromStringList(yRange.Values())
-	style := AxisStyle{
+	style := AxisOption{
 		Position:       PositionLeft,
 		BoundaryGap:    FalseFlag(),
 		FontColor:      theme.GetAxisStrokeColor(),

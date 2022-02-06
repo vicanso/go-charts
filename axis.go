@@ -23,15 +23,18 @@
 package charts
 
 import (
+	"math"
+
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-type AxisStyle struct {
+type AxisOption struct {
 	BoundaryGap    *bool
 	Show           *bool
 	Position       string
+	SplitNumber    int
 	ClassName      string
 	StrokeColor    drawing.Color
 	StrokeWidth    float64
@@ -48,10 +51,10 @@ type AxisStyle struct {
 type axis struct {
 	d     *Draw
 	data  *AxisDataList
-	style *AxisStyle
+	style *AxisOption
 }
 
-func NewAxis(d *Draw, data AxisDataList, style AxisStyle) *axis {
+func NewAxis(d *Draw, data AxisDataList, style AxisOption) *axis {
 	return &axis{
 		d:     d,
 		data:  &data,
@@ -60,15 +63,15 @@ func NewAxis(d *Draw, data AxisDataList, style AxisStyle) *axis {
 
 }
 
-func (as *AxisStyle) GetLabelMargin() int {
+func (as *AxisOption) GetLabelMargin() int {
 	return getDefaultInt(as.LabelMargin, 8)
 }
 
-func (as *AxisStyle) GetTickLength() int {
+func (as *AxisOption) GetTickLength() int {
 	return getDefaultInt(as.TickLength, 5)
 }
 
-func (as *AxisStyle) Style(f *truetype.Font) chart.Style {
+func (as *AxisOption) Style(f *truetype.Font) chart.Style {
 	s := chart.Style{
 		ClassName:   as.ClassName,
 		StrokeColor: as.StrokeColor,
@@ -99,10 +102,12 @@ func (l AxisDataList) TextList() []string {
 	return textList
 }
 
-type axisOption struct {
+type axisRenderOption struct {
 	textMaxWith   int
 	textMaxHeight int
 	boundaryGap   bool
+	unitCount     int
+	modValue      int
 }
 
 func NewAxisDataListFromStringList(textList []string) AxisDataList {
@@ -115,7 +120,7 @@ func NewAxisDataListFromStringList(textList []string) AxisDataList {
 	return list
 }
 
-func (a *axis) axisLabel(opt *axisOption) {
+func (a *axis) axisLabel(opt *axisRenderOption) {
 	style := a.style
 	data := *a.data
 	d := a.d
@@ -131,11 +136,14 @@ func (a *axis) axisLabel(opt *axisOption) {
 	height := d.Box.Height()
 	textList := data.TextList()
 	count := len(textList)
+
 	boundaryGap := opt.boundaryGap
 	if !boundaryGap {
 		count--
 	}
 
+	unitCount := opt.unitCount
+	modValue := opt.modValue
 	labelMargin := style.GetLabelMargin()
 
 	// 轴线
@@ -176,6 +184,9 @@ func (a *axis) axisLabel(opt *axisOption) {
 		}
 		values := autoDivide(width, count)
 		for index, text := range data.TextList() {
+			if unitCount != 0 && index%unitCount != modValue {
+				continue
+			}
 			x := values[index]
 			leftOffset := 0
 			b := r.MeasureText(text)
@@ -191,7 +202,7 @@ func (a *axis) axisLabel(opt *axisOption) {
 	}
 }
 
-func (a *axis) axisLine(opt *axisOption) {
+func (a *axis) axisLine(opt *axisRenderOption) {
 	d := a.d
 	r := d.Render
 	style := a.style
@@ -239,7 +250,7 @@ func (a *axis) axisLine(opt *axisOption) {
 	r.FillStroke()
 }
 
-func (a *axis) axisTick(opt *axisOption) {
+func (a *axis) axisTick(opt *axisRenderOption) {
 	d := a.d
 	r := d.Render
 
@@ -259,6 +270,7 @@ func (a *axis) axisTick(opt *axisOption) {
 	if isFalse(style.TickShow) {
 		tickShow = false
 	}
+	unitCount := opt.unitCount
 
 	tickLengthValue := style.GetTickLength()
 	labelHeight := labelMargin + opt.textMaxHeight
@@ -308,7 +320,10 @@ func (a *axis) axisTick(opt *axisOption) {
 			y0 = labelHeight
 		}
 		if tickShow {
-			for _, v := range values {
+			for index, v := range values {
+				if index%unitCount != 0 {
+					continue
+				}
 				x := v
 				y := y0
 				d.moveTo(x, y-tickLengthValue)
@@ -326,7 +341,10 @@ func (a *axis) axisTick(opt *axisOption) {
 				splitLineHeight = height - labelHeight
 			}
 
-			for _, v := range values {
+			for index, v := range values {
+				if index%unitCount != 0 {
+					continue
+				}
 				x := v
 				y := y0
 
@@ -368,7 +386,7 @@ func (a *axis) Render() {
 		return
 	}
 	textMaxWidth, textMaxHeight := a.axisMeasureTextMaxWidthHeight()
-	opt := &axisOption{
+	opt := &axisRenderOption{
 		textMaxWith:   textMaxWidth,
 		textMaxHeight: textMaxHeight,
 		boundaryGap:   true,
@@ -376,6 +394,38 @@ func (a *axis) Render() {
 	if isFalse(style.BoundaryGap) {
 		opt.boundaryGap = false
 	}
+
+	unitCount := chart.MaxInt(style.SplitNumber, 1)
+	width := a.d.Box.Width()
+	textList := a.data.TextList()
+	count := len(textList)
+
+	position := style.Position
+	switch position {
+	case PositionLeft:
+		fallthrough
+	case PositionRight:
+	default:
+		maxCount := width / (opt.textMaxWith + 10)
+		// 可以显示所有
+		if maxCount >= count {
+			unitCount = 1
+		} else if maxCount < count/unitCount {
+			unitCount = int(math.Ceil(float64(count) / float64(maxCount)))
+		}
+	}
+
+	boundaryGap := opt.boundaryGap
+	modValue := 0
+	if boundaryGap && unitCount > 1 {
+		// 如果是居中，unit count需要设置为奇数
+		if unitCount%2 == 0 {
+			unitCount++
+		}
+		modValue = unitCount / 2
+	}
+	opt.modValue = modValue
+	opt.unitCount = unitCount
 
 	// 坐标轴线
 	a.axisLine(opt)

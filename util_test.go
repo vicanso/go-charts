@@ -51,12 +51,6 @@ func TestAutoDivide(t *testing.T) {
 	}, autoDivide(600, 7))
 }
 
-func TestMaxInt(t *testing.T) {
-	assert := assert.New(t)
-
-	assert.Equal(5, maxInt(1, 3, 5, 2))
-}
-
 func TestMeasureTextMaxWidthHeight(t *testing.T) {
 	assert := assert.New(t)
 	r, err := chart.SVG(400, 300)

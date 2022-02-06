@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -113,6 +114,20 @@ func TestDrawTitle(t *testing.T) {
 				Bottom: 68,
 			},
 		},
+		{
+			newDraw: newDraw,
+			newOption: func() *TitleOption {
+				opt := newOption()
+				opt.Left = "10%"
+				opt.Top = "10"
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"46\" y=\"10\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"40\" y=\"27\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"40\" y=\"44\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"43\" y=\"56\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			box: chart.Box{
+				Right:  83,
+				Bottom: 68,
+			},
+		},
 	}
 	for _, tt := range tests {
 		d := tt.newDraw()
@@ -123,6 +138,7 @@ func TestDrawTitle(t *testing.T) {
 		data, err := d.Bytes()
 		assert.Nil(err)
 		assert.NotEmpty(data)
+		fmt.Println(string(data))
 		assert.Equal(tt.result, string(data))
 	}
 }

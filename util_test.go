@@ -113,3 +113,11 @@ func TestReverseSlice(t *testing.T) {
 		1,
 	}, numbers)
 }
+
+func TestConvertPercent(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(-1.0, convertPercent("1"))
+	assert.Equal(-1.0, convertPercent("a%"))
+	assert.Equal(0.1, convertPercent("10%"))
+}

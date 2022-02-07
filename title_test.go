@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -138,7 +137,6 @@ func TestDrawTitle(t *testing.T) {
 		data, err := d.Bytes()
 		assert.Nil(err)
 		assert.NotEmpty(data)
-		fmt.Println(string(data))
 		assert.Equal(tt.result, string(data))
 	}
 }

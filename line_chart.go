@@ -40,33 +40,52 @@ func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) 
 	if err != nil {
 		return nil, err
 	}
+	seriesNames := opt.Legend.Data
+
+	r := d.Render
 	yRange := result.yRange
 	xRange := result.xRange
 	for i, series := range opt.SeriesList {
 		points := make([]Point, 0)
 		for j, item := range series.Data {
 			y := yRange.getRestHeight(item.Value)
+			x := xRange.getWidth(float64(j))
 			points = append(points, Point{
 				Y: y,
-				X: xRange.getWidth(float64(j)),
+				X: x,
 			})
-			index := series.index
-			if index == 0 {
-				index = i
+			if !series.Label.Show {
+				continue
 			}
-			seriesColor := theme.GetSeriesColor(index)
-			dotFillColor := drawing.ColorWhite
-			if theme.IsDark() {
-				dotFillColor = seriesColor
+			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(i, item.Value, -1)
+			labelStyle := chart.Style{
+				FontColor: theme.GetTextColor(),
+				FontSize:  10,
+				Font:      opt.Font,
 			}
-			d.Line(points, LineStyle{
-				StrokeColor:  seriesColor,
-				StrokeWidth:  2,
-				DotColor:     seriesColor,
-				DotWidth:     2,
-				DotFillColor: dotFillColor,
-			})
+			if !series.Label.Color.IsZero() {
+				labelStyle.FontColor = series.Label.Color
+			}
+			labelStyle.GetTextOptions().WriteToRenderer(r)
+			textBox := r.MeasureText(text)
+			d.text(text, x-textBox.Width()>>1, y-5)
 		}
+		index := series.index
+		if index == 0 {
+			index = i
+		}
+		seriesColor := theme.GetSeriesColor(index)
+		dotFillColor := drawing.ColorWhite
+		if theme.IsDark() {
+			dotFillColor = seriesColor
+		}
+		d.Line(points, LineStyle{
+			StrokeColor:  seriesColor,
+			StrokeWidth:  2,
+			DotColor:     seriesColor,
+			DotWidth:     2,
+			DotFillColor: dotFillColor,
+		})
 	}
 
 	return result.d, nil

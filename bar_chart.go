@@ -53,6 +53,10 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 	barMaxHeight := yRange.Size
 	theme := NewTheme(opt.Theme)
 
+	seriesNames := opt.Legend.Data
+
+	r := d.Render
+
 	for i, series := range opt.SeriesList {
 		for j, item := range series.Data {
 			x0, _ := xRange.GetRange(j)
@@ -63,6 +67,10 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 			}
 
 			h := int(yRange.getHeight(item.Value))
+			fillColor := theme.GetSeriesColor(i)
+			if !item.Style.FillColor.IsZero() {
+				fillColor = item.Style.FillColor
+			}
 
 			d.Bar(chart.Box{
 				Top:    barMaxHeight - h,
@@ -70,8 +78,23 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 				Right:  x + barWidth,
 				Bottom: barMaxHeight - 1,
 			}, BarStyle{
-				FillColor: theme.GetSeriesColor(i),
+				FillColor: fillColor,
 			})
+			if !series.Label.Show {
+				continue
+			}
+			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(i, item.Value, -1)
+			labelStyle := chart.Style{
+				FontColor: theme.GetTextColor(),
+				FontSize:  10,
+				Font:      opt.Font,
+			}
+			if !series.Label.Color.IsZero() {
+				labelStyle.FontColor = series.Label.Color
+			}
+			labelStyle.GetTextOptions().WriteToRenderer(r)
+			textBox := r.MeasureText(text)
+			d.text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-5)
 		}
 	}
 

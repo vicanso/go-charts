@@ -26,7 +26,6 @@ import (
 	"errors"
 	"math"
 
-	"github.com/dustin/go-humanize"
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
@@ -38,21 +37,9 @@ const (
 	ChartTypePie  = "pie"
 )
 
-type SeriesData struct {
-	Value float64
-	Style chart.Style
-}
 type Point struct {
 	X int
 	Y int
-}
-
-type Series struct {
-	index      int
-	Type       string
-	Data       []SeriesData
-	YAxisIndex int
-	Style      chart.Style
 }
 
 type ChartOption struct {
@@ -68,6 +55,7 @@ type ChartOption struct {
 	Padding         chart.Box
 	SeriesList      []Series
 	BackgroundColor drawing.Color
+	Children        []ChartOption
 }
 
 func (o *ChartOption) FillDefault(theme string) {
@@ -114,6 +102,13 @@ func (o *ChartOption) FillDefault(theme string) {
 	}
 	if o.Legend.Left == "" {
 		o.Legend.Left = PositionCenter
+	}
+	if len(o.Legend.Data) == 0 {
+		names := make([]string, len(o.SeriesList))
+		for index, item := range o.SeriesList {
+			names[index] = item.Name
+		}
+		o.Legend.Data = names
 	}
 	if o.Legend.Style.Font == nil {
 		o.Legend.Style.Font = o.Font
@@ -165,20 +160,19 @@ func (o *ChartOption) getYRange(axisIndex int) Range {
 	if o.YAxis.Max != nil {
 		max = *o.YAxis.Max
 	}
+	divideCount := 6
 	// y轴分设置默认划分为6块
-	r := NewRange(min, max, 6)
-	return r
-}
+	r := NewRange(min, max, divideCount)
 
-func (r Range) Values() []string {
-	offset := (r.Max - r.Min) / float64(r.divideCount)
-	values := make([]string, 0)
-	for i := 0; i <= r.divideCount; i++ {
-		v := r.Min + float64(i)*offset
-		value := humanize.CommafWithDigits(v, 2)
-		values = append(values, value)
+	// 由于NewRange会重新计算min max
+	if o.YAxis.Min != nil {
+		r.Min = min
 	}
-	return values
+	if o.YAxis.Max != nil {
+		r.Max = max
+	}
+
+	return r
 }
 
 type basicRenderResult struct {
@@ -188,7 +182,7 @@ type basicRenderResult struct {
 	titleBox chart.Box
 }
 
-func ChartRender(opt ChartOption) (*Draw, error) {
+func Render(opt ChartOption) (*Draw, error) {
 	if len(opt.SeriesList) == 0 {
 		return nil, errors.New("series can not be nil")
 	}
@@ -207,7 +201,7 @@ func ChartRender(opt ChartOption) (*Draw, error) {
 			lineSeries = append(lineSeries, item)
 		}
 	}
-	// 如果指定了pie，则以pie的形式处理，不支持多类型图表
+	// 如果指定了pie，则以pie的形式处理，pie不支持多类型图表
 	// pie不需要axis
 	if isPieChart {
 		opt.XAxis.Hidden = true
@@ -217,21 +211,56 @@ func ChartRender(opt ChartOption) (*Draw, error) {
 	if err != nil {
 		return nil, err
 	}
-	if isPieChart {
-		return pieChartRender(opt, result)
+	fns := []func() error{
+		// pie render
+		func() error {
+			if !isPieChart {
+				return nil
+			}
+			_, err := pieChartRender(opt, result)
+			return err
+		},
+		// bar render
+		func() error {
+			// 如果是pie或者无bar类型的series
+			if isPieChart || len(barSeries) == 0 {
+				return nil
+			}
+			o := opt
+			o.SeriesList = barSeries
+			_, err := barChartRender(o, result)
+			return err
+		},
+		// line render
+		func() error {
+			// 如果是pie或者无line类型的series
+			if isPieChart || len(lineSeries) == 0 {
+				return nil
+			}
+			o := opt
+			o.SeriesList = lineSeries
+			_, err := lineChartRender(o, result)
+			return err
+		},
+		// legend需要在顶层，因此最后render
+		func() error {
+			_, err := NewLegend(result.d, opt.Legend).Render()
+			return err
+		},
 	}
-	if len(barSeries) != 0 {
-		o := opt
-		o.SeriesList = barSeries
-		_, err = barChartRender(o, result)
+
+	for _, fn := range fns {
+		err = fn()
 		if err != nil {
 			return nil, err
 		}
 	}
-	if len(lineSeries) != 0 {
-		o := opt
-		o.SeriesList = lineSeries
-		_, err = lineChartRender(o, result)
+	for _, child := range opt.Children {
+		child.Parent = result.d
+		if len(child.Theme) == 0 {
+			child.Theme = opt.Theme
+		}
+		_, err = Render(child)
 		if err != nil {
 			return nil, err
 		}
@@ -259,11 +288,6 @@ func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 
 	// 标题
 	titleBox, err := drawTitle(d, &opt.Title)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = NewLegend(d, opt.Legend).Render()
 	if err != nil {
 		return nil, err
 	}

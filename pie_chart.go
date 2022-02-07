@@ -24,8 +24,8 @@ package charts
 
 import (
 	"math"
+	"strconv"
 
-	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -53,7 +53,11 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 
 	values := make([]float64, len(opt.SeriesList))
 	total := float64(0)
+	radiusValue := ""
 	for index, series := range opt.SeriesList {
+		if len(series.Radius) != 0 {
+			radiusValue = series.Radius
+		}
 		value := float64(0)
 		for _, item := range series.Data {
 			value += item.Value
@@ -69,8 +73,22 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 	cy := box.Height() >> 1
 
 	diameter := chart.MinInt(box.Width(), box.Height())
-	radius := float64(diameter) * defaultRadiusPercent
+
+	var radius float64
+	if len(radiusValue) != 0 {
+		v := convertPercent(radiusValue)
+		if v != -1 {
+			radius = float64(diameter) * v
+		} else {
+			radius, _ = strconv.ParseFloat(radiusValue, 64)
+		}
+	}
+	if radius <= 0 {
+		radius = float64(diameter) * defaultRadiusPercent
+	}
 	labelRadius := radius + 20
+
+	seriesNames := opt.Legend.Data
 
 	if len(values) == 1 {
 		getPieStyle(theme, 0).WriteToRenderer(r)
@@ -79,6 +97,7 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 	} else {
 		currentValue := float64(0)
 		for index, v := range values {
+
 			pieStyle := getPieStyle(theme, index)
 			pieStyle.WriteToRenderer(r)
 			d.moveTo(cx, cy)
@@ -90,6 +109,13 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 			d.lineTo(cx, cy)
 			r.Close()
 			r.FillStroke()
+
+			series := opt.SeriesList[index]
+			// 是否显示label
+			showLabel := series.Label.Show
+			if !showLabel {
+				continue
+			}
 
 			// label的角度为饼块中间
 			angle := start + delta/2
@@ -113,8 +139,11 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 				FontSize:  10,
 				Font:      opt.Font,
 			}
+			if !series.Label.Color.IsZero() {
+				textStyle.FontColor = series.Label.Color
+			}
 			textStyle.GetTextOptions().WriteToRenderer(r)
-			text := humanize.FtoaWithDigits(percent*100, 2) + "%"
+			text := NewPieLabelFormatter(seriesNames, series.Label.Formatter)(index, v, percent)
 			textBox := r.MeasureText(text)
 			textMargin := 3
 			x := endx + textMargin

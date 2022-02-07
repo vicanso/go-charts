@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"fmt"
 	"math"
 	"testing"
 
@@ -253,7 +252,6 @@ func TestDraw(t *testing.T) {
 		tt.fn(d)
 		data, err := d.Bytes()
 		assert.Nil(err)
-		fmt.Println(string(data))
 		assert.Equal(tt.result, string(data))
 	}
 }

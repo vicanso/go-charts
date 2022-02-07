@@ -104,3 +104,8 @@ func isFalse(flag *bool) bool {
 	}
 	return false
 }
+
+func toFloatPoint(f float64) *float64 {
+	v := f
+	return &v
+}

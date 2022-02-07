@@ -277,6 +277,9 @@ func (a *axis) axisTick(opt *axisRenderOption) {
 	height := d.Box.Height()
 	data := *a.data
 	tickCount := len(data)
+	if tickCount == 0 {
+		return
+	}
 	if !opt.boundaryGap {
 		tickCount--
 	}

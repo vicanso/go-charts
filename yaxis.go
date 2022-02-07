@@ -27,8 +27,11 @@ import (
 )
 
 type YAxisOption struct {
-	Min    *float64
-	Max    *float64
+	// The minimun value of axis.
+	Min *float64
+	// The maximum value of axis.
+	Max *float64
+	// Hidden y axis
 	Hidden bool
 }
 

@@ -24,6 +24,8 @@ package charts
 
 import (
 	"math"
+
+	"github.com/dustin/go-humanize"
 )
 
 type Range struct {
@@ -60,6 +62,17 @@ func NewRange(min, max float64, divideCount int) Range {
 		Max:         max,
 		divideCount: divideCount,
 	}
+}
+
+func (r Range) Values() []string {
+	offset := (r.Max - r.Min) / float64(r.divideCount)
+	values := make([]string, 0)
+	for i := 0; i <= r.divideCount; i++ {
+		v := r.Min + float64(i)*offset
+		value := humanize.CommafWithDigits(v, 2)
+		values = append(values, value)
+	}
+	return values
 }
 
 func (r *Range) getHeight(value float64) int {

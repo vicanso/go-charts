@@ -131,8 +131,8 @@ func (t *Theme) GetTextColor() drawing.Color {
 	if t.IsDark() {
 		return drawing.Color{
 			R: 238,
-			G: 241,
-			B: 250,
+			G: 238,
+			B: 238,
 			A: 255,
 		}
 	}

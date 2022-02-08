@@ -129,9 +129,14 @@ func (l *legend) Render() (chart.Box, error) {
 	}
 	x = left
 	for index, text := range opt.Data {
+		seriesColor := theme.GetSeriesColor(index)
+		fillColor := seriesColor
+		if !theme.IsDark() {
+			fillColor = theme.GetBackgroundColor()
+		}
 		style := chart.Style{
-			StrokeColor: theme.GetSeriesColor(index),
-			FillColor:   theme.GetSeriesColor(index),
+			StrokeColor: seriesColor,
+			FillColor:   fillColor,
 			StrokeWidth: 3,
 		}
 		style.GetFillAndStrokeOptions().WriteDrawingOptionsToRenderer(r)
@@ -144,7 +149,7 @@ func (l *legend) Render() (chart.Box, error) {
 			x = left
 			renderText = func() {
 				x += textPadding
-				legendDraw.text(text, x, y+legendDotHeight-2)
+				legendDraw.text(text, x, y+legendDotHeight)
 				x += textBox.Width()
 				y += (2*legendDotHeight + legendMargin)
 			}
@@ -156,7 +161,7 @@ func (l *legend) Render() (chart.Box, error) {
 			}
 			renderText = func() {
 				x += textPadding
-				legendDraw.text(text, x, y+legendDotHeight-2)
+				legendDraw.text(text, x, y+legendDotHeight)
 				x += textBox.Width()
 				x += textPadding
 			}

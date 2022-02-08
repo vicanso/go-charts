@@ -24,8 +24,6 @@ package charts
 
 import (
 	"math"
-
-	"github.com/dustin/go-humanize"
 )
 
 type Range struct {
@@ -69,7 +67,7 @@ func (r Range) Values() []string {
 	values := make([]string, 0)
 	for i := 0; i <= r.divideCount; i++ {
 		v := r.Min + float64(i)*offset
-		value := humanize.CommafWithDigits(v, 2)
+		value := commafWithDigits(v)
 		values = append(values, value)
 	}
 	return values

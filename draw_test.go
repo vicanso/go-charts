@@ -239,6 +239,27 @@ func TestDraw(t *testing.T) {
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 205 110\nA 100 100 90.00 0 1 105 210\nZ\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:rgba(0,0,255,1.0)\"/></svg>",
 		},
+		{
+			fn: func(d *Draw) {
+				chart.Style{
+					StrokeWidth: 1,
+					StrokeColor: drawing.Color{
+						R: 84,
+						G: 112,
+						B: 198,
+						A: 255,
+					},
+					FillColor: drawing.Color{
+						R: 84,
+						G: 112,
+						B: 198,
+						A: 255,
+					},
+				}.WriteToRenderer(d.Render)
+				d.pin(30, 30, 30)
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 32 47\nA 15 15 330.00 1 1 38 47\nL 35 33\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path  d=\"M 20 33\nQ35,70 50,33\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
+		},
 	}
 	for _, tt := range tests {
 		d, err := NewDraw(DrawOption{

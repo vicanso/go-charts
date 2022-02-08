@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"strings"
+
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -33,6 +35,8 @@ type YAxisOption struct {
 	Max *float64
 	// Hidden y axis
 	Hidden bool
+	// Formatter for y axis text value
+	Formatter string
 }
 
 const YAxisWidth = 40
@@ -40,7 +44,15 @@ const YAxisWidth = 40
 func drawYAxis(p *Draw, opt *ChartOption, xAxisHeight int, padding chart.Box) (*Range, error) {
 	theme := NewTheme(opt.Theme)
 	yRange := opt.getYRange(0)
-	data := NewAxisDataListFromStringList(yRange.Values())
+	values := yRange.Values()
+	formatter := opt.YAxis.Formatter
+	if len(formatter) != 0 {
+		for index, text := range values {
+			values[index] = strings.ReplaceAll(formatter, "{value}", text)
+		}
+	}
+
+	data := NewAxisDataListFromStringList(values)
 	style := AxisOption{
 		Position:       PositionLeft,
 		BoundaryGap:    FalseFlag(),

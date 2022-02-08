@@ -60,6 +60,19 @@ type SeriesLabel struct {
 	Color     drawing.Color
 	Show      bool
 }
+
+const (
+	SeriesMarkPointDataTypeMax = "max"
+	SeriesMarkPointDataTypeMin = "min"
+)
+
+type SeriesMarkPointData struct {
+	Type string
+}
+type SeriesMarkPoint struct {
+	SymbolSize int
+	Data       []SeriesMarkPointData
+}
 type Series struct {
 	index      int
 	Type       string
@@ -69,7 +82,8 @@ type Series struct {
 	Label      SeriesLabel
 	Name       string
 	// Radius of Pie chart, e.g.: 40%
-	Radius string
+	Radius    string
+	MarkPoint SeriesMarkPoint
 }
 
 type LabelFormatter func(index int, value float64, percent float64) string

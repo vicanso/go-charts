@@ -25,6 +25,7 @@ package charts
 import (
 	"bytes"
 	"errors"
+	"math"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
@@ -149,6 +150,30 @@ func (d *Draw) arcTo(cx, cy int, rx, ry, startAngle, delta float64) {
 
 func (d *Draw) lineTo(x, y int) {
 	d.Render.LineTo(x+d.Box.Left, y+d.Box.Top)
+}
+
+func (d *Draw) pin(x, y, width int) {
+	r := float64(width) / 2
+	y -= width / 4
+	angle := chart.DegreesToRadians(15)
+
+	startAngle := math.Pi/2 + angle
+	delta := 2*math.Pi - 2*angle
+	d.arcTo(x, y, r, r, startAngle, delta)
+	d.lineTo(x, y)
+	d.Render.Fill()
+	startX := x - int(r)
+	startY := y
+	endX := x + int(r)
+	endY := y
+	d.moveTo(startX, startY)
+
+	left := d.Box.Left
+	top := d.Box.Top
+	cx := x
+	cy := y + int(r*2.5)
+	d.Render.QuadCurveTo(cx+left, cy+top, endX+left, endY+top)
+	d.Render.Fill()
 }
 
 func (d *Draw) circle(radius float64, x, y int) {

@@ -43,6 +43,7 @@ type Point struct {
 }
 
 type ChartOption struct {
+	Type            string
 	Font            *truetype.Font
 	Theme           string
 	Title           TitleOption
@@ -271,6 +272,7 @@ func Render(opt ChartOption) (*Draw, error) {
 func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 	d, err := NewDraw(
 		DrawOption{
+			Type:   opt.Type,
 			Parent: opt.Parent,
 			Width:  opt.getWidth(),
 			Height: opt.getHeight(),

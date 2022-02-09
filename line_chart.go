@@ -23,8 +23,6 @@
 package charts
 
 import (
-	"math"
-
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
@@ -45,36 +43,25 @@ func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) 
 	seriesNames := opt.Legend.Data
 
 	r := d.Render
-	yRange := result.yRange
 	xRange := result.xRange
 	for i, series := range opt.SeriesList {
-		points := make([]Point, 0)
-		minIndex := -1
-		maxIndex := -1
-		minValue := math.MaxFloat64
-		maxValue := -math.MaxFloat64
+		yRange := result.getYRange(series.YAxisIndex)
+		points := make([]Point, len(series.Data))
+
 		for j, item := range series.Data {
-			if item.Value < minValue {
-				minIndex = j
-				minValue = item.Value
-			}
-			if item.Value > maxValue {
-				maxIndex = j
-				maxValue = item.Value
-			}
 			y := yRange.getRestHeight(item.Value)
 			x := xRange.getWidth(float64(j))
-			points = append(points, Point{
+			points[j] = Point{
 				Y: y,
 				X: x,
-			})
+			}
 			if !series.Label.Show {
 				continue
 			}
 			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(i, item.Value, -1)
 			labelStyle := chart.Style{
 				FontColor: theme.GetTextColor(),
-				FontSize:  10,
+				FontSize:  labelFontSize,
 				Font:      opt.Font,
 			}
 			if !series.Label.Color.IsZero() {
@@ -101,33 +88,12 @@ func lineChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) 
 			DotFillColor: dotFillColor,
 		})
 		// draw mark point
-		symbolSize := 30
-		if series.MarkPoint.SymbolSize > 0 {
-			symbolSize = series.MarkPoint.SymbolSize
-		}
-		for _, markPointData := range series.MarkPoint.Data {
-			p := points[minIndex]
-			value := minValue
-			switch markPointData.Type {
-			case SeriesMarkPointDataTypeMax:
-				p = points[maxIndex]
-				value = maxValue
-			}
-			chart.Style{
-				FillColor: seriesColor,
-			}.WriteToRenderer(r)
-			d.pin(p.X, p.Y-symbolSize>>1, symbolSize)
-
-			chart.Style{
-				FontColor:   NewTheme(ThemeDark).GetTextColor(),
-				FontSize:    10,
-				StrokeWidth: 1,
-				Font:        opt.Font,
-			}.WriteTextOptionsToRenderer(d.Render)
-			text := commafWithDigits(value)
-			textBox := r.MeasureText(text)
-			d.text(text, p.X-textBox.Width()>>1, p.Y-symbolSize>>1-2)
-		}
+		markPointRender(d, markPointRenderOption{
+			FillColor: seriesColor,
+			Font:      opt.Font,
+			Points:    points,
+			Series:    &series,
+		})
 	}
 
 	return result.d, nil

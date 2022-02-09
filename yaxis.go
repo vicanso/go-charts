@@ -41,11 +41,11 @@ type YAxisOption struct {
 
 const YAxisWidth = 40
 
-func drawYAxis(p *Draw, opt *ChartOption, xAxisHeight int, padding chart.Box) (*Range, error) {
+func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding chart.Box) (*Range, error) {
 	theme := NewTheme(opt.Theme)
-	yRange := opt.getYRange(0)
+	yRange := opt.newYRange(axisIndex)
 	values := yRange.Values()
-	formatter := opt.YAxis.Formatter
+	formatter := opt.YAxisList[axisIndex].Formatter
 	if len(formatter) != 0 {
 		for index, text := range values {
 			values[index] = strings.ReplaceAll(formatter, "{value}", text)
@@ -64,12 +64,21 @@ func drawYAxis(p *Draw, opt *ChartOption, xAxisHeight int, padding chart.Box) (*
 	}
 	width := NewAxis(p, data, style).measureAxis()
 
-	padding.Left += (YAxisWidth - width)
+	yAxisCount := len(opt.YAxisList)
+	boxWidth := p.Box.Width()
+	if axisIndex > 0 {
+		style.SplitLineShow = false
+		style.Position = PositionRight
+		padding.Right += (axisIndex - 1) * YAxisWidth
+	} else {
+		boxWidth = p.Box.Width() - (yAxisCount-1)*YAxisWidth
+		padding.Left += (YAxisWidth - width)
+	}
 
 	dYAxis, err := NewDraw(
 		DrawOption{
 			Parent: p,
-			Width:  p.Box.Width(),
+			Width:  boxWidth,
 			// 减去x轴的高
 			Height: p.Box.Height() - xAxisHeight,
 		},

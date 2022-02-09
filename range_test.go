@@ -37,11 +37,15 @@ func TestRange(t *testing.T) {
 
 	r = NewRange(0, 12, 6)
 	assert.Equal(0.0, r.Min)
-	assert.Equal(30.0, r.Max)
+	assert.Equal(24.0, r.Max)
 
 	r = NewRange(-13, 18, 6)
 	assert.Equal(-20.0, r.Min)
 	assert.Equal(40.0, r.Max)
+
+	r = NewRange(0, 150, 6)
+	assert.Equal(0.0, r.Min)
+	assert.Equal(180.0, r.Max)
 
 	r = NewRange(0, 400, 6)
 	assert.Equal(0.0, r.Min)

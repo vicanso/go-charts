@@ -173,7 +173,60 @@ func (d *Draw) pin(x, y, width int) {
 	cx := x
 	cy := y + int(r*2.5)
 	d.Render.QuadCurveTo(cx+left, cy+top, endX+left, endY+top)
-	d.Render.Fill()
+	d.Render.Stroke()
+}
+
+func (d *Draw) arrowLeft(x, y, width, height int) {
+	d.arrow(x, y, width, height, PositionLeft)
+}
+
+func (d *Draw) arrowRight(x, y, width, height int) {
+	d.arrow(x, y, width, height, PositionRight)
+}
+
+func (d *Draw) arrowTop(x, y, width, height int) {
+	d.arrow(x, y, width, height, PositionTop)
+}
+func (d *Draw) arrowBottom(x, y, width, height int) {
+	d.arrow(x, y, width, height, PositionBottom)
+}
+
+func (d *Draw) arrow(x, y, width, height int, direction string) {
+	halfWidth := width >> 1
+	halfHeight := height >> 1
+	if direction == PositionTop || direction == PositionBottom {
+		x0 := x - halfWidth
+		x1 := x0 + width
+		dy := -height / 3
+		y0 := y
+		y1 := y0 - height
+		if direction == PositionBottom {
+			y0 = y - height
+			y1 = y
+			dy = 2 * dy
+		}
+		d.moveTo(x0, y0)
+		d.lineTo(x0+halfWidth, y1)
+		d.lineTo(x1, y0)
+		d.lineTo(x0+halfWidth, y+dy)
+		d.lineTo(x0, y0)
+	} else {
+		x0 := x + width
+		x1 := x0 - width
+		y0 := y - halfHeight
+		dx := -width / 3
+		if direction == PositionRight {
+			x0 = x - width
+			dx = -dx
+			x1 = x0 + width
+		}
+		d.moveTo(x0, y0)
+		d.lineTo(x1, y0+halfHeight)
+		d.lineTo(x0, y0+height)
+		d.lineTo(x0+dx, y0+halfHeight)
+		d.lineTo(x0, y0)
+	}
+	d.Render.Stroke()
 }
 
 func (d *Draw) circle(radius float64, x, y int) {

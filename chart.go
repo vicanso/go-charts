@@ -42,6 +42,8 @@ type Point struct {
 	Y int
 }
 
+const labelFontSize = 10
+
 type ChartOption struct {
 	Type            string
 	Font            *truetype.Font
@@ -49,7 +51,7 @@ type ChartOption struct {
 	Title           TitleOption
 	Legend          LegendOption
 	XAxis           XAxisOption
-	YAxis           YAxisOption
+	YAxisList       []YAxisOption
 	Width           int
 	Height          int
 	Parent          *Draw
@@ -61,6 +63,17 @@ type ChartOption struct {
 
 func (o *ChartOption) FillDefault(theme string) {
 	t := NewTheme(theme)
+	// 如果为空，初始化
+	yAxisCount := 1
+	for _, series := range o.SeriesList {
+		if series.YAxisIndex >= yAxisCount {
+			yAxisCount++
+		}
+	}
+	yAxisList := make([]YAxisOption, yAxisCount)
+	copy(yAxisList, o.YAxisList)
+	o.YAxisList = yAxisList
+
 	if o.Font == nil {
 		o.Font, _ = chart.GetDefaultFont()
 	}
@@ -136,9 +149,13 @@ func (o *ChartOption) getHeight() int {
 	return o.Height
 }
 
-func (o *ChartOption) getYRange(axisIndex int) Range {
+func (o *ChartOption) newYRange(axisIndex int) Range {
 	min := math.MaxFloat64
 	max := -math.MaxFloat64
+	if axisIndex >= len(o.YAxisList) {
+		axisIndex = 0
+	}
+	yAxis := o.YAxisList[axisIndex]
 
 	for _, series := range o.SeriesList {
 		if series.YAxisIndex != axisIndex {
@@ -155,21 +172,21 @@ func (o *ChartOption) getYRange(axisIndex int) Range {
 	}
 	min = min * 0.9
 	max = max * 1.1
-	if o.YAxis.Min != nil {
-		min = *o.YAxis.Min
+	if yAxis.Min != nil {
+		min = *yAxis.Min
 	}
-	if o.YAxis.Max != nil {
-		max = *o.YAxis.Max
+	if yAxis.Max != nil {
+		max = *yAxis.Max
 	}
 	divideCount := 6
 	// y轴分设置默认划分为6块
 	r := NewRange(min, max, divideCount)
 
 	// 由于NewRange会重新计算min max
-	if o.YAxis.Min != nil {
+	if yAxis.Min != nil {
 		r.Min = min
 	}
-	if o.YAxis.Max != nil {
+	if yAxis.Max != nil {
 		r.Max = max
 	}
 
@@ -177,10 +194,17 @@ func (o *ChartOption) getYRange(axisIndex int) Range {
 }
 
 type basicRenderResult struct {
-	xRange   *Range
-	yRange   *Range
-	d        *Draw
-	titleBox chart.Box
+	xRange     *Range
+	yRangeList []*Range
+	d          *Draw
+	titleBox   chart.Box
+}
+
+func (r *basicRenderResult) getYRange(index int) *Range {
+	if index >= len(r.yRangeList) {
+		index = 0
+	}
+	return r.yRangeList[index]
 }
 
 func Render(opt ChartOption) (*Draw, error) {
@@ -206,7 +230,9 @@ func Render(opt ChartOption) (*Draw, error) {
 	// pie不需要axis
 	if isPieChart {
 		opt.XAxis.Hidden = true
-		opt.YAxis.Hidden = true
+		for index := range opt.YAxisList {
+			opt.YAxisList[index].Hidden = true
+		}
 	}
 	result, err := chartBasicRender(&opt)
 	if err != nil {
@@ -284,6 +310,9 @@ func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 	}
 
 	opt.FillDefault(opt.Theme)
+	if len(opt.YAxisList) > 2 {
+		return nil, errors.New("y axis should not be gt 2")
+	}
 	if opt.Parent == nil {
 		d.setBackground(opt.getWidth(), opt.getHeight(), opt.BackgroundColor)
 	}
@@ -299,26 +328,30 @@ func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 
 	if !opt.XAxis.Hidden {
 		// xAxis
-		xAxisHeight, xRange, err = drawXAxis(d, &opt.XAxis)
+		xAxisHeight, xRange, err = drawXAxis(d, &opt.XAxis, len(opt.YAxisList))
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// 暂时仅支持单一yaxis
-	var yRange *Range
-	if !opt.YAxis.Hidden {
-		yRange, err = drawYAxis(d, opt, xAxisHeight, chart.Box{
-			Top: titleBox.Height(),
-		})
-		if err != nil {
-			return nil, err
+	yRangeList := make([]*Range, len(opt.YAxisList))
+
+	for index, yAxis := range opt.YAxisList {
+		var yRange *Range
+		if !yAxis.Hidden {
+			yRange, err = drawYAxis(d, opt, index, xAxisHeight, chart.Box{
+				Top: titleBox.Height(),
+			})
+			if err != nil {
+				return nil, err
+			}
+			yRangeList[index] = yRange
 		}
 	}
 	return &basicRenderResult{
-		xRange:   xRange,
-		yRange:   yRange,
-		d:        d,
-		titleBox: titleBox,
+		xRange:     xRange,
+		yRangeList: yRangeList,
+		d:          d,
+		titleBox:   titleBox,
 	}, nil
 }

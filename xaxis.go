@@ -22,7 +22,9 @@
 
 package charts
 
-import "github.com/wcharczuk/go-chart/v2"
+import (
+	"github.com/wcharczuk/go-chart/v2"
+)
 
 type XAxisOption struct {
 	// The boundary gap on both sides of a coordinate axis.
@@ -39,16 +41,19 @@ type XAxisOption struct {
 }
 
 // drawXAxis draws x axis, and returns the height, range of if.
-func drawXAxis(p *Draw, opt *XAxisOption) (int, *Range, error) {
+func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
 	if opt.Hidden {
 		return 0, nil, nil
 	}
+	left := YAxisWidth
+	right := (yAxisCount - 1) * YAxisWidth
 	dXAxis, err := NewDraw(
 		DrawOption{
 			Parent: p,
 		},
 		PaddingOption(chart.Box{
-			Left: YAxisWidth,
+			Left:  left,
+			Right: right,
 		}),
 	)
 	if err != nil {

@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"math"
 	"strings"
 
 	"github.com/dustin/go-humanize"
@@ -84,6 +85,40 @@ type Series struct {
 	// Radius of Pie chart, e.g.: 40%
 	Radius    string
 	MarkPoint SeriesMarkPoint
+}
+
+type seriesSummary struct {
+	MaxIndex     int
+	MaxValue     float64
+	MinIndex     int
+	MinValue     float64
+	AverageValue float64
+}
+
+func (s *Series) Summary() seriesSummary {
+	minIndex := -1
+	maxIndex := -1
+	minValue := math.MaxFloat64
+	maxValue := -math.MaxFloat64
+	sum := float64(0)
+	for j, item := range s.Data {
+		if item.Value < minValue {
+			minIndex = j
+			minValue = item.Value
+		}
+		if item.Value > maxValue {
+			maxIndex = j
+			maxValue = item.Value
+		}
+		sum += item.Value
+	}
+	return seriesSummary{
+		MaxIndex:     maxIndex,
+		MaxValue:     maxValue,
+		MinIndex:     minIndex,
+		MinValue:     minValue,
+		AverageValue: sum / float64(len(s.Data)),
+	}
 }
 
 type LabelFormatter func(index int, value float64, percent float64) string

@@ -81,7 +81,7 @@ func TestDrawXAxis(t *testing.T) {
 
 	for _, tt := range tests {
 		d := tt.newDraw()
-		height, _, err := drawXAxis(d, tt.newOption())
+		height, _, err := drawXAxis(d, tt.newOption(), 1)
 		assert.Nil(err)
 		assert.Equal(25, height)
 		data, err := d.Bytes()

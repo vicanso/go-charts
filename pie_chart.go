@@ -136,7 +136,7 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 			r.Stroke()
 			textStyle := chart.Style{
 				FontColor: theme.GetTextColor(),
-				FontSize:  10,
+				FontSize:  labelFontSize,
 				Font:      opt.Font,
 			}
 			if !series.Label.Color.IsZero() {

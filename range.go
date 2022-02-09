@@ -40,9 +40,15 @@ func NewRange(min, max float64, divideCount int) Range {
 	// 最小单位计算
 	unit := 2
 	if r > 10 {
+		unit = 4
+	}
+	if r > 30 {
 		unit = 5
 	}
 	if r > 100 {
+		unit = 10
+	}
+	if r > 200 {
 		unit = 20
 	}
 	unit = int((r/float64(divideCount))/float64(unit))*unit + unit

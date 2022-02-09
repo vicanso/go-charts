@@ -78,14 +78,17 @@ func NewAxis(d *Draw, data AxisDataList, style AxisOption) *axis {
 
 }
 
+// GetLabelMargin returns the label margin value
 func (as *AxisOption) GetLabelMargin() int {
 	return getDefaultInt(as.LabelMargin, 8)
 }
 
+// GetTickLength returns the tick length value
 func (as *AxisOption) GetTickLength() int {
 	return getDefaultInt(as.TickLength, 5)
 }
 
+// Style returns the style of axis
 func (as *AxisOption) Style(f *truetype.Font) chart.Style {
 	s := chart.Style{
 		ClassName:   as.ClassName,
@@ -109,6 +112,7 @@ type AxisData struct {
 }
 type AxisDataList []AxisData
 
+// TextList returns the text list of axis data
 func (l AxisDataList) TextList() []string {
 	textList := make([]string, len(l))
 	for index, item := range l {
@@ -125,6 +129,7 @@ type axisRenderOption struct {
 	modValue      int
 }
 
+// NewAxisDataListFromStringList creates a new axis data list from string list
 func NewAxisDataListFromStringList(textList []string) AxisDataList {
 	list := make(AxisDataList, len(textList))
 	for index, text := range textList {

@@ -106,7 +106,7 @@ func isFalse(flag *bool) bool {
 	return false
 }
 
-func toFloatPoint(f float64) *float64 {
+func NewFloatPoint(f float64) *float64 {
 	v := f
 	return &v
 }
@@ -114,11 +114,11 @@ func commafWithDigits(value float64) string {
 	decimals := 2
 	m := float64(1000 * 1000)
 	if value >= m {
-		return humanize.CommafWithDigits(value/m, decimals) + " M"
+		return humanize.CommafWithDigits(value/m, decimals) + "M"
 	}
 	k := float64(1000)
 	if value >= k {
-		return humanize.CommafWithDigits(value/k, decimals) + " K"
+		return humanize.CommafWithDigits(value/k, decimals) + "k"
 	}
 	return humanize.CommafWithDigits(value, decimals)
 }

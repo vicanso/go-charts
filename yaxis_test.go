@@ -49,8 +49,10 @@ func TestDrawYAxis(t *testing.T) {
 			newDraw: newDraw,
 			newOption: func() *ChartOption {
 				return &ChartOption{
-					YAxis: YAxisOption{
-						Max: toFloatPoint(20),
+					YAxisList: []YAxisOption{
+						{
+							Max: NewFloatPoint(20),
+						},
 					},
 					SeriesList: []Series{
 						{
@@ -72,7 +74,7 @@ func TestDrawYAxis(t *testing.T) {
 
 	for _, tt := range tests {
 		d := tt.newDraw()
-		r, err := drawYAxis(d, tt.newOption(), tt.xAxisHeight, chart.NewBox(10, 10, 10, 10))
+		r, err := drawYAxis(d, tt.newOption(), 0, tt.xAxisHeight, chart.NewBox(10, 10, 10, 10))
 		assert.Nil(err)
 		assert.Equal(&Range{
 			divideCount: 6,

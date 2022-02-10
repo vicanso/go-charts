@@ -54,9 +54,11 @@ func NewRange(min, max float64, divideCount int) Range {
 	unit = int((r/float64(divideCount))/float64(unit))*unit + unit
 
 	if min != 0 {
+		isLessThanZero := min < 0
 		min = float64(int(min/float64(unit)) * unit)
 		// 如果是小于0，int的时候向上取整了，因此调整
-		if min < 0 {
+		if min < 0 ||
+			(isLessThanZero && min == 0) {
 			min -= float64(unit)
 		}
 	}

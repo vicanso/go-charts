@@ -28,62 +28,65 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func NewMarkPoint(markPointTypes ...string) SeriesMarkPoint {
-	data := make([]SeriesMarkPointData, len(markPointTypes))
-	for index, t := range markPointTypes {
-		data[index] = SeriesMarkPointData{
+func NewMarkLine(markLineTypes ...string) SeriesMarkLine {
+	data := make([]SeriesMarkLineData, len(markLineTypes))
+	for index, t := range markLineTypes {
+		data[index] = SeriesMarkLineData{
 			Type: t,
 		}
 	}
-	return SeriesMarkPoint{
+	return SeriesMarkLine{
 		Data: data,
 	}
 }
 
-type markPointRenderOption struct {
-	Draw      *Draw
-	FillColor drawing.Color
-	Font      *truetype.Font
-	Series    *Series
-	Points    []Point
+type markLineRenderOption struct {
+	Draw        *Draw
+	FillColor   drawing.Color
+	FontColor   drawing.Color
+	StrokeColor drawing.Color
+	Font        *truetype.Font
+	Series      *Series
+	Range       *Range
 }
 
-func markPointRender(opt *markPointRenderOption) {
+func markLineRender(opt *markLineRenderOption) {
 	d := opt.Draw
 	s := opt.Series
-	if len(s.MarkPoint.Data) == 0 {
+	if len(s.MarkLine.Data) == 0 {
 		return
 	}
-	points := opt.Points
-	summary := s.Summary()
-	symbolSize := s.MarkPoint.SymbolSize
-	if symbolSize == 0 {
-		symbolSize = 30
-	}
 	r := d.Render
-	// 设置填充样式
-	chart.Style{
-		FillColor: opt.FillColor,
-	}.WriteToRenderer(r)
-	// 设置文本样式
-	chart.Style{
-		FontColor:   NewTheme(ThemeDark).GetTextColor(),
-		FontSize:    labelFontSize,
-		StrokeWidth: 1,
-		Font:        opt.Font,
-	}.WriteTextOptionsToRenderer(r)
-	for _, markPointData := range s.MarkPoint.Data {
-		p := points[summary.MinIndex]
-		value := summary.MinValue
-		switch markPointData.Type {
+	summary := s.Summary()
+	for _, markLine := range s.MarkLine.Data {
+		// 由于mark line会修改style，因此每次重新设置
+		chart.Style{
+			FillColor:   opt.FillColor,
+			FontColor:   opt.FontColor,
+			FontSize:    labelFontSize,
+			StrokeColor: opt.StrokeColor,
+			StrokeWidth: 1,
+			Font:        opt.Font,
+			StrokeDashArray: []float64{
+				4,
+				2,
+			},
+		}.WriteToRenderer(r)
+		value := float64(0)
+		switch markLine.Type {
 		case SeriesMarkDataTypeMax:
-			p = points[summary.MaxIndex]
 			value = summary.MaxValue
+		case SeriesMarkDataTypeMin:
+			value = summary.MinValue
+		default:
+			value = summary.AverageValue
 		}
-
-		d.pin(p.X, p.Y-symbolSize>>1, symbolSize)
+		y := opt.Range.getRestHeight(value)
+		width := d.Box.Width()
 		text := commafWithDigits(value)
 		textBox := r.MeasureText(text)
-		d.text(text, p.X-textBox.Width()>>1, p.Y-symbolSize>>1-2)
+		d.makeLine(0, y, width)
+		d.text(text, width, y+textBox.Height()>>1-2)
 	}
+
 }

@@ -247,13 +247,13 @@ func TestMeasureAxis(t *testing.T) {
 		FontSize: 12,
 		Font:     f,
 		Position: PositionLeft,
-	}).measureAxis()
+	}).measure().Width
 	assert.Equal(44, width)
 
 	height := NewAxis(d, data, AxisOption{
 		FontSize: 12,
 		Font:     f,
 		Position: PositionTop,
-	}).measureAxis()
+	}).measure().Height
 	assert.Equal(28, height)
 }

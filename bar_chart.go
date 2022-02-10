@@ -26,7 +26,7 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
+func barChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRenderOption, error) {
 
 	d, err := NewDraw(DrawOption{
 		Parent: result.d,
@@ -57,10 +57,29 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 
 	r := d.Render
 
-	for i, series := range opt.SeriesList {
+	markPointRenderOptions := make([]*markPointRenderOption, 0)
+
+	for i, s := range opt.SeriesList {
+		// 由于series是for range，为同一个数据，因此需要clone
+		// 后续需要使用，如mark point
+		series := s
 		yRange := result.getYRange(series.YAxisIndex)
 		points := make([]Point, len(series.Data))
-		seriesColor := theme.GetSeriesColor(i)
+		index := series.index
+		if index == 0 {
+			index = i
+		}
+		seriesColor := theme.GetSeriesColor(index)
+		// mark line
+		markLineRender(&markLineRenderOption{
+			Draw:        d,
+			FillColor:   seriesColor,
+			FontColor:   theme.GetTextColor(),
+			StrokeColor: seriesColor,
+			Font:        opt.Font,
+			Series:      &series,
+			Range:       yRange,
+		})
 		for j, item := range series.Data {
 			x0, _ := xRange.GetRange(j)
 			x := int(x0)
@@ -105,7 +124,9 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 			textBox := r.MeasureText(text)
 			d.text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-5)
 		}
-		markPointRender(d, markPointRenderOption{
+
+		markPointRenderOptions = append(markPointRenderOptions, &markPointRenderOption{
+			Draw:      d,
 			FillColor: seriesColor,
 			Font:      opt.Font,
 			Points:    points,
@@ -113,5 +134,5 @@ func barChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 		})
 	}
 
-	return result.d, nil
+	return markPointRenderOptions, nil
 }

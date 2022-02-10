@@ -68,6 +68,10 @@ type axis struct {
 	data  *AxisDataList
 	style *AxisOption
 }
+type axisMeasurement struct {
+	Width  int
+	Height int
+}
 
 func NewAxis(d *Draw, data AxisDataList, style AxisOption) *axis {
 	return &axis{
@@ -379,7 +383,7 @@ func (a *axis) axisTick(opt *axisRenderOption) {
 	}
 }
 
-func (a *axis) axisMeasureTextMaxWidthHeight() (int, int) {
+func (a *axis) measureTextMaxWidthHeight() (int, int) {
 	d := a.d
 	r := d.Render
 	s := a.style.Style(d.Font)
@@ -389,18 +393,21 @@ func (a *axis) axisMeasureTextMaxWidthHeight() (int, int) {
 	return measureTextMaxWidthHeight(data.TextList(), r)
 }
 
-// measureAxis returns the measurement of axis.
-// If the position is left or right, it will be textMaxWidth + labelMargin + tickLength.
-// If the position is top or bottom, it will be textMaxHeight + labelMargin + tickLength.
-func (a *axis) measureAxis() int {
+// measure returns the measurement of axis.
+// Width will be textMaxWidth + labelMargin + tickLength for position left or right.
+// Height will be textMaxHeight + labelMargin + tickLength for position top or bottom.
+func (a *axis) measure() axisMeasurement {
 	style := a.style
 	value := style.GetLabelMargin() + style.GetTickLength()
-	textMaxWidth, textMaxHeight := a.axisMeasureTextMaxWidthHeight()
+	textMaxWidth, textMaxHeight := a.measureTextMaxWidthHeight()
+	info := axisMeasurement{}
 	if style.Position == PositionLeft ||
 		style.Position == PositionRight {
-		return textMaxWidth + value
+		info.Width = textMaxWidth + value
+	} else {
+		info.Height = textMaxHeight + value
 	}
-	return textMaxHeight + value
+	return info
 }
 
 // Render renders the axis for chart
@@ -409,7 +416,7 @@ func (a *axis) Render() {
 	if isFalse(style.Show) {
 		return
 	}
-	textMaxWidth, textMaxHeight := a.axisMeasureTextMaxWidthHeight()
+	textMaxWidth, textMaxHeight := a.measureTextMaxWidthHeight()
 	opt := &axisRenderOption{
 		textMaxWith:   textMaxWidth,
 		textMaxHeight: textMaxHeight,

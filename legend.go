@@ -30,7 +30,7 @@ import (
 )
 
 type LegendOption struct {
-	Theme string
+	theme string
 	// Legend show flag, if nil or true, the legend will be shown
 	Show *bool
 	// Legend text style
@@ -67,7 +67,7 @@ func (l *legend) Render() (chart.Box, error) {
 	if len(opt.Data) == 0 || isFalse(opt.Show) {
 		return chart.BoxZero, nil
 	}
-	theme := NewTheme(opt.Theme)
+	theme := NewTheme(opt.theme)
 	padding := opt.Style.Padding
 	legendDraw, err := NewDraw(DrawOption{
 		Parent: d,

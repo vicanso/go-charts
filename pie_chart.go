@@ -41,14 +41,14 @@ func getPieStyle(theme *Theme, index int) chart.Style {
 
 }
 
-func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
+func pieChartRender(opt ChartOption, result *basicRenderResult) error {
 	d, err := NewDraw(DrawOption{
 		Parent: result.d,
 	}, PaddingOption(chart.Box{
 		Top: result.titleBox.Height(),
 	}))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	values := make([]float64, len(opt.SeriesList))
@@ -155,5 +155,5 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) (*Draw, error) {
 			d.text(text, x, y)
 		}
 	}
-	return result.d, nil
+	return nil
 }

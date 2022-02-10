@@ -63,8 +63,9 @@ type SeriesLabel struct {
 }
 
 const (
-	SeriesMarkPointDataTypeMax = "max"
-	SeriesMarkPointDataTypeMin = "min"
+	SeriesMarkDataTypeMax     = "max"
+	SeriesMarkDataTypeMin     = "min"
+	SeriesMarkDataTypeAverage = "average"
 )
 
 type SeriesMarkPointData struct {
@@ -73,6 +74,12 @@ type SeriesMarkPointData struct {
 type SeriesMarkPoint struct {
 	SymbolSize int
 	Data       []SeriesMarkPointData
+}
+type SeriesMarkLineData struct {
+	Type string
+}
+type SeriesMarkLine struct {
+	Data []SeriesMarkLineData
 }
 type Series struct {
 	index      int
@@ -85,6 +92,7 @@ type Series struct {
 	// Radius of Pie chart, e.g.: 40%
 	Radius    string
 	MarkPoint SeriesMarkPoint
+	MarkLine  SeriesMarkLine
 }
 
 type seriesSummary struct {

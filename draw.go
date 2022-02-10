@@ -161,7 +161,9 @@ func (d *Draw) pin(x, y, width int) {
 	delta := 2*math.Pi - 2*angle
 	d.arcTo(x, y, r, r, startAngle, delta)
 	d.lineTo(x, y)
-	d.Render.Fill()
+	d.Render.Close()
+	d.Render.FillStroke()
+
 	startX := x - int(r)
 	startY := y
 	endX := x + int(r)
@@ -173,7 +175,8 @@ func (d *Draw) pin(x, y, width int) {
 	cx := x
 	cy := y + int(r*2.5)
 	d.Render.QuadCurveTo(cx+left, cy+top, endX+left, endY+top)
-	d.Render.Stroke()
+	d.Render.Close()
+	d.Render.Fill()
 }
 
 func (d *Draw) arrowLeft(x, y, width, height int) {
@@ -226,7 +229,20 @@ func (d *Draw) arrow(x, y, width, height int, direction string) {
 		d.lineTo(x0+dx, y0+halfHeight)
 		d.lineTo(x0, y0)
 	}
+	d.Render.FillStroke()
+}
+
+func (d *Draw) makeLine(x, y, width int) {
+	arrowWidth := 16
+	arrowHeight := 10
+	endX := x + width
+	d.circle(3, x, y)
+	d.Render.Fill()
+	d.moveTo(x+5, y)
+	d.lineTo(endX-arrowWidth, y)
 	d.Render.Stroke()
+	d.Render.SetStrokeDashArray([]float64{})
+	d.arrowRight(endX, y, arrowWidth, arrowHeight)
 }
 
 func (d *Draw) circle(radius float64, x, y int) {

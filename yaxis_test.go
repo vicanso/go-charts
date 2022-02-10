@@ -42,6 +42,7 @@ func TestDrawYAxis(t *testing.T) {
 	tests := []struct {
 		newDraw     func() *Draw
 		newOption   func() *ChartOption
+		axisIndex   int
 		xAxisHeight int
 		result      string
 	}{
@@ -70,11 +71,40 @@ func TestDrawYAxis(t *testing.T) {
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 50 10\nL 50 290\" style=\"stroke-width:1;stroke:none;fill:none\"/><path  d=\"M 50 10\nL 390 10\" style=\"stroke-width:1;stroke:rgba(224,230,242,1.0);fill:none\"/><path  d=\"M 50 57\nL 390 57\" style=\"stroke-width:1;stroke:rgba(224,230,242,1.0);fill:none\"/><path  d=\"M 50 104\nL 390 104\" style=\"stroke-width:1;stroke:rgba(224,230,242,1.0);fill:none\"/><path  d=\"M 50 151\nL 390 151\" style=\"stroke-width:1;stroke:rgba(224,230,242,1.0);fill:none\"/><path  d=\"M 50 198\nL 390 198\" style=\"stroke-width:1;stroke:rgba(224,230,242,1.0);fill:none\"/><path  d=\"M 50 244\nL 390 244\" style=\"stroke-width:1;stroke:rgba(224,230,242,1.0);fill:none\"/><text x=\"36\" y=\"294\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">0</text><text x=\"18\" y=\"248\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">3.33</text><text x=\"18\" y=\"202\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">6.66</text><text x=\"29\" y=\"155\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">10</text><text x=\"11\" y=\"108\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">13.33</text><text x=\"11\" y=\"61\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">16.66</text><text x=\"29\" y=\"14\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">20</text></svg>",
 		},
+		{
+			newDraw: newDraw,
+			newOption: func() *ChartOption {
+				return &ChartOption{
+					YAxisList: []YAxisOption{
+						{},
+						{
+							Max:       NewFloatPoint(20),
+							Formatter: "{value} C",
+						},
+					},
+					SeriesList: []Series{
+						{
+							YAxisIndex: 1,
+							Data: []SeriesData{
+								{
+									Value: 1,
+								},
+								{
+									Value: 2,
+								},
+							},
+						},
+					},
+				}
+			},
+			axisIndex: 1,
+			result:    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 337 10\nL 337 290\" style=\"stroke-width:1;stroke:none;fill:none\"/><text x=\"345\" y=\"294\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">0 C</text><text x=\"345\" y=\"248\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">3.33 C</text><text x=\"345\" y=\"202\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">6.66 C</text><text x=\"345\" y=\"155\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">10 C</text><text x=\"345\" y=\"108\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">13.33 C</text><text x=\"345\" y=\"61\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">16.66 C</text><text x=\"345\" y=\"14\" style=\"stroke-width:0;stroke:none;fill:rgba(110,112,121,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">20 C</text></svg>",
+		},
 	}
 
 	for _, tt := range tests {
 		d := tt.newDraw()
-		r, err := drawYAxis(d, tt.newOption(), 0, tt.xAxisHeight, chart.NewBox(10, 10, 10, 10))
+		r, err := drawYAxis(d, tt.newOption(), tt.axisIndex, tt.xAxisHeight, chart.NewBox(10, 10, 10, 10))
 		assert.Nil(err)
 		assert.Equal(&Range{
 			divideCount: 6,

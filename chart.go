@@ -80,6 +80,14 @@ func (o *ChartOption) FillDefault(theme string) {
 	if o.BackgroundColor.IsZero() {
 		o.BackgroundColor = t.GetBackgroundColor()
 	}
+	if o.Padding.IsZero() {
+		o.Padding = chart.Box{
+			Top:    20,
+			Right:  10,
+			Bottom: 10,
+			Left:   10,
+		}
+	}
 
 	// 标题的默认值
 	if o.Title.Style.FontColor.IsZero() {
@@ -110,7 +118,7 @@ func (o *ChartOption) FillDefault(theme string) {
 		o.Title.SubtextStyle.Font = o.Font
 	}
 
-	o.Legend.Theme = theme
+	o.Legend.theme = theme
 	if o.Legend.Style.FontSize == 0 {
 		o.Legend.Style.FontSize = 10
 	}
@@ -238,13 +246,14 @@ func Render(opt ChartOption) (*Draw, error) {
 	if err != nil {
 		return nil, err
 	}
+	markPointRenderOptions := make([]*markPointRenderOption, 0)
 	fns := []func() error{
 		// pie render
 		func() error {
 			if !isPieChart {
 				return nil
 			}
-			_, err := pieChartRender(opt, result)
+			err := pieChartRender(opt, result)
 			return err
 		},
 		// bar render
@@ -255,8 +264,12 @@ func Render(opt ChartOption) (*Draw, error) {
 			}
 			o := opt
 			o.SeriesList = barSeries
-			_, err := barChartRender(o, result)
-			return err
+			options, err := barChartRender(o, result)
+			if err != nil {
+				return err
+			}
+			markPointRenderOptions = append(markPointRenderOptions, options...)
+			return nil
 		},
 		// line render
 		func() error {
@@ -266,13 +279,25 @@ func Render(opt ChartOption) (*Draw, error) {
 			}
 			o := opt
 			o.SeriesList = lineSeries
-			_, err := lineChartRender(o, result)
-			return err
+			options, err := lineChartRender(o, result)
+			if err != nil {
+				return err
+			}
+			markPointRenderOptions = append(markPointRenderOptions, options...)
+			return nil
 		},
-		// legend需要在顶层，因此最后render
+		// legend需要在顶层，因此此处render
 		func() error {
 			_, err := NewLegend(result.d, opt.Legend).Render()
 			return err
+		},
+		// mark point最后render
+		func() error {
+			// mark point render不会出错
+			for _, opt := range markPointRenderOptions {
+				markPointRender(opt)
+			}
+			return nil
 		},
 	}
 
@@ -296,6 +321,7 @@ func Render(opt ChartOption) (*Draw, error) {
 }
 
 func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
+	opt.FillDefault(opt.Theme)
 	d, err := NewDraw(
 		DrawOption{
 			Type:   opt.Type,
@@ -309,7 +335,6 @@ func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 		return nil, err
 	}
 
-	opt.FillDefault(opt.Theme)
 	if len(opt.YAxisList) > 2 {
 		return nil, errors.New("y axis should not be gt 2")
 	}

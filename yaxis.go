@@ -62,7 +62,7 @@ func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding ch
 		SplitLineColor: theme.GetAxisSplitLineColor(),
 		SplitLineShow:  true,
 	}
-	width := NewAxis(p, data, style).measureAxis()
+	width := NewAxis(p, data, style).measure().Width
 
 	yAxisCount := len(opt.YAxisList)
 	boxWidth := p.Box.Width()

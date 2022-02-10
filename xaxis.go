@@ -77,8 +77,7 @@ func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
 	}
 	axis := NewAxis(dXAxis, data, style)
 	axis.Render()
-
-	return axis.measureAxis(), &Range{
+	return axis.measure().Height, &Range{
 		divideCount: len(opt.Data),
 		Min:         0,
 		Max:         max,

@@ -460,8 +460,10 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				484,
 				300,
 			}, charts.PieSeriesOption{
-				LabelShow: true,
-				Radius:    "35%",
+				Label: charts.SeriesLabel{
+					Show: true,
+				},
+				Radius: "35%",
 			}),
 		},
 		// 多图展示
@@ -551,8 +553,10 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 						285.9,
 						204.5,
 					}, charts.PieSeriesOption{
-						LabelShow: true,
-						Radius:    "35%",
+						Label: charts.SeriesLabel{
+							Show: true,
+						},
+						Radius: "35%",
 					}),
 				},
 			},

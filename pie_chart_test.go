@@ -30,6 +30,14 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+func TestGetPieRadius(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(50.0, getPieRadius(100, "50%"))
+	assert.Equal(30.0, getPieRadius(100, "30"))
+	assert.Equal(40.0, getPieRadius(100, ""))
+}
+
 func TestPieChartRender(t *testing.T) {
 	assert := assert.New(t)
 

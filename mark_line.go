@@ -85,7 +85,7 @@ func markLineRender(opt *markLineRenderOption) {
 		width := d.Box.Width()
 		text := commafWithDigits(value)
 		textBox := r.MeasureText(text)
-		d.makeLine(0, y, width)
+		d.makeLine(0, y, width-2)
 		d.text(text, width, y+textBox.Height()>>1-2)
 	}
 

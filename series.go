@@ -68,18 +68,15 @@ const (
 	SeriesMarkDataTypeAverage = "average"
 )
 
-type SeriesMarkPointData struct {
+type SeriesMarkData struct {
 	Type string
 }
 type SeriesMarkPoint struct {
 	SymbolSize int
-	Data       []SeriesMarkPointData
-}
-type SeriesMarkLineData struct {
-	Type string
+	Data       []SeriesMarkData
 }
 type SeriesMarkLine struct {
-	Data []SeriesMarkLineData
+	Data []SeriesMarkData
 }
 type Series struct {
 	index      int

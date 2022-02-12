@@ -29,9 +29,9 @@ import (
 )
 
 func NewMarkLine(markLineTypes ...string) SeriesMarkLine {
-	data := make([]SeriesMarkLineData, len(markLineTypes))
+	data := make([]SeriesMarkData, len(markLineTypes))
 	for index, t := range markLineTypes {
-		data[index] = SeriesMarkLineData{
+		data[index] = SeriesMarkData{
 			Type: t,
 		}
 	}

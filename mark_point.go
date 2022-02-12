@@ -29,9 +29,9 @@ import (
 )
 
 func NewMarkPoint(markPointTypes ...string) SeriesMarkPoint {
-	data := make([]SeriesMarkPointData, len(markPointTypes))
+	data := make([]SeriesMarkData, len(markPointTypes))
 	for index, t := range markPointTypes {
-		data[index] = SeriesMarkPointData{
+		data[index] = SeriesMarkData{
 			Type: t,
 		}
 	}

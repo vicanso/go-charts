@@ -40,7 +40,7 @@ func TestNewMarkLine(t *testing.T) {
 	)
 
 	assert.Equal(SeriesMarkLine{
-		Data: []SeriesMarkLineData{
+		Data: []SeriesMarkData{
 			{
 				Type: SeriesMarkDataTypeMax,
 			},

@@ -28,6 +28,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewXAxisOption(t *testing.T) {
+	assert := assert.New(t)
+
+	opt := NewXAxisOption([]string{
+		"a",
+		"b",
+	}, FalseFlag())
+
+	assert.Equal(XAxisOption{
+		Data: []string{
+			"a",
+			"b",
+		},
+		BoundaryGap: FalseFlag(),
+	}, opt)
+
+}
 func TestDrawXAxis(t *testing.T) {
 	assert := assert.New(t)
 

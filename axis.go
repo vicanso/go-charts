@@ -64,20 +64,20 @@ type AxisOption struct {
 }
 
 type axis struct {
-	d     *Draw
-	data  *AxisDataList
-	style *AxisOption
+	d      *Draw
+	data   *AxisDataList
+	option *AxisOption
 }
 type axisMeasurement struct {
 	Width  int
 	Height int
 }
 
-func NewAxis(d *Draw, data AxisDataList, style AxisOption) *axis {
+func NewAxis(d *Draw, data AxisDataList, option AxisOption) *axis {
 	return &axis{
-		d:     d,
-		data:  &data,
-		style: &style,
+		d:      d,
+		data:   &data,
+		option: &option,
 	}
 
 }
@@ -144,16 +144,16 @@ func NewAxisDataListFromStringList(textList []string) AxisDataList {
 	return list
 }
 
-func (a *axis) axisLabel(opt *axisRenderOption) {
-	style := a.style
+func (a *axis) axisLabel(renderOpt *axisRenderOption) {
+	option := a.option
 	data := *a.data
 	d := a.d
-	if style.FontColor.IsZero() || len(data) == 0 {
+	if option.FontColor.IsZero() || len(data) == 0 {
 		return
 	}
 	r := d.Render
 
-	s := style.Style(d.Font)
+	s := option.Style(d.Font)
 	s.GetTextOptions().WriteTextOptionsToRenderer(r)
 
 	width := d.Box.Width()
@@ -161,21 +161,21 @@ func (a *axis) axisLabel(opt *axisRenderOption) {
 	textList := data.TextList()
 	count := len(textList)
 
-	boundaryGap := opt.boundaryGap
+	boundaryGap := renderOpt.boundaryGap
 	if !boundaryGap {
 		count--
 	}
 
-	unitCount := opt.unitCount
-	modValue := opt.modValue
-	labelMargin := style.GetLabelMargin()
+	unitCount := renderOpt.unitCount
+	modValue := renderOpt.modValue
+	labelMargin := option.GetLabelMargin()
 
 	// 轴线
-	labelHeight := labelMargin + opt.textMaxHeight
-	labelWidth := labelMargin + opt.textMaxWith
+	labelHeight := labelMargin + renderOpt.textMaxHeight
+	labelWidth := labelMargin + renderOpt.textMaxWith
 
 	// 坐标轴文本
-	position := style.Position
+	position := option.Position
 	switch position {
 	case PositionLeft:
 		fallthrough
@@ -194,7 +194,7 @@ func (a *axis) axisLabel(opt *axisRenderOption) {
 				y += b.Height() >> 1
 			}
 			// 左右位置的x不一样
-			x := width - opt.textMaxWith
+			x := width - renderOpt.textMaxWith
 			if position == PositionLeft {
 				x = labelWidth - b.Width() - 1
 			}
@@ -226,11 +226,11 @@ func (a *axis) axisLabel(opt *axisRenderOption) {
 	}
 }
 
-func (a *axis) axisLine(opt *axisRenderOption) {
+func (a *axis) axisLine(renderOpt *axisRenderOption) {
 	d := a.d
 	r := d.Render
-	style := a.style
-	s := style.Style(d.Font)
+	option := a.option
+	s := option.Style(d.Font)
 	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
 
 	x0 := 0
@@ -239,13 +239,13 @@ func (a *axis) axisLine(opt *axisRenderOption) {
 	y1 := 0
 	width := d.Box.Width()
 	height := d.Box.Height()
-	labelMargin := style.GetLabelMargin()
+	labelMargin := option.GetLabelMargin()
 
 	// 轴线
-	labelHeight := labelMargin + opt.textMaxHeight
-	labelWidth := labelMargin + opt.textMaxWith
-	tickLength := style.GetTickLength()
-	switch style.Position {
+	labelHeight := labelMargin + renderOpt.textMaxHeight
+	labelWidth := labelMargin + renderOpt.textMaxWith
+	tickLength := option.GetTickLength()
+	switch option.Position {
 	case PositionLeft:
 		x0 = tickLength + labelWidth
 		x1 = x0
@@ -274,12 +274,12 @@ func (a *axis) axisLine(opt *axisRenderOption) {
 	r.FillStroke()
 }
 
-func (a *axis) axisTick(opt *axisRenderOption) {
+func (a *axis) axisTick(renderOpt *axisRenderOption) {
 	d := a.d
 	r := d.Render
 
-	style := a.style
-	s := style.Style(d.Font)
+	option := a.option
+	s := option.Style(d.Font)
 	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
 
 	width := d.Box.Width()
@@ -289,20 +289,20 @@ func (a *axis) axisTick(opt *axisRenderOption) {
 	if tickCount == 0 {
 		return
 	}
-	if !opt.boundaryGap {
+	if !renderOpt.boundaryGap {
 		tickCount--
 	}
-	labelMargin := style.GetLabelMargin()
+	labelMargin := option.GetLabelMargin()
 	tickShow := true
-	if isFalse(style.TickShow) {
+	if isFalse(option.TickShow) {
 		tickShow = false
 	}
-	unitCount := opt.unitCount
+	unitCount := renderOpt.unitCount
 
-	tickLengthValue := style.GetTickLength()
-	labelHeight := labelMargin + opt.textMaxHeight
-	labelWidth := labelMargin + opt.textMaxWith
-	position := style.Position
+	tickLengthValue := option.GetTickLength()
+	labelHeight := labelMargin + renderOpt.textMaxHeight
+	labelWidth := labelMargin + renderOpt.textMaxWith
+	position := option.Position
 	switch position {
 	case PositionLeft:
 		fallthrough
@@ -310,7 +310,7 @@ func (a *axis) axisTick(opt *axisRenderOption) {
 		values := autoDivide(height, tickCount)
 		// 左右仅是x0的位置不一样
 		x0 := width - labelWidth
-		if style.Position == PositionLeft {
+		if option.Position == PositionLeft {
 			x0 = labelWidth
 		}
 		if tickShow {
@@ -323,8 +323,8 @@ func (a *axis) axisTick(opt *axisRenderOption) {
 			}
 		}
 		// 辅助线
-		if style.SplitLineShow && !style.SplitLineColor.IsZero() {
-			r.SetStrokeColor(style.SplitLineColor)
+		if option.SplitLineShow && !option.SplitLineColor.IsZero() {
+			r.SetStrokeColor(option.SplitLineColor)
 			splitLineWidth := width - labelWidth - tickLengthValue
 			x0 = labelWidth + tickLengthValue
 			if position == PositionRight {
@@ -359,8 +359,8 @@ func (a *axis) axisTick(opt *axisRenderOption) {
 			}
 		}
 		// 辅助线
-		if style.SplitLineShow && !style.SplitLineColor.IsZero() {
-			r.SetStrokeColor(style.SplitLineColor)
+		if option.SplitLineShow && !option.SplitLineColor.IsZero() {
+			r.SetStrokeColor(option.SplitLineColor)
 			y0 = 0
 			splitLineHeight := height - labelHeight - tickLengthValue
 			if position == PositionTop {
@@ -386,7 +386,7 @@ func (a *axis) axisTick(opt *axisRenderOption) {
 func (a *axis) measureTextMaxWidthHeight() (int, int) {
 	d := a.d
 	r := d.Render
-	s := a.style.Style(d.Font)
+	s := a.option.Style(d.Font)
 	data := a.data
 	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
 	s.GetTextOptions().WriteTextOptionsToRenderer(r)
@@ -397,12 +397,12 @@ func (a *axis) measureTextMaxWidthHeight() (int, int) {
 // Width will be textMaxWidth + labelMargin + tickLength for position left or right.
 // Height will be textMaxHeight + labelMargin + tickLength for position top or bottom.
 func (a *axis) measure() axisMeasurement {
-	style := a.style
-	value := style.GetLabelMargin() + style.GetTickLength()
+	option := a.option
+	value := option.GetLabelMargin() + option.GetTickLength()
 	textMaxWidth, textMaxHeight := a.measureTextMaxWidthHeight()
 	info := axisMeasurement{}
-	if style.Position == PositionLeft ||
-		style.Position == PositionRight {
+	if option.Position == PositionLeft ||
+		option.Position == PositionRight {
 		info.Width = textMaxWidth + value
 	} else {
 		info.Height = textMaxHeight + value
@@ -412,8 +412,8 @@ func (a *axis) measure() axisMeasurement {
 
 // Render renders the axis for chart
 func (a *axis) Render() {
-	style := a.style
-	if isFalse(style.Show) {
+	option := a.option
+	if isFalse(option.Show) {
 		return
 	}
 	textMaxWidth, textMaxHeight := a.measureTextMaxWidthHeight()
@@ -422,16 +422,16 @@ func (a *axis) Render() {
 		textMaxHeight: textMaxHeight,
 		boundaryGap:   true,
 	}
-	if isFalse(style.BoundaryGap) {
+	if isFalse(option.BoundaryGap) {
 		opt.boundaryGap = false
 	}
 
-	unitCount := chart.MaxInt(style.SplitNumber, 1)
+	unitCount := chart.MaxInt(option.SplitNumber, 1)
 	width := a.d.Box.Width()
 	textList := a.data.TextList()
 	count := len(textList)
 
-	position := style.Position
+	position := option.Position
 	switch position {
 	case PositionLeft:
 		fallthrough

@@ -78,3 +78,17 @@ func TestRangeGetRange(t *testing.T) {
 	assert.Equal(40.0, f1)
 	assert.Equal(60.0, f2)
 }
+
+func TestRangeAutoDivide(t *testing.T) {
+	assert := assert.New(t)
+
+	r := Range{
+		Size:        120,
+		divideCount: 6,
+	}
+
+	assert.Equal([]int{0, 20, 40, 60, 80, 100, 120}, r.AutoDivide())
+
+	r.Size = 130
+	assert.Equal([]int{0, 22, 44, 66, 88, 109, 130}, r.AutoDivide())
+}

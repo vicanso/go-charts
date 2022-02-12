@@ -36,6 +36,24 @@ func TestGetDefaultInt(t *testing.T) {
 	assert.Equal(10, getDefaultInt(10, 1))
 }
 
+func TestCeilFloatToInt(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(1, ceilFloatToInt(0.8))
+	assert.Equal(1, ceilFloatToInt(1.0))
+	assert.Equal(2, ceilFloatToInt(1.2))
+}
+
+func TestCommafWithDigits(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal("1.2", commafWithDigits(1.2))
+	assert.Equal("1.21", commafWithDigits(1.21231))
+
+	assert.Equal("1.20k", commafWithDigits(1200.121))
+	assert.Equal("1.20M", commafWithDigits(1200000.121))
+}
+
 func TestAutoDivide(t *testing.T) {
 	assert := assert.New(t)
 

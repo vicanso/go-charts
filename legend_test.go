@@ -30,6 +30,22 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+func TestNewLegendOption(t *testing.T) {
+	assert := assert.New(t)
+
+	opt := NewLegendOption([]string{
+		"a",
+		"b",
+	}, PositionRight)
+	assert.Equal(LegendOption{
+		Data: []string{
+			"a",
+			"b",
+		},
+		Left: PositionRight,
+	}, opt)
+}
+
 func TestLegendRender(t *testing.T) {
 	assert := assert.New(t)
 

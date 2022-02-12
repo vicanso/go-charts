@@ -90,6 +90,40 @@ func TestWidthHeightOption(t *testing.T) {
 	}, d.Box)
 }
 
+func TestBoxOption(t *testing.T) {
+	assert := assert.New(t)
+
+	d, err := NewDraw(DrawOption{
+		Width:  400,
+		Height: 300,
+	})
+	assert.Nil(err)
+
+	err = BoxOption(chart.Box{
+		Left:   10,
+		Top:    20,
+		Right:  50,
+		Bottom: 100,
+	})(d)
+	assert.Nil(err)
+	assert.Equal(chart.Box{
+		Left:   10,
+		Top:    20,
+		Right:  50,
+		Bottom: 100,
+	}, d.Box)
+
+	// zero box will be ignored
+	err = BoxOption(chart.Box{})(d)
+	assert.Nil(err)
+	assert.Equal(chart.Box{
+		Left:   10,
+		Top:    20,
+		Right:  50,
+		Bottom: 100,
+	}, d.Box)
+}
+
 func TestPaddingOption(t *testing.T) {
 	assert := assert.New(t)
 

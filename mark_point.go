@@ -48,7 +48,7 @@ type markPointRenderOption struct {
 	Points    []Point
 }
 
-func markPointRender(opt *markPointRenderOption) {
+func markPointRender(opt markPointRenderOption) {
 	d := opt.Draw
 	s := opt.Series
 	if len(s.MarkPoint.Data) == 0 {

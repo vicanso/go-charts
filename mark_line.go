@@ -50,7 +50,7 @@ type markLineRenderOption struct {
 	Range       *Range
 }
 
-func markLineRender(opt *markLineRenderOption) {
+func markLineRender(opt markLineRenderOption) {
 	d := opt.Draw
 	s := opt.Series
 	if len(s.MarkLine.Data) == 0 {

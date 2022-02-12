@@ -34,7 +34,7 @@ type lineChartOption struct {
 	Font       *truetype.Font
 }
 
-func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]*markPointRenderOption, error) {
+func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]markPointRenderOption, error) {
 
 	theme := NewTheme(opt.Theme)
 
@@ -51,7 +51,7 @@ func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]*markPoi
 
 	r := d.Render
 	xRange := result.xRange
-	markPointRenderOptions := make([]*markPointRenderOption, 0)
+	markPointRenderOptions := make([]markPointRenderOption, 0)
 	for i, s := range opt.SeriesList {
 		// 由于series是for range，为同一个数据，因此需要clone
 		// 后续需要使用，如mark point
@@ -65,7 +65,7 @@ func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]*markPoi
 		yRange := result.getYRange(series.YAxisIndex)
 		points := make([]Point, len(series.Data))
 		// mark line
-		markLineRender(&markLineRenderOption{
+		markLineRender(markLineRenderOption{
 			Draw:        d,
 			FillColor:   seriesColor,
 			FontColor:   theme.GetTextColor(),
@@ -111,7 +111,7 @@ func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]*markPoi
 			DotFillColor: dotFillColor,
 		})
 		// draw mark point
-		markPointRenderOptions = append(markPointRenderOptions, &markPointRenderOption{
+		markPointRenderOptions = append(markPointRenderOptions, markPointRenderOption{
 			Draw:      d,
 			FillColor: seriesColor,
 			Font:      opt.Font,

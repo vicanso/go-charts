@@ -259,7 +259,7 @@ func Render(opt ChartOption) (*Draw, error) {
 	if err != nil {
 		return nil, err
 	}
-	markPointRenderOptions := make([]*markPointRenderOption, 0)
+	markPointRenderOptions := make([]markPointRenderOption, 0)
 	fns := []func() error{
 		// pie render
 		func() error {

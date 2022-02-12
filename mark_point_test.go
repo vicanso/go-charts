@@ -68,7 +68,7 @@ func TestMarkPointRender(t *testing.T) {
 	assert.Nil(err)
 	f, _ := chart.GetDefaultFont()
 
-	markPointRender(&markPointRenderOption{
+	markPointRender(markPointRenderOption{
 		Draw:      d,
 		FillColor: drawing.ColorBlack,
 		Font:      f,

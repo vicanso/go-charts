@@ -67,7 +67,7 @@ func TestMarkLineRender(t *testing.T) {
 	assert.Nil(err)
 	f, _ := chart.GetDefaultFont()
 
-	markLineRender(&markLineRenderOption{
+	markLineRender(markLineRenderOption{
 		Draw:        d,
 		FillColor:   drawing.ColorBlack,
 		FontColor:   drawing.ColorBlack,

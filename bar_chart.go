@@ -33,7 +33,7 @@ type barChartOption struct {
 	Font       *truetype.Font
 }
 
-func barChartRender(opt barChartOption, result *basicRenderResult) ([]*markPointRenderOption, error) {
+func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointRenderOption, error) {
 
 	d, err := NewDraw(DrawOption{
 		Parent: result.d,
@@ -67,7 +67,7 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]*markPoint
 
 	r := d.Render
 
-	markPointRenderOptions := make([]*markPointRenderOption, 0)
+	markPointRenderOptions := make([]markPointRenderOption, 0)
 
 	for i, s := range opt.SeriesList {
 		// 由于series是for range，为同一个数据，因此需要clone
@@ -81,7 +81,7 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]*markPoint
 		}
 		seriesColor := theme.GetSeriesColor(index)
 		// mark line
-		markLineRender(&markLineRenderOption{
+		markLineRender(markLineRenderOption{
 			Draw:        d,
 			FillColor:   seriesColor,
 			FontColor:   theme.GetTextColor(),
@@ -135,7 +135,7 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]*markPoint
 			d.text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-5)
 		}
 
-		markPointRenderOptions = append(markPointRenderOptions, &markPointRenderOption{
+		markPointRenderOptions = append(markPointRenderOptions, markPointRenderOption{
 			Draw:      d,
 			FillColor: seriesColor,
 			Font:      opt.Font,

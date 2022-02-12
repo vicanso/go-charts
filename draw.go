@@ -71,6 +71,16 @@ func PaddingOption(padding chart.Box) Option {
 	}
 }
 
+func BoxOption(box chart.Box) Option {
+	return func(d *Draw) error {
+		if box.IsZero() {
+			return nil
+		}
+		d.Box = box
+		return nil
+	}
+}
+
 func NewDraw(opt DrawOption, opts ...Option) (*Draw, error) {
 	if opt.Parent == nil && (opt.Width <= 0 || opt.Height <= 0) {
 		return nil, errors.New("parent and width/height can not be nil")

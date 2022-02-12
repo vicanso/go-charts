@@ -56,6 +56,7 @@ type ChartOption struct {
 	Height          int
 	Parent          *Draw
 	Padding         chart.Box
+	Box             chart.Box
 	SeriesList      []Series
 	BackgroundColor drawing.Color
 	Children        []ChartOption
@@ -337,6 +338,7 @@ func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 			Height: opt.getHeight(),
 		},
 		PaddingOption(opt.Padding),
+		BoxOption(opt.Box),
 	)
 	if err != nil {
 		return nil, err

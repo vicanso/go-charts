@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 type YAxisOption struct {
@@ -37,15 +38,19 @@ type YAxisOption struct {
 	Hidden bool
 	// Formatter for y axis text value
 	Formatter string
+	// Color for y axis
+	Color drawing.Color
 }
 
+// TODO 长度是否可以变化
 const YAxisWidth = 40
 
 func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding chart.Box) (*Range, error) {
 	theme := NewTheme(opt.Theme)
 	yRange := opt.newYRange(axisIndex)
 	values := yRange.Values()
-	formatter := opt.YAxisList[axisIndex].Formatter
+	yAxis := opt.YAxisList[axisIndex]
+	formatter := yAxis.Formatter
 	if len(formatter) != 0 {
 		for index, text := range values {
 			values[index] = strings.ReplaceAll(formatter, "{value}", text)
@@ -61,6 +66,10 @@ func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding ch
 		StrokeWidth:    1,
 		SplitLineColor: theme.GetAxisSplitLineColor(),
 		SplitLineShow:  true,
+	}
+	if !yAxis.Color.IsZero() {
+		style.FontColor = yAxis.Color
+		style.StrokeColor = yAxis.Color
 	}
 	width := NewAxis(p, data, style).measure().Width
 

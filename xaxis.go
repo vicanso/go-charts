@@ -40,6 +40,16 @@ type XAxisOption struct {
 	SplitNumber int
 }
 
+func NewXAxisOption(data []string, boundaryGap ...*bool) XAxisOption {
+	opt := XAxisOption{
+		Data: data,
+	}
+	if len(boundaryGap) != 0 {
+		opt.BoundaryGap = boundaryGap[0]
+	}
+	return opt
+}
+
 // drawXAxis draws x axis, and returns the height, range of if.
 func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
 	if opt.Hidden {

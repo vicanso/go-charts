@@ -37,7 +37,6 @@ func barChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRen
 	if err != nil {
 		return nil, err
 	}
-	// yRange := result.yRange
 	xRange := result.xRange
 	x0, x1 := xRange.GetRange(0)
 	width := int(x1 - x0)
@@ -45,6 +44,10 @@ func barChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRen
 	margin := 10
 	// 每一个bar之间的margin
 	barMargin := 5
+	if width < 50 {
+		margin = 5
+		barMargin = 3
+	}
 
 	seriesCount := len(opt.SeriesList)
 	// 总的宽度-两个margin-(总数-1)的barMargin
@@ -80,9 +83,9 @@ func barChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRen
 			Series:      &series,
 			Range:       yRange,
 		})
+		divideValues := xRange.AutoDivide()
 		for j, item := range series.Data {
-			x0, _ := xRange.GetRange(j)
-			x := int(x0)
+			x := divideValues[j]
 			x += margin
 			if i != 0 {
 				x += i * (barWidth + barMargin)

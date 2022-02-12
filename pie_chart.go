@@ -38,7 +38,6 @@ func getPieStyle(theme *Theme, index int) chart.Style {
 		StrokeWidth: 1,
 		FillColor:   seriesColor,
 	}
-
 }
 
 func pieChartRender(opt ChartOption, result *basicRenderResult) error {
@@ -86,7 +85,11 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) error {
 	if radius <= 0 {
 		radius = float64(diameter) * defaultRadiusPercent
 	}
-	labelRadius := radius + 20
+	labelLineWidth := 15
+	if radius < 50 {
+		labelLineWidth = 10
+	}
+	labelRadius := radius + float64(labelLineWidth)
 
 	seriesNames := opt.Legend.Data
 
@@ -126,7 +129,7 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) error {
 			endy := cy + int(labelRadius*math.Sin(angle))
 			d.moveTo(startx, starty)
 			d.lineTo(endx, endy)
-			offset := 30
+			offset := labelLineWidth
 			if endx < cx {
 				offset *= -1
 			}

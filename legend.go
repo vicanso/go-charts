@@ -49,6 +49,17 @@ type LegendOption struct {
 	// The layout orientation of legend, it can be horizontal or vertical, default is horizontal.
 	Orient string
 }
+
+func NewLegendOption(data []string, position ...string) LegendOption {
+	opt := LegendOption{
+		Data: data,
+	}
+	if len(position) != 0 {
+		opt.Left = position[0]
+	}
+	return opt
+}
+
 type legend struct {
 	d   *Draw
 	opt *LegendOption

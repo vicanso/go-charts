@@ -95,6 +95,35 @@ type Series struct {
 	MarkLine  SeriesMarkLine
 }
 
+type PieSeriesOption struct {
+	Radius    string
+	LabelShow bool
+}
+
+func NewPieSeriesList(values []float64, opts ...PieSeriesOption) []Series {
+	result := make([]Series, len(values))
+	var opt PieSeriesOption
+	if len(opts) != 0 {
+		opt = opts[0]
+	}
+	for index, v := range values {
+		s := Series{
+			Type: ChartTypePie,
+			Data: []SeriesData{
+				{
+					Value: v,
+				},
+			},
+			Radius: opt.Radius,
+			Label: SeriesLabel{
+				Show: opt.LabelShow,
+			},
+		}
+		result[index] = s
+	}
+	return result
+}
+
 type seriesSummary struct {
 	MaxIndex     int
 	MaxValue     float64

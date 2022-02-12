@@ -144,17 +144,24 @@ func (o *ChartOption) FillDefault(theme string) {
 }
 
 func (o *ChartOption) getWidth() int {
-	if o.Width == 0 {
-		return 600
+	if o.Width != 0 {
+		return o.Width
 	}
-	return o.Width
+	if o.Parent != nil {
+		return o.Parent.Box.Width()
+	}
+	return 600
 }
 
 func (o *ChartOption) getHeight() int {
-	if o.Height == 0 {
-		return 400
+
+	if o.Height != 0 {
+		return o.Height
 	}
-	return o.Height
+	if o.Parent != nil {
+		return o.Parent.Box.Height()
+	}
+	return 400
 }
 
 func (o *ChartOption) newYRange(axisIndex int) Range {
@@ -219,6 +226,7 @@ func Render(opt ChartOption) (*Draw, error) {
 	if len(opt.SeriesList) == 0 {
 		return nil, errors.New("series can not be nil")
 	}
+	opt.FillDefault(opt.Theme)
 
 	lineSeries := make([]Series, 0)
 	barSeries := make([]Series, 0)
@@ -321,7 +329,6 @@ func Render(opt ChartOption) (*Draw, error) {
 }
 
 func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
-	opt.FillDefault(opt.Theme)
 	d, err := NewDraw(
 		DrawOption{
 			Type:   opt.Type,

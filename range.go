@@ -94,6 +94,9 @@ func (r *Range) GetRange(index int) (float64, float64) {
 	unit := float64(r.Size) / float64(r.divideCount)
 	return unit * float64(index), unit * float64(index+1)
 }
+func (r *Range) AutoDivide() []int {
+	return autoDivide(r.Size, r.divideCount)
+}
 
 func (r *Range) getWidth(value float64) int {
 	v := value / (r.Max - r.Min)

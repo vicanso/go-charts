@@ -40,6 +40,14 @@ func FalseFlag() *bool {
 	return &f
 }
 
+func ceilFloatToInt(value float64) int {
+	i := int(value)
+	if value == float64(i) {
+		return i
+	}
+	return i + 1
+}
+
 func getDefaultInt(value, defaultValue int) int {
 	if value == 0 {
 		return defaultValue

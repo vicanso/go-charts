@@ -94,8 +94,9 @@ type Series struct {
 type SeriesList []Series
 
 type PieSeriesOption struct {
-	Radius    string
-	LabelShow bool
+	Radius string
+	Label  SeriesLabel
+	Names  []string
 }
 
 func NewPieSeriesList(values []float64, opts ...PieSeriesOption) []Series {
@@ -105,6 +106,10 @@ func NewPieSeriesList(values []float64, opts ...PieSeriesOption) []Series {
 		opt = opts[0]
 	}
 	for index, v := range values {
+		name := ""
+		if index < len(opt.Names) {
+			name = opt.Names[index]
+		}
 		s := Series{
 			Type: ChartTypePie,
 			Data: []SeriesData{
@@ -113,9 +118,8 @@ func NewPieSeriesList(values []float64, opts ...PieSeriesOption) []Series {
 				},
 			},
 			Radius: opt.Radius,
-			Label: SeriesLabel{
-				Show: opt.LabelShow,
-			},
+			Label:  opt.Label,
+			Name:   name,
 		}
 		result[index] = s
 	}

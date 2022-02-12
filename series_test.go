@@ -69,6 +69,7 @@ func TestNewPieSeriesList(t *testing.T) {
 	assert.Equal([]Series{
 		{
 			Type: ChartTypePie,
+			Name: "a",
 			Label: SeriesLabel{
 				Show: true,
 			},
@@ -81,6 +82,7 @@ func TestNewPieSeriesList(t *testing.T) {
 		},
 		{
 			Type: ChartTypePie,
+			Name: "b",
 			Label: SeriesLabel{
 				Show: true,
 			},
@@ -95,8 +97,14 @@ func TestNewPieSeriesList(t *testing.T) {
 		1,
 		2,
 	}, PieSeriesOption{
-		Radius:    "30%",
-		LabelShow: true,
+		Radius: "30%",
+		Label: SeriesLabel{
+			Show: true,
+		},
+		Names: []string{
+			"a",
+			"b",
+		},
 	}))
 }
 

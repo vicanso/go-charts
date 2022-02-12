@@ -23,11 +23,18 @@
 package charts
 
 import (
+	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func lineChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRenderOption, error) {
+type lineChartOption struct {
+	Theme      string
+	SeriesList SeriesList
+	Font       *truetype.Font
+}
+
+func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]*markPointRenderOption, error) {
 
 	theme := NewTheme(opt.Theme)
 
@@ -40,7 +47,7 @@ func lineChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRe
 	if err != nil {
 		return nil, err
 	}
-	seriesNames := opt.Legend.Data
+	seriesNames := opt.SeriesList.Names()
 
 	r := d.Render
 	xRange := result.xRange

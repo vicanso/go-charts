@@ -94,6 +94,7 @@ type Series struct {
 	MarkPoint SeriesMarkPoint
 	MarkLine  SeriesMarkLine
 }
+type SeriesList []Series
 
 type PieSeriesOption struct {
 	Radius    string
@@ -156,6 +157,14 @@ func (s *Series) Summary() seriesSummary {
 		MinValue:     minValue,
 		AverageValue: sum / float64(len(s.Data)),
 	}
+}
+
+func (sl SeriesList) Names() []string {
+	names := make([]string, len(sl))
+	for index, s := range sl {
+		names[index] = s.Name
+	}
+	return names
 }
 
 type LabelFormatter func(index int, value float64, percent float64) string

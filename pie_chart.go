@@ -26,6 +26,7 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
@@ -40,7 +41,13 @@ func getPieStyle(theme *Theme, index int) chart.Style {
 	}
 }
 
-func pieChartRender(opt ChartOption, result *basicRenderResult) error {
+type pieChartOption struct {
+	Theme      string
+	Font       *truetype.Font
+	SeriesList SeriesList
+}
+
+func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 	d, err := NewDraw(DrawOption{
 		Parent: result.d,
 	}, PaddingOption(chart.Box{
@@ -91,7 +98,7 @@ func pieChartRender(opt ChartOption, result *basicRenderResult) error {
 	}
 	labelRadius := radius + float64(labelLineWidth)
 
-	seriesNames := opt.Legend.Data
+	seriesNames := opt.SeriesList.Names()
 
 	if len(values) == 1 {
 		getPieStyle(theme, 0).WriteToRenderer(r)

@@ -23,10 +23,17 @@
 package charts
 
 import (
+	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-func barChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRenderOption, error) {
+type barChartOption struct {
+	SeriesList SeriesList
+	Theme      string
+	Font       *truetype.Font
+}
+
+func barChartRender(opt barChartOption, result *basicRenderResult) ([]*markPointRenderOption, error) {
 
 	d, err := NewDraw(DrawOption{
 		Parent: result.d,
@@ -56,7 +63,7 @@ func barChartRender(opt ChartOption, result *basicRenderResult) ([]*markPointRen
 	barMaxHeight := result.getYRange(0).Size
 	theme := NewTheme(opt.Theme)
 
-	seriesNames := opt.Legend.Data
+	seriesNames := opt.SeriesList.Names()
 
 	r := d.Render
 

@@ -57,7 +57,7 @@ type ChartOption struct {
 	Parent          *Draw
 	Padding         chart.Box
 	Box             chart.Box
-	SeriesList      []Series
+	SeriesList      SeriesList
 	BackgroundColor drawing.Color
 	Children        []ChartOption
 }
@@ -126,12 +126,16 @@ func (o *ChartOption) FillDefault(theme string) {
 	if o.Legend.Left == "" {
 		o.Legend.Left = PositionCenter
 	}
+	// legend与series name的关联
 	if len(o.Legend.Data) == 0 {
-		names := make([]string, len(o.SeriesList))
-		for index, item := range o.SeriesList {
-			names[index] = item.Name
+		o.Legend.Data = o.SeriesList.Names()
+	} else {
+		seriesCount := len(o.SeriesList)
+		for index, name := range o.Legend.Data {
+			if index < seriesCount {
+				o.SeriesList[index].Name = name
+			}
 		}
-		o.Legend.Data = names
 	}
 	if o.Legend.Style.Font == nil {
 		o.Legend.Style.Font = o.Font
@@ -262,7 +266,11 @@ func Render(opt ChartOption) (*Draw, error) {
 			if !isPieChart {
 				return nil
 			}
-			err := pieChartRender(opt, result)
+			err := pieChartRender(pieChartOption{
+				SeriesList: opt.SeriesList,
+				Theme:      opt.Theme,
+				Font:       opt.Font,
+			}, result)
 			return err
 		},
 		// bar render
@@ -271,9 +279,11 @@ func Render(opt ChartOption) (*Draw, error) {
 			if isPieChart || len(barSeries) == 0 {
 				return nil
 			}
-			o := opt
-			o.SeriesList = barSeries
-			options, err := barChartRender(o, result)
+			options, err := barChartRender(barChartOption{
+				SeriesList: barSeries,
+				Theme:      opt.Theme,
+				Font:       opt.Font,
+			}, result)
 			if err != nil {
 				return err
 			}
@@ -286,9 +296,11 @@ func Render(opt ChartOption) (*Draw, error) {
 			if isPieChart || len(lineSeries) == 0 {
 				return nil
 			}
-			o := opt
-			o.SeriesList = lineSeries
-			options, err := lineChartRender(o, result)
+			options, err := lineChartRender(lineChartOption{
+				Theme:      opt.Theme,
+				SeriesList: lineSeries,
+				Font:       opt.Font,
+			}, result)
 			if err != nil {
 				return err
 			}

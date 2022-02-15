@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"net/http"
+	"strconv"
 
 	charts "github.com/vicanso/go-charts"
 	"github.com/wcharczuk/go-chart/v2"
@@ -65,7 +66,12 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	if req.URL.Path != "/" {
 		return
 	}
-	theme := req.URL.Query().Get("theme")
+	query := req.URL.Query()
+	theme := query.Get("theme")
+	width, _ := strconv.Atoi(query.Get("width"))
+	height, _ := strconv.Atoi(query.Get("height"))
+	charts.SetDefaultWidth(width)
+	charts.SetDefaultWidth(height)
 	chartOptions := []charts.ChartOption{
 		// 普通折线图
 		{

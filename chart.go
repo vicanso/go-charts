@@ -44,24 +44,45 @@ type Point struct {
 
 const labelFontSize = 10
 
+var defaultChartWidth = 600
+var defaultChartHeight = 400
+
 type ChartOption struct {
-	Type            string
-	Font            *truetype.Font
-	Theme           string
-	Title           TitleOption
-	Legend          LegendOption
-	XAxis           XAxisOption
-	YAxisList       []YAxisOption
-	Width           int
-	Height          int
-	Parent          *Draw
-	Padding         chart.Box
-	Box             chart.Box
-	SeriesList      SeriesList
+	// The output type of chart, "svg" or "png", default value is "svg"
+	Type string
+	// The font family, which should be installed first
+	FontFamily string
+	// The font of chart, the default font is "roboto"
+	Font *truetype.Font
+	// The theme of chart, "light" and "dark".
+	// The default theme is "light"
+	Theme string
+	// The title option
+	Title TitleOption
+	// The legend option
+	Legend LegendOption
+	// The x axis option
+	XAxis XAxisOption
+	// The y axis option list
+	YAxisList []YAxisOption
+	// The width of chart, default width is 600
+	Width int
+	// The height of chart, default height is 400
+	Height int
+	Parent *Draw
+	// The padding for chart, default padding is [20, 10, 10, 10]
+	Padding chart.Box
+	// The canvas box for chart
+	Box chart.Box
+	// The series list
+	SeriesList SeriesList
+	// The background color of chart
 	BackgroundColor drawing.Color
-	Children        []ChartOption
+	// The child charts
+	Children []ChartOption
 }
 
+// FillDefault fills the default value for chart option
 func (o *ChartOption) FillDefault(theme string) {
 	t := NewTheme(theme)
 	// 如果为空，初始化
@@ -83,7 +104,7 @@ func (o *ChartOption) FillDefault(theme string) {
 	}
 	if o.Padding.IsZero() {
 		o.Padding = chart.Box{
-			Top:    20,
+			Top:    10,
 			Right:  10,
 			Bottom: 10,
 			Left:   10,
@@ -102,10 +123,7 @@ func (o *ChartOption) FillDefault(theme string) {
 	}
 	if o.Title.Style.Padding.IsZero() {
 		o.Title.Style.Padding = chart.Box{
-			Left:   5,
-			Top:    5,
-			Right:  5,
-			Bottom: 5,
+			Bottom: 10,
 		}
 	}
 	// 副标题
@@ -113,7 +131,7 @@ func (o *ChartOption) FillDefault(theme string) {
 		o.Title.SubtextStyle.FontColor = o.Title.Style.FontColor.WithAlpha(180)
 	}
 	if o.Title.SubtextStyle.FontSize == 0 {
-		o.Title.SubtextStyle.FontSize = 10
+		o.Title.SubtextStyle.FontSize = labelFontSize
 	}
 	if o.Title.SubtextStyle.Font == nil {
 		o.Title.SubtextStyle.Font = o.Font
@@ -121,7 +139,7 @@ func (o *ChartOption) FillDefault(theme string) {
 
 	o.Legend.theme = theme
 	if o.Legend.Style.FontSize == 0 {
-		o.Legend.Style.FontSize = 10
+		o.Legend.Style.FontSize = labelFontSize
 	}
 	if o.Legend.Left == "" {
 		o.Legend.Left = PositionCenter
@@ -155,7 +173,18 @@ func (o *ChartOption) getWidth() int {
 	if o.Parent != nil {
 		return o.Parent.Box.Width()
 	}
-	return 600
+	return defaultChartWidth
+}
+
+func SetDefaultWidth(width int) {
+	if width > 0 {
+		defaultChartWidth = width
+	}
+}
+func SetDefaultHeight(height int) {
+	if height > 0 {
+		defaultChartHeight = height
+	}
 }
 
 func (o *ChartOption) getHeight() int {
@@ -166,7 +195,7 @@ func (o *ChartOption) getHeight() int {
 	if o.Parent != nil {
 		return o.Parent.Box.Height()
 	}
-	return 400
+	return defaultChartHeight
 }
 
 func (o *ChartOption) newYRange(axisIndex int) Range {
@@ -227,9 +256,17 @@ func (r *basicRenderResult) getYRange(index int) *Range {
 	return r.yRangeList[index]
 }
 
+// Render renders the chart by option
 func Render(opt ChartOption) (*Draw, error) {
 	if len(opt.SeriesList) == 0 {
 		return nil, errors.New("series can not be nil")
+	}
+	if len(opt.FontFamily) != 0 {
+		f, err := GetFont(opt.FontFamily)
+		if err != nil {
+			return nil, err
+		}
+		opt.Font = f
 	}
 	opt.FillDefault(opt.Theme)
 

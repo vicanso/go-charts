@@ -32,7 +32,9 @@ import (
 )
 
 type SeriesData struct {
+	// The value of series data
 	Value float64
+	// The style of series data
 	Style chart.Style
 }
 
@@ -57,9 +59,15 @@ func NewSeriesDataFromValues(values []float64) []SeriesData {
 }
 
 type SeriesLabel struct {
+	// Data label formatter, which supports string template.
+	// {b}: the name of a data item.
+	// {c}: the value of a data item.
+	// {d}: the percent of a data item(pie chart).
 	Formatter string
-	Color     drawing.Color
-	Show      bool
+	// The color for label
+	Color drawing.Color
+	// Show flag for label
+	Show bool
 }
 
 const (
@@ -69,27 +77,42 @@ const (
 )
 
 type SeriesMarkData struct {
+	// The mark data type, it can be "max", "min", "average".
+	// The "average" is only for mark line
 	Type string
 }
 type SeriesMarkPoint struct {
+	// The width of symbol, default value is 30
 	SymbolSize int
-	Data       []SeriesMarkData
+	// The mark data of series mark point
+	Data []SeriesMarkData
 }
 type SeriesMarkLine struct {
+	// The mark data of series mark line
 	Data []SeriesMarkData
 }
 type Series struct {
-	index      int
-	Type       string
-	Data       []SeriesData
+	index int
+	// The type of series, it can be "line", "bar" or "pie".
+	// Default value is "line"
+	Type string
+	// The data list of series
+	Data []SeriesData
+	// The Y axis index, it should be 0 or 1.
+	// Default value is 1
 	YAxisIndex int
-	Style      chart.Style
-	Label      SeriesLabel
-	Name       string
-	// Radius of Pie chart, e.g.: 40%
-	Radius    string
+	// The style for series
+	Style chart.Style
+	// The label for series
+	Label SeriesLabel
+	// The name of series
+	Name string
+	// Radius for Pie chart, e.g.: 40%, default is "40%"
+	Radius string
+	// Mark point for series
 	MarkPoint SeriesMarkPoint
-	MarkLine  SeriesMarkLine
+	// Make line for series
+	MarkLine SeriesMarkLine
 }
 type SeriesList []Series
 

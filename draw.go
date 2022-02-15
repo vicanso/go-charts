@@ -46,21 +46,30 @@ const (
 )
 
 type Draw struct {
+	// Render
 	Render chart.Renderer
-	Box    chart.Box
-	Font   *truetype.Font
+	// The canvas box
+	Box chart.Box
+	// The font for draw
+	Font *truetype.Font
+	// The parent of draw
 	parent *Draw
 }
 
 type DrawOption struct {
-	Type   string
+	// Draw type, "svg" or "png", default type is "svg"
+	Type string
+	// Parent of draw
 	Parent *Draw
-	Width  int
+	// The width of draw canvas
+	Width int
+	// The height of draw canvas
 	Height int
 }
 
 type Option func(*Draw) error
 
+// PaddingOption sets the padding of draw canvas
 func PaddingOption(padding chart.Box) Option {
 	return func(d *Draw) error {
 		d.Box.Left += padding.Left
@@ -71,6 +80,7 @@ func PaddingOption(padding chart.Box) Option {
 	}
 }
 
+// BoxOption set the box of draw canvas
 func BoxOption(box chart.Box) Option {
 	return func(d *Draw) error {
 		if box.IsZero() {
@@ -81,6 +91,7 @@ func BoxOption(box chart.Box) Option {
 	}
 }
 
+// NewDraw returns a new draw canvas
 func NewDraw(opt DrawOption, opts ...Option) (*Draw, error) {
 	if opt.Parent == nil && (opt.Width <= 0 || opt.Height <= 0) {
 		return nil, errors.New("parent and width/height can not be nil")
@@ -122,10 +133,12 @@ func NewDraw(opt DrawOption, opts ...Option) (*Draw, error) {
 	return d, nil
 }
 
+// Parent returns the parent of draw
 func (d *Draw) Parent() *Draw {
 	return d.parent
 }
 
+// Top returns the top parent of draw
 func (d *Draw) Top() *Draw {
 	if d.parent == nil {
 		return nil
@@ -141,6 +154,7 @@ func (d *Draw) Top() *Draw {
 	return t
 }
 
+// Bytes returns the data of draw canvas
 func (d *Draw) Bytes() ([]byte, error) {
 	buffer := bytes.Buffer{}
 	err := d.Render.Save(&buffer)

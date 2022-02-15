@@ -142,7 +142,8 @@ func drawTitle(p *Draw, opt *TitleOption) (chart.Box, error) {
 	for _, item := range measureOptions {
 		item.style.WriteTextOptionsToRenderer(r)
 		x := titleX + (textMaxWidth-item.width)>>1
-		d.text(item.text, x, titleY)
+		y := titleY + item.height
+		d.text(item.text, x, y)
 		titleY += item.height
 	}
 	height := titleY + padding.Top + padding.Bottom

@@ -79,7 +79,7 @@ func TestDrawTitle(t *testing.T) {
 		{
 			newDraw:   newDraw,
 			newOption: newOption,
-			result:    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"6\" y=\"0\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"0\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"0\" y=\"34\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"3\" y=\"46\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			result:    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"6\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"0\" y=\"34\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"0\" y=\"46\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"3\" y=\"58\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
 			box: chart.Box{
 				Right:  43,
 				Bottom: 58,
@@ -93,7 +93,7 @@ func TestDrawTitle(t *testing.T) {
 				opt.Top = "50"
 				return opt
 			},
-			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"363\" y=\"50\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"357\" y=\"67\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"357\" y=\"84\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"360\" y=\"96\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"363\" y=\"67\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"357\" y=\"84\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"357\" y=\"96\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"360\" y=\"108\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
 			box: chart.Box{
 				Right:  400,
 				Bottom: 108,
@@ -107,7 +107,7 @@ func TestDrawTitle(t *testing.T) {
 				opt.Top = "10"
 				return opt
 			},
-			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"185\" y=\"10\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"179\" y=\"27\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"179\" y=\"44\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"182\" y=\"56\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"185\" y=\"27\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"179\" y=\"44\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"179\" y=\"56\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"182\" y=\"68\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
 			box: chart.Box{
 				Right:  222,
 				Bottom: 68,
@@ -121,7 +121,7 @@ func TestDrawTitle(t *testing.T) {
 				opt.Top = "10"
 				return opt
 			},
-			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"46\" y=\"10\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"40\" y=\"27\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"40\" y=\"44\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"43\" y=\"56\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"46\" y=\"27\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"40\" y=\"44\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"40\" y=\"56\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"43\" y=\"68\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
 			box: chart.Box{
 				Right:  83,
 				Bottom: 68,

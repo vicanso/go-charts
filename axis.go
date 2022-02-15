@@ -73,6 +73,7 @@ type axisMeasurement struct {
 	Height int
 }
 
+// NewAxis creates a new axis with data and style options
 func NewAxis(d *Draw, data AxisDataList, option AxisOption) *axis {
 	return &axis{
 		d:      d,
@@ -112,6 +113,7 @@ func (as *AxisOption) Style(f *truetype.Font) chart.Style {
 }
 
 type AxisData struct {
+	// The text value of axis
 	Text string
 }
 type AxisDataList []AxisData

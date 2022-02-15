@@ -50,6 +50,7 @@ type LegendOption struct {
 	Orient string
 }
 
+// NewLegendOption creates a new legend option by legend text list
 func NewLegendOption(data []string, position ...string) LegendOption {
 	opt := LegendOption{
 		Data: data,
@@ -101,6 +102,8 @@ func (l *legend) Render() (chart.Box, error) {
 	legendDotHeight := 5
 	textPadding := 5
 	legendMargin := 10
+	// 往下移2倍dot的高度
+	y += 2 * legendDotHeight
 
 	widthCount := 0
 	maxTextWidth := 0

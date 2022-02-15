@@ -28,17 +28,20 @@ import (
 )
 
 type barChartOption struct {
+	// The series list fo bar chart
 	SeriesList SeriesList
-	Theme      string
-	Font       *truetype.Font
+	// The theme
+	Theme string
+	// The font
+	Font *truetype.Font
 }
 
 func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointRenderOption, error) {
-
 	d, err := NewDraw(DrawOption{
 		Parent: result.d,
 	}, PaddingOption(chart.Box{
-		Top:  result.titleBox.Height(),
+		Top: result.titleBox.Height(),
+		// TODO 后续考虑是否需要根据左侧是否展示y轴再生成对应的left
 		Left: YAxisWidth,
 	}))
 	if err != nil {
@@ -118,6 +121,7 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 				X: x + barWidth>>1,
 				Y: top,
 			}
+			// 如果label不需要展示，则返回
 			if !series.Label.Show {
 				continue
 			}
@@ -135,6 +139,7 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 			d.text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-5)
 		}
 
+		// 生成mark point的参数
 		markPointRenderOptions = append(markPointRenderOptions, markPointRenderOption{
 			Draw:      d,
 			FillColor: seriesColor,

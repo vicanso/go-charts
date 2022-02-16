@@ -23,11 +23,13 @@
 package charts
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func TrueFlag() *bool {
@@ -129,4 +131,40 @@ func commafWithDigits(value float64) string {
 		return humanize.CommafWithDigits(value/k, decimals) + "k"
 	}
 	return humanize.CommafWithDigits(value, decimals)
+}
+
+func parseColor(color string) drawing.Color {
+	c := drawing.Color{}
+	if color == "" {
+		return c
+	}
+	if strings.HasPrefix(color, "#") {
+		return drawing.ColorFromHex(color[1:])
+	}
+	reg := regexp.MustCompile(`\((\S+)\)`)
+	result := reg.FindAllStringSubmatch(color, 1)
+	if len(result) == 0 || len(result[0]) != 2 {
+		return c
+	}
+	arr := strings.Split(result[0][1], ",")
+	if len(arr) < 3 {
+		return c
+	}
+	// 设置默认为255
+	c.A = 255
+	for index, v := range arr {
+		value, _ := strconv.Atoi(strings.TrimSpace(v))
+		ui8 := uint8(value)
+		switch index {
+		case 0:
+			c.R = ui8
+		case 1:
+			c.G = ui8
+		case 2:
+			c.B = ui8
+		default:
+			c.A = ui8
+		}
+	}
+	return c
 }

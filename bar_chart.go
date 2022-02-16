@@ -125,6 +125,10 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 			if !series.Label.Show {
 				continue
 			}
+			distance := series.Label.Distance
+			if distance == 0 {
+				distance = 5
+			}
 			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(i, item.Value, -1)
 			labelStyle := chart.Style{
 				FontColor: theme.GetTextColor(),
@@ -136,7 +140,7 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 			}
 			labelStyle.GetTextOptions().WriteToRenderer(r)
 			textBox := r.MeasureText(text)
-			d.text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-5)
+			d.text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-distance)
 		}
 
 		// 生成mark point的参数

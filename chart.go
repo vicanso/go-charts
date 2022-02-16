@@ -25,6 +25,7 @@ package charts
 import (
 	"errors"
 	"math"
+	"strings"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
@@ -154,6 +155,10 @@ func (o *ChartOption) FillDefault(theme string) {
 				o.SeriesList[index].Name = name
 			}
 		}
+	}
+	// 如果无legend数据，则隐藏
+	if len(strings.Join(o.Legend.Data, "")) == 0 {
+		o.Legend.Show = FalseFlag()
 	}
 	if o.Legend.Style.Font == nil {
 		o.Legend.Style.Font = o.Font

@@ -68,6 +68,8 @@ type SeriesLabel struct {
 	Color drawing.Color
 	// Show flag for label
 	Show bool
+	// Distance to the host graphic element.
+	Distance int
 }
 
 const (

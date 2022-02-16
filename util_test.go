@@ -27,6 +27,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func TestGetDefaultInt(t *testing.T) {
@@ -138,4 +139,43 @@ func TestConvertPercent(t *testing.T) {
 	assert.Equal(-1.0, convertPercent("1"))
 	assert.Equal(-1.0, convertPercent("a%"))
 	assert.Equal(0.1, convertPercent("10%"))
+}
+
+func TestParseColor(t *testing.T) {
+	assert := assert.New(t)
+
+	c := parseColor("")
+	assert.True(c.IsZero())
+
+	c = parseColor("#333")
+	assert.Equal(drawing.Color{
+		R: 51,
+		G: 51,
+		B: 51,
+		A: 255,
+	}, c)
+
+	c = parseColor("#313233")
+	assert.Equal(drawing.Color{
+		R: 49,
+		G: 50,
+		B: 51,
+		A: 255,
+	}, c)
+
+	c = parseColor("rgb(31,32,33)")
+	assert.Equal(drawing.Color{
+		R: 31,
+		G: 32,
+		B: 33,
+		A: 255,
+	}, c)
+
+	c = parseColor("rgba(50,51,52,250)")
+	assert.Equal(drawing.Color{
+		R: 50,
+		G: 51,
+		B: 52,
+		A: 250,
+	}, c)
 }

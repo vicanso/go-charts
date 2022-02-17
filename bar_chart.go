@@ -54,7 +54,10 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 	margin := 10
 	// 每一个bar之间的margin
 	barMargin := 5
-	if width < 50 {
+	if width < 20 {
+		margin = 2
+		barMargin = 2
+	} else if width < 50 {
 		margin = 5
 		barMargin = 3
 	}
@@ -95,6 +98,9 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 		})
 		divideValues := xRange.AutoDivide()
 		for j, item := range series.Data {
+			if j >= len(divideValues) {
+				continue
+			}
 			x := divideValues[j]
 			x += margin
 			if i != 0 {

@@ -38,6 +38,11 @@ const (
 	ChartTypePie  = "pie"
 )
 
+const (
+	ChartOutputSVG = "svg"
+	ChartOutputPNG = "png"
+)
+
 type Point struct {
 	X int
 	Y int

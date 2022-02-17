@@ -28,6 +28,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func TestEChartsPosition(t *testing.T) {
@@ -41,6 +42,24 @@ func TestEChartsPosition(t *testing.T) {
 	err = p.UnmarshalJSON([]byte(`"12%"`))
 	assert.Nil(err)
 	assert.Equal("12%", string(p))
+}
+func TestEChartStyle(t *testing.T) {
+	assert := assert.New(t)
+
+	s := EChartStyle{
+		Color: "#aaa",
+	}
+	r := drawing.Color{
+		R: 170,
+		G: 170,
+		B: 170,
+		A: 255,
+	}
+	assert.Equal(chart.Style{
+		FillColor:   r,
+		FontColor:   r,
+		StrokeColor: r,
+	}, s.ToStyle())
 }
 
 func TestEChartsXAxis(t *testing.T) {
@@ -298,4 +317,243 @@ func TestEChartsSeries(t *testing.T) {
 			},
 		},
 	}, esList)
+}
+
+func TestEChartsMarkPoint(t *testing.T) {
+	assert := assert.New(t)
+
+	p := EChartsMarkPoint{}
+
+	err := json.Unmarshal([]byte(`{
+		"symbolSize": 30,
+		"data": [
+			{
+				"type": "max"
+			},
+			{
+				"type": "min"
+			}
+		]
+	}`), &p)
+	assert.Nil(err)
+	assert.Equal(SeriesMarkPoint{
+		SymbolSize: 30,
+		Data: []SeriesMarkData{
+			{
+				Type: "max",
+			},
+			{
+				Type: "min",
+			},
+		},
+	}, p.ToSeriesMarkPoint())
+}
+
+func TestEChartsMarkLine(t *testing.T) {
+	assert := assert.New(t)
+	l := EChartsMarkLine{}
+
+	err := json.Unmarshal([]byte(`{
+		"data": [
+			{
+				"type": "max"
+			},
+			{
+				"type": "min"
+			}
+		]
+	}`), &l)
+	assert.Nil(err)
+	assert.Equal(SeriesMarkLine{
+		Data: []SeriesMarkData{
+			{
+				Type: "max",
+			},
+			{
+				Type: "min",
+			},
+		},
+	}, l.ToSeriesMarkLine())
+}
+
+func TestEChartsTextStyle(t *testing.T) {
+	assert := assert.New(t)
+
+	s := EChartsTextStyle{
+		Color:      "#aaa",
+		FontFamily: "test",
+		FontSize:   14,
+	}
+	assert.Equal(chart.Style{
+		FontColor: drawing.Color{
+			R: 170,
+			G: 170,
+			B: 170,
+			A: 255,
+		},
+		FontSize: 14,
+	}, s.ToStyle())
+}
+
+func TestEChartsSeriesList(t *testing.T) {
+	assert := assert.New(t)
+
+	// pie
+	es := EChartsSeriesList{
+		{
+			Type:   ChartTypePie,
+			Radius: "30%",
+			Data: []EChartsSeriesData{
+				{
+					Name:  "1",
+					Value: 1,
+				},
+				{
+					Name:  "2",
+					Value: 2,
+				},
+			},
+		},
+	}
+	assert.Equal(SeriesList{
+		{
+			Type: ChartTypePie,
+			Name: "1",
+			Label: SeriesLabel{
+				Show: true,
+			},
+			Radius: "30%",
+			Data: []SeriesData{
+				{
+					Value: 1,
+				},
+			},
+		},
+		{
+			Type: ChartTypePie,
+			Name: "2",
+			Label: SeriesLabel{
+				Show: true,
+			},
+			Radius: "30%",
+			Data: []SeriesData{
+				{
+					Value: 2,
+				},
+			},
+		},
+	}, es.ToSeriesList())
+
+	es = EChartsSeriesList{
+		{
+			Type: ChartTypeBar,
+			Data: []EChartsSeriesData{
+				{
+					Value: 1,
+					ItemStyle: EChartStyle{
+						Color: "#aaa",
+					},
+				},
+				{
+					Value: 2,
+				},
+			},
+			YAxisIndex: 1,
+		},
+		{
+			Data: []EChartsSeriesData{
+				{
+					Value: 3,
+				},
+				{
+					Value: 4,
+				},
+			},
+			ItemStyle: EChartStyle{
+				Color: "#ccc",
+			},
+			Label: EChartsLabelOption{
+				Color:    "#ddd",
+				Show:     true,
+				Distance: 5,
+			},
+		},
+	}
+	assert.Equal(SeriesList{
+		{
+			Type: ChartTypeBar,
+			Data: []SeriesData{
+				{
+					Value: 1,
+					Style: chart.Style{
+						FontColor: drawing.Color{
+							R: 170,
+							G: 170,
+							B: 170,
+							A: 255,
+						},
+						StrokeColor: drawing.Color{
+							R: 170,
+							G: 170,
+							B: 170,
+							A: 255,
+						},
+						FillColor: drawing.Color{
+							R: 170,
+							G: 170,
+							B: 170,
+							A: 255,
+						},
+					},
+				},
+				{
+					Value: 2,
+				},
+			},
+			YAxisIndex: 1,
+		},
+		{
+			Data: []SeriesData{
+				{
+					Value: 3,
+				},
+				{
+					Value: 4,
+				},
+			},
+			Style: chart.Style{
+				FontColor: drawing.Color{
+					R: 204,
+					G: 204,
+					B: 204,
+					A: 255,
+				},
+				StrokeColor: drawing.Color{
+					R: 204,
+					G: 204,
+					B: 204,
+					A: 255,
+				},
+				FillColor: drawing.Color{
+					R: 204,
+					G: 204,
+					B: 204,
+					A: 255,
+				},
+			},
+			Label: SeriesLabel{
+				Color: drawing.Color{
+					R: 221,
+					G: 221,
+					B: 221,
+					A: 255,
+				},
+				Show:     true,
+				Distance: 5,
+			},
+			MarkPoint: SeriesMarkPoint{},
+			MarkLine:  SeriesMarkLine{},
+		},
+	}, es.ToSeriesList())
+
 }

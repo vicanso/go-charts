@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -179,7 +178,6 @@ func TestLegendRender(t *testing.T) {
 		assert.Nil(err)
 		assert.Equal(tt.box, b)
 		data, err := d.Bytes()
-		fmt.Println(string(data))
 		assert.Nil(err)
 		assert.NotEmpty(data)
 		assert.Equal(tt.result, string(data))

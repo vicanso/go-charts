@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -100,6 +99,5 @@ func TestMarkPointRender(t *testing.T) {
 	})
 	data, err := d.Bytes()
 	assert.Nil(err)
-	fmt.Println(string(data))
 	assert.Equal("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 217 192\nA 15 15 330.00 1 1 223 192\nL 220 178\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><path  d=\"M 205 178\nQ220,215 235,178\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><text x=\"216\" y=\"183\" style=\"stroke-width:0;stroke:none;fill:rgba(238,238,238,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">5</text><path  d=\"M 18 42\nA 15 15 330.00 1 1 24 42\nL 21 28\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><path  d=\"M 6 28\nQ21,65 36,28\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><text x=\"17\" y=\"33\" style=\"stroke-width:0;stroke:none;fill:rgba(238,238,238,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">1</text></svg>", string(data))
 }

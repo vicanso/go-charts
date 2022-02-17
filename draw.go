@@ -114,7 +114,7 @@ func NewDraw(opt DrawOption, opts ...Option) (*Draw, error) {
 	// 创建render
 	if d.parent == nil {
 		fn := chart.SVG
-		if opt.Type == "png" {
+		if opt.Type == ChartOutputPNG {
 			fn = chart.PNG
 		}
 		r, err := fn(d.Box.Right, d.Box.Bottom)

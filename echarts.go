@@ -76,12 +76,14 @@ type EChartsSeriesData struct {
 }
 type _EChartsSeriesData EChartsSeriesData
 
+var numericRep = regexp.MustCompile("^[-+]?[0-9]+(?:\\.[0-9]+)?$")
+
 func (es *EChartsSeriesData) UnmarshalJSON(data []byte) error {
 	data = bytes.TrimSpace(data)
 	if len(data) == 0 {
 		return nil
 	}
-	if regexp.MustCompile(`^\d+`).Match(data) {
+	if numericRep.Match(data) {
 		v, err := strconv.ParseFloat(string(data), 64)
 		if err != nil {
 			return err
@@ -215,16 +217,20 @@ type EChartsMarkPoint struct {
 }
 
 func (emp *EChartsMarkPoint) ToSeriesMarkPoint() SeriesMarkPoint {
+	sp := SeriesMarkPoint{
+		SymbolSize: emp.SymbolSize,
+	}
+	if len(emp.Data) == 0 {
+		return sp
+	}
 	data := make([]SeriesMarkData, len(emp.Data))
 	for index, item := range emp.Data {
 		data[index] = SeriesMarkData{
 			Type: item.Type,
 		}
 	}
-	return SeriesMarkPoint{
-		Data:       data,
-		SymbolSize: emp.SymbolSize,
-	}
+	sp.Data = data
+	return sp
 }
 
 type EChartsMarkLine struct {
@@ -234,15 +240,18 @@ type EChartsMarkLine struct {
 }
 
 func (eml *EChartsMarkLine) ToSeriesMarkLine() SeriesMarkLine {
+	sl := SeriesMarkLine{}
+	if len(eml.Data) == 0 {
+		return sl
+	}
 	data := make([]SeriesMarkData, len(eml.Data))
 	for index, item := range eml.Data {
 		data[index] = SeriesMarkData{
 			Type: item.Type,
 		}
 	}
-	return SeriesMarkLine{
-		Data: data,
-	}
+	sl.Data = data
+	return sl
 }
 
 type EChartsSeries struct {
@@ -260,8 +269,27 @@ type EChartsSeries struct {
 type EChartsSeriesList []EChartsSeries
 
 func (esList EChartsSeriesList) ToSeriesList() SeriesList {
-	seriesList := make(SeriesList, len(esList))
-	for index, item := range esList {
+	seriesList := make(SeriesList, 0, len(esList))
+	for _, item := range esList {
+		// 如果是pie，则每个子荐生成一个series
+		if item.Type == ChartTypePie {
+			for _, dataItem := range item.Data {
+				seriesList = append(seriesList, Series{
+					Type: ChartTypePie,
+					Name: dataItem.Name,
+					Label: SeriesLabel{
+						Show: true,
+					},
+					Radius: item.Radius,
+					Data: []SeriesData{
+						{
+							Value: dataItem.Value,
+						},
+					},
+				})
+			}
+			continue
+		}
 		data := make([]SeriesData, len(item.Data))
 		for j, dataItem := range item.Data {
 			data[j] = SeriesData{
@@ -269,7 +297,7 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 				Style: dataItem.ItemStyle.ToStyle(),
 			}
 		}
-		seriesList[index] = Series{
+		seriesList = append(seriesList, Series{
 			Type:       item.Type,
 			Data:       data,
 			YAxisIndex: item.YAxisIndex,
@@ -280,10 +308,9 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 				Distance: item.Label.Distance,
 			},
 			Name:      item.Name,
-			Radius:    item.Radius,
 			MarkPoint: item.MarkPoint.ToSeriesMarkPoint(),
 			MarkLine:  item.MarkLine.ToSeriesMarkLine(),
-		}
+		})
 	}
 	return seriesList
 }
@@ -295,10 +322,14 @@ type EChartsTextStyle struct {
 }
 
 func (et *EChartsTextStyle) ToStyle() chart.Style {
-	return chart.Style{
+	s := chart.Style{
 		FontSize:  et.FontSize,
 		FontColor: parseColor(et.Color),
 	}
+	if et.FontFamily != "" {
+		s.Font, _ = GetFont(et.FontFamily)
+	}
+	return s
 }
 
 type EChartsOption struct {
@@ -373,6 +404,7 @@ func (eo *EChartsOption) ToOption() ChartOption {
 			Color:     parseColor(item.AxisLine.LineStyle.Color),
 		}
 	}
+	o.YAxisList = yAxisOptions
 
 	if len(eo.Children) != 0 {
 		o.Children = make([]ChartOption, len(eo.Children))

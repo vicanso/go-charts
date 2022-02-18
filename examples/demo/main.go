@@ -25,7 +25,6 @@ var html = `<!DOCTYPE html>
 				padding: 0;
 			}
 			.charts {
-				width: 810px;
 				margin: 10px auto;
 				overflow: hidden;
 			}

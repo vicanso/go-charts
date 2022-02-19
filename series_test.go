@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,10 +26,28 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
-func TestNewSeriesDataListFromFloat(t *testing.T) {
+func TestNewSeriesFromValues(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(Series{
+		Data: []SeriesData{
+			{
+				Value: 1,
+			},
+			{
+				Value: 2,
+			},
+		},
+		Type: ChartTypeBar,
+	}, NewSeriesFromValues([]float64{
+		1,
+		2,
+	}, ChartTypeBar))
+}
+
+func TestNewSeriesDataFromValues(t *testing.T) {
 	assert := assert.New(t)
 
 	assert.Equal([]SeriesData{
@@ -39,87 +57,110 @@ func TestNewSeriesDataListFromFloat(t *testing.T) {
 		{
 			Value: 2,
 		},
-	}, NewSeriesDataListFromFloat([]float64{
+	}, NewSeriesDataFromValues([]float64{
 		1,
 		2,
 	}))
 }
 
-func TestGetSeries(t *testing.T) {
+func TestNewPieSeriesList(t *testing.T) {
 	assert := assert.New(t)
 
-	xValues := []float64{
+	assert.Equal([]Series{
+		{
+			Type: ChartTypePie,
+			Name: "a",
+			Label: SeriesLabel{
+				Show: true,
+			},
+			Radius: "30%",
+			Data: []SeriesData{
+				{
+					Value: 1,
+				},
+			},
+		},
+		{
+			Type: ChartTypePie,
+			Name: "b",
+			Label: SeriesLabel{
+				Show: true,
+			},
+			Radius: "30%",
+			Data: []SeriesData{
+				{
+					Value: 2,
+				},
+			},
+		},
+	}, NewPieSeriesList([]float64{
 		1,
 		2,
-		3,
-		4,
-		5,
+	}, PieSeriesOption{
+		Radius: "30%",
+		Label: SeriesLabel{
+			Show: true,
+		},
+		Names: []string{
+			"a",
+			"b",
+		},
+	}))
+}
+
+func TestSeriesSummary(t *testing.T) {
+	assert := assert.New(t)
+
+	s := Series{
+		Data: NewSeriesDataFromValues([]float64{
+			1,
+			3,
+			5,
+			7,
+			9,
+		}),
 	}
+	assert.Equal(seriesSummary{
+		MaxIndex:     4,
+		MaxValue:     9,
+		MinIndex:     0,
+		MinValue:     1,
+		AverageValue: 5,
+	}, s.Summary())
+}
 
-	barData := NewSeriesDataListFromFloat([]float64{
-		10,
-		20,
-		30,
-		40,
-		50,
-	})
-	barData[1].Style = chart.Style{
-		FillColor: AxisColorDark,
+func TestGetSeriesNames(t *testing.T) {
+	assert := assert.New(t)
+
+	sl := SeriesList{
+		{
+			Name: "a",
+		},
+		{
+			Name: "b",
+		},
 	}
-	seriesList := GetSeries([]Series{
-		{
-			Type:       SeriesBar,
-			Data:       barData,
-			XValues:    xValues,
-			YAxisIndex: 1,
-		},
-		{
-			Data: NewSeriesDataListFromFloat([]float64{
-				11,
-				21,
-				31,
-				41,
-				51,
-			}),
-			XValues: xValues,
-		},
-	}, chart.TickPositionBetweenTicks, "")
+	assert.Equal([]string{
+		"a",
+		"b",
+	}, sl.Names())
+}
 
-	assert.Equal(seriesList[0].GetYAxis(), chart.YAxisPrimary)
-	assert.Equal(seriesList[1].GetYAxis(), chart.YAxisSecondary)
+func TestNewPieLabelFormatter(t *testing.T) {
+	assert := assert.New(t)
 
-	barSeries, ok := seriesList[0].(BarSeries)
-	assert.True(ok)
-	// 居中前置多插入一个点
-	assert.Equal([]float64{
-		0,
-		10,
-		20,
-		30,
-		40,
-		50,
-	}, barSeries.YValues)
-	assert.Equal(xValues, barSeries.XValues)
-	assert.Equal(1, barSeries.Count)
-	assert.Equal(0, barSeries.Index)
-	assert.Equal([]BarSeriesCustomStyle{
-		{
-			PointIndex: 1,
-			Index:      0,
-			Style:      barData[1].Style,
-		},
-	}, barSeries.CustomStyles)
+	fn := NewPieLabelFormatter([]string{
+		"a",
+		"b",
+	}, "")
+	assert.Equal("a: 35%", fn(0, 1.2, 0.35))
+}
 
-	lineSeries, ok := seriesList[1].(LineSeries)
-	assert.True(ok)
-	// 居中前置多插入一个点
-	assert.Equal([]float64{
-		0,
-		11,
-		21,
-		31,
-		41,
-		51,
-	}, lineSeries.YValues)
-	assert.Equal(xValues, lineSeries.XValues)
+func TestNewValueLabelFormater(t *testing.T) {
+	assert := assert.New(t)
+	fn := NewValueLabelFormater([]string{
+		"a",
+		"b",
+	}, "")
+	assert.Equal("1.2", fn(0, 1.2, 0.35))
 }

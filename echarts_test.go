@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -31,425 +31,529 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestConvertToArray(t *testing.T) {
+func TestEChartsPosition(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Nil(convertToArray([]byte(" ")))
+	var p EChartsPosition
+	err := p.UnmarshalJSON([]byte("12"))
+	assert.Nil(err)
+	assert.Equal("12", string(p))
 
-	assert.Equal([]byte("[{}]"), convertToArray([]byte("{}")))
-	assert.Equal([]byte("[{}]"), convertToArray([]byte("[{}]")))
+	err = p.UnmarshalJSON([]byte(`"12%"`))
+	assert.Nil(err)
+	assert.Equal("12%", string(p))
+}
+func TestEChartStyle(t *testing.T) {
+	assert := assert.New(t)
+
+	s := EChartStyle{
+		Color: "#aaa",
+	}
+	r := drawing.Color{
+		R: 170,
+		G: 170,
+		B: 170,
+		A: 255,
+	}
+	assert.Equal(chart.Style{
+		FillColor:   r,
+		FontColor:   r,
+		StrokeColor: r,
+	}, s.ToStyle())
 }
 
-func TestECharsSeriesData(t *testing.T) {
+func TestEChartsXAxis(t *testing.T) {
 	assert := assert.New(t)
-
-	es := ECharsSeriesData{}
-	err := es.UnmarshalJSON([]byte(" "))
+	ex := EChartsXAxis{}
+	err := ex.UnmarshalJSON([]byte(`{
+		"boundaryGap": false,
+		"splitNumber": 5,
+		"data": [
+			"Mon",
+			"Tue",
+			"Wed",
+			"Thu",
+			"Fri",
+			"Sat",
+			"Sun"
+		]
+	}`))
 	assert.Nil(err)
-	assert.Equal(ECharsSeriesData{}, es)
+	assert.Equal(EChartsXAxis{
+		Data: []EChartsXAxisData{
+			{
+				BoundaryGap: FalseFlag(),
+				SplitNumber: 5,
+				Data: []string{
+					"Mon",
+					"Tue",
+					"Wed",
+					"Thu",
+					"Fri",
+					"Sat",
+					"Sun",
+				},
+			},
+		},
+	}, ex)
+}
 
-	es = ECharsSeriesData{}
-	err = es.UnmarshalJSON([]byte("12.1"))
-	assert.Nil(err)
-	assert.Equal(ECharsSeriesData{
-		Value: 12.1,
-	}, es)
+func TestEChartsYAxis(t *testing.T) {
+	assert := assert.New(t)
+	ey := EChartsYAxis{}
 
-	es = ECharsSeriesData{}
-	err = es.UnmarshalJSON([]byte(`{
-		"value": 12.1,
-		"name": "test",
-		"itemStyle": {
-			"color": "#333"
+	err := ey.UnmarshalJSON([]byte(`{
+		"min": 1,
+		"max": 10,
+		"axisLabel": {
+			"formatter": "ab"
 		}
 	}`))
 	assert.Nil(err)
-	assert.Equal(ECharsSeriesData{
-		Value: 12.1,
-		Name:  "test",
-		ItemStyle: EChartStyle{
-			Color: "#333",
+	assert.Equal(EChartsYAxis{
+		Data: []EChartsYAxisData{
+			{
+				Min: NewFloatPoint(1),
+				Max: NewFloatPoint(10),
+				AxisLabel: EChartsAxisLabel{
+					Formatter: "ab",
+				},
+			},
 		},
-	}, es)
+	}, ey)
+
+	ey = EChartsYAxis{}
+	err = ey.UnmarshalJSON([]byte(`[
+		{
+			"min": 1,
+			"max": 10,
+			"axisLabel": {
+				"formatter": "ab"
+			}
+		},
+		{
+			"min": 2,
+			"max": 20,
+			"axisLabel": {
+				"formatter": "cd"
+			}
+		}
+	]`))
+	assert.Nil(err)
+	assert.Equal(EChartsYAxis{
+		Data: []EChartsYAxisData{
+			{
+				Min: NewFloatPoint(1),
+				Max: NewFloatPoint(10),
+				AxisLabel: EChartsAxisLabel{
+					Formatter: "ab",
+				},
+			},
+			{
+				Min: NewFloatPoint(2),
+				Max: NewFloatPoint(20),
+				AxisLabel: EChartsAxisLabel{
+					Formatter: "cd",
+				},
+			},
+		},
+	}, ey)
 }
 
 func TestEChartsPadding(t *testing.T) {
 	assert := assert.New(t)
 
 	ep := EChartsPadding{}
-	err := ep.UnmarshalJSON([]byte(" "))
-	assert.Nil(err)
-	assert.Equal(EChartsPadding{}, ep)
 
-	ep = EChartsPadding{}
-	err = ep.UnmarshalJSON([]byte("1"))
-	assert.Nil(err)
+	ep.UnmarshalJSON([]byte(`10`))
 	assert.Equal(EChartsPadding{
-		box: chart.Box{
-			Top:    1,
-			Left:   1,
-			Right:  1,
-			Bottom: 1,
+		Box: chart.Box{
+			Top:    10,
+			Right:  10,
+			Bottom: 10,
+			Left:   10,
 		},
 	}, ep)
 
 	ep = EChartsPadding{}
-	err = ep.UnmarshalJSON([]byte("[1, 2]"))
-	assert.Nil(err)
+	ep.UnmarshalJSON([]byte(`[10, 20]`))
 	assert.Equal(EChartsPadding{
-		box: chart.Box{
-			Top:    1,
-			Left:   2,
-			Right:  2,
-			Bottom: 1,
+		Box: chart.Box{
+			Top:    10,
+			Right:  20,
+			Bottom: 10,
+			Left:   20,
 		},
 	}, ep)
 
 	ep = EChartsPadding{}
-	err = ep.UnmarshalJSON([]byte("[1, 2, 3]"))
-	assert.Nil(err)
+	ep.UnmarshalJSON([]byte(`[10, 20, 30]`))
 	assert.Equal(EChartsPadding{
-		box: chart.Box{
-			Top:    1,
-			Right:  2,
-			Bottom: 3,
-			Left:   2,
+		Box: chart.Box{
+			Top:    10,
+			Right:  20,
+			Bottom: 30,
+			Left:   20,
 		},
 	}, ep)
 
 	ep = EChartsPadding{}
-	err = ep.UnmarshalJSON([]byte("[1, 2, 3, 4]"))
-	assert.Nil(err)
+	ep.UnmarshalJSON([]byte(`[10, 20, 30, 40]`))
 	assert.Equal(EChartsPadding{
-		box: chart.Box{
-			Top:    1,
-			Right:  2,
-			Bottom: 3,
-			Left:   4,
+		Box: chart.Box{
+			Top:    10,
+			Right:  20,
+			Bottom: 30,
+			Left:   40,
 		},
 	}, ep)
+
 }
-
-func TestConvertEChartsSeries(t *testing.T) {
+func TestEChartsLegend(t *testing.T) {
 	assert := assert.New(t)
 
-	seriesList, tickPosition := convertEChartsSeries(&ECharsOptions{})
-	assert.Empty(seriesList)
-	assert.Equal(chart.TickPositionUnset, tickPosition)
+	el := EChartsLegend{}
 
-	e := ECharsOptions{}
 	err := json.Unmarshal([]byte(`{
-		"title": {
-			"text": "Referer of a Website"
+		"data": ["a", "b", "c"],
+		"align": "right",
+		"padding": [10],
+		"left": "20%",
+		"top": 10
+	}`), &el)
+	assert.Nil(err)
+	assert.Equal(EChartsLegend{
+		Data: []string{
+			"a",
+			"b",
+			"c",
 		},
-		"series": [
+		Align: "right",
+		Padding: EChartsPadding{
+			Box: chart.Box{
+				Left:   10,
+				Top:    10,
+				Right:  10,
+				Bottom: 10,
+			},
+		},
+		Left: EChartsPosition("20%"),
+		Top:  EChartsPosition("10"),
+	}, el)
+}
+
+func TestEChartsSeriesData(t *testing.T) {
+	assert := assert.New(t)
+
+	esd := EChartsSeriesData{}
+	err := esd.UnmarshalJSON([]byte(`123`))
+	assert.Nil(err)
+	assert.Equal(EChartsSeriesData{
+		Value: 123,
+	}, esd)
+
+	esd = EChartsSeriesData{}
+	err = esd.UnmarshalJSON([]byte(`{
+		"value": 123.12,
+		"name": "test",
+		"itemStyle": {
+			"color": "#aaa"
+		}
+	}`))
+	assert.Nil(err)
+	assert.Equal(EChartsSeriesData{
+		Value: 123.12,
+		Name:  "test",
+		ItemStyle: EChartStyle{
+			Color: "#aaa",
+		},
+	}, esd)
+}
+
+func TestEChartsSeries(t *testing.T) {
+	assert := assert.New(t)
+
+	esList := make([]EChartsSeries, 0)
+	err := json.Unmarshal([]byte(`[
+		{
+			"name": "Email",
+			"data": [
+				120,
+				132
+			]
+		},
+		{
+			"name": "Union Ads",
+			"type": "bar",
+			"data": [
+				220,
+				182
+			]
+		}
+	]`), &esList)
+	assert.Nil(err)
+	assert.Equal([]EChartsSeries{
+		{
+			Name: "Email",
+			Data: []EChartsSeriesData{
+				{
+					Value: 120,
+				},
+				{
+					Value: 132,
+				},
+			},
+		},
+		{
+			Name: "Union Ads",
+			Type: "bar",
+			Data: []EChartsSeriesData{
+				{
+					Value: 220,
+				},
+				{
+					Value: 182,
+				},
+			},
+		},
+	}, esList)
+}
+
+func TestEChartsMarkPoint(t *testing.T) {
+	assert := assert.New(t)
+
+	p := EChartsMarkPoint{}
+
+	err := json.Unmarshal([]byte(`{
+		"symbolSize": 30,
+		"data": [
 			{
-				"name": "Access From",
-				"type": "pie",
-				"radius": "50%",
-				"data": [
-					{
-						"value": 1048,
-						"name": "Search Engine"
+				"type": "max"
+			},
+			{
+				"type": "min"
+			}
+		]
+	}`), &p)
+	assert.Nil(err)
+	assert.Equal(SeriesMarkPoint{
+		SymbolSize: 30,
+		Data: []SeriesMarkData{
+			{
+				Type: "max",
+			},
+			{
+				Type: "min",
+			},
+		},
+	}, p.ToSeriesMarkPoint())
+}
+
+func TestEChartsMarkLine(t *testing.T) {
+	assert := assert.New(t)
+	l := EChartsMarkLine{}
+
+	err := json.Unmarshal([]byte(`{
+		"data": [
+			{
+				"type": "max"
+			},
+			{
+				"type": "min"
+			}
+		]
+	}`), &l)
+	assert.Nil(err)
+	assert.Equal(SeriesMarkLine{
+		Data: []SeriesMarkData{
+			{
+				Type: "max",
+			},
+			{
+				Type: "min",
+			},
+		},
+	}, l.ToSeriesMarkLine())
+}
+
+func TestEChartsTextStyle(t *testing.T) {
+	assert := assert.New(t)
+
+	s := EChartsTextStyle{
+		Color:      "#aaa",
+		FontFamily: "test",
+		FontSize:   14,
+	}
+	assert.Equal(chart.Style{
+		FontColor: drawing.Color{
+			R: 170,
+			G: 170,
+			B: 170,
+			A: 255,
+		},
+		FontSize: 14,
+	}, s.ToStyle())
+}
+
+func TestEChartsSeriesList(t *testing.T) {
+	assert := assert.New(t)
+
+	// pie
+	es := EChartsSeriesList{
+		{
+			Type:   ChartTypePie,
+			Radius: "30%",
+			Data: []EChartsSeriesData{
+				{
+					Name:  "1",
+					Value: 1,
+				},
+				{
+					Name:  "2",
+					Value: 2,
+				},
+			},
+		},
+	}
+	assert.Equal(SeriesList{
+		{
+			Type: ChartTypePie,
+			Name: "1",
+			Label: SeriesLabel{
+				Show: true,
+			},
+			Radius: "30%",
+			Data: []SeriesData{
+				{
+					Value: 1,
+				},
+			},
+		},
+		{
+			Type: ChartTypePie,
+			Name: "2",
+			Label: SeriesLabel{
+				Show: true,
+			},
+			Radius: "30%",
+			Data: []SeriesData{
+				{
+					Value: 2,
+				},
+			},
+		},
+	}, es.ToSeriesList())
+
+	es = EChartsSeriesList{
+		{
+			Type: ChartTypeBar,
+			Data: []EChartsSeriesData{
+				{
+					Value: 1,
+					ItemStyle: EChartStyle{
+						Color: "#aaa",
 					},
-					{
-						"value": 735,
-						"name": "Direct"
-					}
-				]
-			}
-		]
-	}`), &e)
-	assert.Nil(err)
-	seriesList, tickPosition = convertEChartsSeries(&e)
-	assert.Equal(chart.TickPositionUnset, tickPosition)
-	assert.Equal([]Series{
-		{
-			Data: []SeriesData{
+				},
 				{
-					Value: 1048,
+					Value: 2,
 				},
 			},
-			Type: SeriesPie,
-			Name: "Search Engine",
-		},
-		{
-			Data: []SeriesData{
-				{
-					Value: 735,
-				},
-			},
-			Type: SeriesPie,
-			Name: "Direct",
-		},
-	}, seriesList)
-
-	err = json.Unmarshal([]byte(`{
-		"series": [
-			{
-				"name": "Evaporation",
-				"type": "bar",
-				"data": [2, {
-					"value": 4.9,
-					"itemStyle": {
-						"color": "#a90000"
-					}
-				}, 7, 23.2, 25.6, 76.7, 135.6]
-			},
-			{
-				"name": "Precipitation",
-				"type": "bar",
-				"data": [2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6]
-			},
-			{
-				"name": "Temperature",
-				"type": "line",
-				"yAxisIndex": 1,
-				"data": [2, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3]
-			}
-		]
-	}`), &e)
-	assert.Nil(err)
-	bar1Data := NewSeriesDataListFromFloat([]float64{
-		2, 4.9, 7, 23.2, 25.6, 76.7, 135.6,
-	})
-	bar1Data[1].Style.FillColor = parseColor("#a90000")
-	bar1Data[1].Style.StrokeColor = bar1Data[1].Style.FillColor
-
-	seriesList, tickPosition = convertEChartsSeries(&e)
-	assert.Equal(chart.TickPositionBetweenTicks, tickPosition)
-	assert.Equal([]Series{
-		{
-			Data: bar1Data,
-			Type: SeriesBar,
-		},
-		{
-			Data: NewSeriesDataListFromFloat([]float64{
-				2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6,
-			}),
-			Type: SeriesBar,
-		},
-		{
-			Data: NewSeriesDataListFromFloat([]float64{
-				2, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3,
-			}),
-			Type:       SeriesLine,
 			YAxisIndex: 1,
 		},
-	}, seriesList)
-
-}
-
-func TestParseECharsOptions(t *testing.T) {
-
-	assert := assert.New(t)
-	options, err := ParseECharsOptions(`{
-		"theme": "dark",
-		"padding": [5, 10],
-		"title": {
-			"text": "Multi Line",
-			"textAlign": "left",
-			"textStyle": {
-				"color": "#333",
-				"fontSize": 24,
-				"height": 40
-			}
-		},
-		"legend": {
-			"align": "left",
-			"padding": [5, 0, 0, 50],
-			"data": ["Email", "Union Ads", "Video Ads", "Direct", "Search Engine"]
-		},
-		"xAxis": {
-			"type": "category",
-			"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-			"splitNumber": 10
-		},
-		"yAxis": [
-			{
-				"min": 0,
-				"max": 250
-			},
-			{
-				"min": 0,
-				"max": 25
-			}
-		],
-		"series": [
-			{
-				"name": "Evaporation",
-				"type": "bar",
-				"data": [2, {
-					"value": 4.9,
-					"itemStyle": {
-						"color": "#a90000"
-					}
-				}, 7, 23.2, 25.6, 76.7, 135.6]
-			},
-			{
-				"name": "Precipitation",
-				"type": "bar",
-				"itemStyle": {
-					"color": "#0052d9"
+		{
+			Data: []EChartsSeriesData{
+				{
+					Value: 3,
 				},
-				"data": [2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6]
+				{
+					Value: 4,
+				},
 			},
-			{
-				"name": "Temperature",
-				"type": "line",
-				"yAxisIndex": 1,
-				"data": [2, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3]
-			}
-		]
-	}`)
-
-	assert.Nil(err)
-
-	min1 := float64(0)
-	max1 := float64(250)
-	min2 := float64(0)
-	max2 := float64(25)
-
-	bar1Data := NewSeriesDataListFromFloat([]float64{
-		2, 4.9, 7, 23.2, 25.6, 76.7, 135.6,
-	})
-	bar1Data[1].Style.FillColor = parseColor("#a90000")
-	bar1Data[1].Style.StrokeColor = bar1Data[1].Style.FillColor
-
-	assert.Equal(Options{
-		Theme: ThemeDark,
-		Padding: chart.Box{
-			Top:    5,
-			Bottom: 5,
-			Left:   10,
-			Right:  10,
+			ItemStyle: EChartStyle{
+				Color: "#ccc",
+			},
+			Label: EChartsLabelOption{
+				Color:    "#ddd",
+				Show:     true,
+				Distance: 5,
+			},
 		},
-		Title: Title{
-			Text: "Multi Line",
+	}
+	assert.Equal(SeriesList{
+		{
+			Type: ChartTypeBar,
+			Data: []SeriesData{
+				{
+					Value: 1,
+					Style: chart.Style{
+						FontColor: drawing.Color{
+							R: 170,
+							G: 170,
+							B: 170,
+							A: 255,
+						},
+						StrokeColor: drawing.Color{
+							R: 170,
+							G: 170,
+							B: 170,
+							A: 255,
+						},
+						FillColor: drawing.Color{
+							R: 170,
+							G: 170,
+							B: 170,
+							A: 255,
+						},
+					},
+				},
+				{
+					Value: 2,
+				},
+			},
+			YAxisIndex: 1,
+		},
+		{
+			Data: []SeriesData{
+				{
+					Value: 3,
+				},
+				{
+					Value: 4,
+				},
+			},
 			Style: chart.Style{
-				FontColor: parseColor("#333"),
-				FontSize:  24,
-				Padding: chart.Box{
-					Top:    8,
-					Bottom: 8,
+				FontColor: drawing.Color{
+					R: 204,
+					G: 204,
+					B: 204,
+					A: 255,
+				},
+				StrokeColor: drawing.Color{
+					R: 204,
+					G: 204,
+					B: 204,
+					A: 255,
+				},
+				FillColor: drawing.Color{
+					R: 204,
+					G: 204,
+					B: 204,
+					A: 255,
 				},
 			},
-		},
-		Legend: Legend{
-			Data: []string{
-				"Email", "Union Ads", "Video Ads", "Direct", "Search Engine",
-			},
-			Align: "left",
-			Padding: chart.Box{
-				Top:    5,
-				Right:  0,
-				Bottom: 0,
-				Left:   50,
-			},
-		},
-		XAxis: XAxis{
-			Data:        []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"},
-			SplitNumber: 10,
-		},
-		TickPosition: chart.TickPositionBetweenTicks,
-		YAxisOptions: []*YAxisOption{
-			{
-				Min: &min1,
-				Max: &max1,
-			},
-			{
-				Min: &min2,
-				Max: &max2,
-			},
-		},
-		Series: []Series{
-			{
-				Data: bar1Data,
-				Type: SeriesBar,
-			},
-			{
-				Data: NewSeriesDataListFromFloat([]float64{
-					2.6, 5.9, 9, 26.4, 28.7, 70.7, 175.6,
-				}),
-				Type: SeriesBar,
-				Style: chart.Style{
-					StrokeColor: drawing.Color{
-						R: 0,
-						G: 82,
-						B: 217,
-						A: 255,
-					},
-					FillColor: drawing.Color{
-						R: 0,
-						G: 82,
-						B: 217,
-						A: 255,
-					},
+			Label: SeriesLabel{
+				Color: drawing.Color{
+					R: 221,
+					G: 221,
+					B: 221,
+					A: 255,
 				},
+				Show:     true,
+				Distance: 5,
 			},
-			{
-				Data: NewSeriesDataListFromFloat([]float64{
-					2, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3,
-				}),
-				Type:       SeriesLine,
-				YAxisIndex: 1,
-			},
+			MarkPoint: SeriesMarkPoint{},
+			MarkLine:  SeriesMarkLine{},
 		},
-	}, options)
-}
+	}, es.ToSeriesList())
 
-func TestUnmarshalJSON(t *testing.T) {
-	assert := assert.New(t)
-	var lp Position
-	err := lp.UnmarshalJSON([]byte("123"))
-	assert.Nil(err)
-	assert.Equal("123", string(lp))
-
-	err = lp.UnmarshalJSON([]byte(`"234"`))
-	assert.Nil(err)
-	assert.Equal("234", string(lp))
-}
-
-func BenchmarkEChartsRenderPNG(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_, err := RenderEChartsToPNG(`{
-			"title": {
-				"text": "Line"
-			},
-			"xAxis": {
-				"type": "category",
-				"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-			},
-			"series": [
-				{
-					"data": [150, 230, 224, 218, 135, 147, 260]
-				}
-			]
-		}`)
-		if err != nil {
-			panic(err)
-		}
-	}
-}
-
-func BenchmarkEChartsRenderSVG(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		_, err := RenderEChartsToSVG(`{
-			"title": {
-				"text": "Line"
-			},
-			"xAxis": {
-				"type": "category",
-				"data": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-			},
-			"series": [
-				{
-					"data": [150, 230, 224, 218, 135, 147, 260]
-				}
-			]
-		}`)
-		if err != nil {
-			panic(err)
-		}
-	}
 }

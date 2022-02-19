@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,26 +24,35 @@ package charts
 
 import (
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-type LineSeries struct {
-	BaseSeries
+type BarStyle struct {
+	ClassName       string
+	StrokeDashArray []float64
+	FillColor       drawing.Color
 }
 
-func (ls LineSeries) getXRange(xrange chart.Range) chart.Range {
-	if ls.TickPosition != chart.TickPositionBetweenTicks {
-		return xrange
+func (bs *BarStyle) Style() chart.Style {
+	return chart.Style{
+		ClassName:       bs.ClassName,
+		StrokeDashArray: bs.StrokeDashArray,
+		StrokeColor:     bs.FillColor,
+		StrokeWidth:     1,
+		FillColor:       bs.FillColor,
 	}
-	// 如果是居中，画线时重新调整
-	return wrapRange(xrange, ls.TickPosition)
 }
 
-func (ls LineSeries) Render(r chart.Renderer, canvasBox chart.Box, xrange, yrange chart.Range, defaults chart.Style) {
-	style := ls.Style.InheritFrom(defaults)
-	xrange = ls.getXRange(xrange)
-	chart.Draw.LineSeries(r, canvasBox, xrange, yrange, style, ls)
-	lr := LabelRenderer{
-		Options: ls.Label,
-	}
-	lr.Render(r, canvasBox, xrange, yrange, style, ls)
+// Bar renders bar for chart
+func (d *Draw) Bar(b chart.Box, style BarStyle) {
+	s := style.Style()
+
+	r := d.Render
+	s.GetFillAndStrokeOptions().WriteToRenderer(r)
+	d.moveTo(b.Left, b.Top)
+	d.lineTo(b.Right, b.Top)
+	d.lineTo(b.Right, b.Bottom)
+	d.lineTo(b.Left, b.Bottom)
+	d.lineTo(b.Left, b.Top)
+	d.Render.FillStroke()
 }

@@ -23,65 +23,39 @@
 package charts
 
 import (
-	"testing"
+	"errors"
+	"sync"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/wcharczuk/go-chart/v2/drawing"
+	"github.com/golang/freetype/truetype"
+	"github.com/wcharczuk/go-chart/v2/roboto"
 )
 
-func TestTheme(t *testing.T) {
-	assert := assert.New(t)
+var fonts = sync.Map{}
+var ErrFontNotExists = errors.New("font is not exists")
 
-	darkTheme := NewTheme(ThemeDark)
-	lightTheme := NewTheme(ThemeLight)
+func init() {
+	_ = InstallFont("roboto", roboto.Roboto)
+}
 
-	assert.True(darkTheme.IsDark())
-	assert.False(lightTheme.IsDark())
+// InstallFont installs the font for charts
+func InstallFont(fontFamily string, data []byte) error {
+	font, err := truetype.Parse(data)
+	if err != nil {
+		return err
+	}
+	fonts.Store(fontFamily, font)
+	return nil
+}
 
-	assert.Equal(drawing.Color{
-		R: 185,
-		G: 184,
-		B: 206,
-		A: 255,
-	}, darkTheme.GetAxisStrokeColor())
-	assert.Equal(drawing.Color{
-		R: 110,
-		G: 112,
-		B: 121,
-		A: 255,
-	}, lightTheme.GetAxisStrokeColor())
-
-	assert.Equal(drawing.Color{
-		R: 72,
-		G: 71,
-		B: 83,
-		A: 255,
-	}, darkTheme.GetAxisSplitLineColor())
-	assert.Equal(drawing.Color{
-		R: 224,
-		G: 230,
-		B: 242,
-		A: 255,
-	}, lightTheme.GetAxisSplitLineColor())
-
-	assert.Equal(drawing.Color{
-		R: 16,
-		G: 12,
-		B: 42,
-		A: 255,
-	}, darkTheme.GetBackgroundColor())
-	assert.Equal(drawing.ColorWhite, lightTheme.GetBackgroundColor())
-
-	assert.Equal(drawing.Color{
-		R: 238,
-		G: 238,
-		B: 238,
-		A: 255,
-	}, darkTheme.GetTextColor())
-	assert.Equal(drawing.Color{
-		R: 70,
-		G: 70,
-		B: 70,
-		A: 255,
-	}, lightTheme.GetTextColor())
+// GetFont get the font by font family
+func GetFont(fontFamily string) (*truetype.Font, error) {
+	value, ok := fonts.Load(fontFamily)
+	if !ok {
+		return nil, ErrFontNotExists
+	}
+	f, ok := value.(*truetype.Font)
+	if !ok {
+		return nil, ErrFontNotExists
+	}
+	return f, nil
 }

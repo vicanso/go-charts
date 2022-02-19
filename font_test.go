@@ -26,62 +26,17 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wcharczuk/go-chart/v2/drawing"
+	"github.com/wcharczuk/go-chart/v2/roboto"
 )
 
-func TestTheme(t *testing.T) {
+func TestInstallFont(t *testing.T) {
 	assert := assert.New(t)
 
-	darkTheme := NewTheme(ThemeDark)
-	lightTheme := NewTheme(ThemeLight)
+	fontFamily := "test"
+	err := InstallFont(fontFamily, roboto.Roboto)
+	assert.Nil(err)
 
-	assert.True(darkTheme.IsDark())
-	assert.False(lightTheme.IsDark())
-
-	assert.Equal(drawing.Color{
-		R: 185,
-		G: 184,
-		B: 206,
-		A: 255,
-	}, darkTheme.GetAxisStrokeColor())
-	assert.Equal(drawing.Color{
-		R: 110,
-		G: 112,
-		B: 121,
-		A: 255,
-	}, lightTheme.GetAxisStrokeColor())
-
-	assert.Equal(drawing.Color{
-		R: 72,
-		G: 71,
-		B: 83,
-		A: 255,
-	}, darkTheme.GetAxisSplitLineColor())
-	assert.Equal(drawing.Color{
-		R: 224,
-		G: 230,
-		B: 242,
-		A: 255,
-	}, lightTheme.GetAxisSplitLineColor())
-
-	assert.Equal(drawing.Color{
-		R: 16,
-		G: 12,
-		B: 42,
-		A: 255,
-	}, darkTheme.GetBackgroundColor())
-	assert.Equal(drawing.ColorWhite, lightTheme.GetBackgroundColor())
-
-	assert.Equal(drawing.Color{
-		R: 238,
-		G: 238,
-		B: 238,
-		A: 255,
-	}, darkTheme.GetTextColor())
-	assert.Equal(drawing.Color{
-		R: 70,
-		G: 70,
-		B: 70,
-		A: 255,
-	}, lightTheme.GetTextColor())
+	font, err := GetFont(fontFamily)
+	assert.Nil(err)
+	assert.NotNil(font)
 }

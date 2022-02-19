@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,91 +23,163 @@
 package charts
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestNewLegendCustomize(t *testing.T) {
+func TestNewLegendOption(t *testing.T) {
 	assert := assert.New(t)
 
-	series := GetSeries([]Series{
-		{
-			Name: "chrome",
+	opt := NewLegendOption([]string{
+		"a",
+		"b",
+	}, PositionRight)
+	assert.Equal(LegendOption{
+		Data: []string{
+			"a",
+			"b",
 		},
-		{
-			Name: "edge",
-		},
-	}, chart.TickPositionBetweenTicks, "")
+		Left: PositionRight,
+	}, opt)
+}
+
+func TestLegendRender(t *testing.T) {
+	assert := assert.New(t)
+
+	newDraw := func() *Draw {
+		d, _ := NewDraw(DrawOption{
+			Width:  400,
+			Height: 300,
+		})
+		return d
+	}
+	style := chart.Style{
+		FontSize:  10,
+		FontColor: drawing.ColorBlack,
+	}
+	style.Font, _ = chart.GetDefaultFont()
 
 	tests := []struct {
-		align string
-		svg   string
+		newDraw   func() *Draw
+		newLegend func(*Draw) *legend
+		box       chart.Box
+		result    string
 	}{
 		{
-			align: LegendAlignLeft,
-			svg:   "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<path  d=\"M 449 111\nL 582 111\nL 582 121\nL 449 121\nL 449 111\" style=\"stroke-width:0;stroke:rgba(51,51,51,1.0);fill:none\"/><path  d=\"M 449 118\nL 474 118\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:none\"/><circle cx=\"461\" cy=\"118\" r=\"5\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"479\" y=\"121\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">chrome</text><path  d=\"M 534 118\nL 559 118\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"546\" cy=\"118\" r=\"5\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"564\" y=\"121\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">edge</text></svg>",
+			newDraw: newDraw,
+			newLegend: func(d *Draw) *legend {
+				return NewLegend(d, LegendOption{
+					Top: "10",
+					Data: []string{
+						"Mon",
+						"Tue",
+						"Wed",
+					},
+					Style: style,
+				})
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 0 20\nL 30 20\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"15\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"35\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><path  d=\"M 76 20\nL 106 20\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"91\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"111\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><path  d=\"M 148 20\nL 178 20\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"163\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"183\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text></svg>",
+			box: chart.Box{
+				Right:  214,
+				Bottom: 25,
+			},
 		},
 		{
-			align: LegendAlignRight,
-			svg:   "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<path  d=\"M 449 111\nL 582 111\nL 582 121\nL 449 121\nL 449 111\" style=\"stroke-width:0;stroke:rgba(51,51,51,1.0);fill:none\"/><text x=\"449\" y=\"121\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">chrome</text><path  d=\"M 489 118\nL 514 118\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:none\"/><circle cx=\"501\" cy=\"118\" r=\"5\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"539\" y=\"121\" style=\"stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:10.2px;font-family:'Roboto Medium',sans-serif\">edge</text><path  d=\"M 567 118\nL 592 118\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"579\" cy=\"118\" r=\"5\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:2;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/></svg>",
+			newDraw: newDraw,
+			newLegend: func(d *Draw) *legend {
+				return NewLegend(d, LegendOption{
+					Top:   "10",
+					Left:  PositionRight,
+					Align: PositionRight,
+					Data: []string{
+						"Mon",
+						"Tue",
+						"Wed",
+					},
+					Style: style,
+				})
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"191\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><path  d=\"M 222 20\nL 252 20\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"237\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"267\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><path  d=\"M 294 20\nL 324 20\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"309\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"339\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><path  d=\"M 370 20\nL 400 20\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"385\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/></svg>",
+			box: chart.Box{
+				Right:  400,
+				Bottom: 25,
+			},
+		},
+		{
+			newDraw: newDraw,
+			newLegend: func(d *Draw) *legend {
+				return NewLegend(d, LegendOption{
+					Top:  "10",
+					Left: PositionCenter,
+					Data: []string{
+						"Mon",
+						"Tue",
+						"Wed",
+					},
+					Style: style,
+				})
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 93 20\nL 123 20\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"108\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"128\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><path  d=\"M 169 20\nL 199 20\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"184\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"204\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><path  d=\"M 241 20\nL 271 20\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"256\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"276\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text></svg>",
+			box: chart.Box{
+				Right:  307,
+				Bottom: 25,
+			},
+		},
+		{
+			newDraw: newDraw,
+			newLegend: func(d *Draw) *legend {
+				return NewLegend(d, LegendOption{
+					Top:  "10",
+					Left: PositionLeft,
+					Data: []string{
+						"Mon",
+						"Tue",
+						"Wed",
+					},
+					Style:  style,
+					Orient: OrientVertical,
+				})
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 0 20\nL 30 20\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"15\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"35\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><path  d=\"M 0 40\nL 30 40\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"15\" cy=\"40\" r=\"5\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"35\" y=\"45\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><path  d=\"M 0 60\nL 30 60\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"15\" cy=\"60\" r=\"5\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"35\" y=\"65\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text></svg>",
+			box: chart.Box{
+				Right:  61,
+				Bottom: 80,
+			},
+		},
+		{
+			newDraw: newDraw,
+			newLegend: func(d *Draw) *legend {
+				return NewLegend(d, LegendOption{
+					Top:  "10",
+					Left: "10%",
+					Data: []string{
+						"Mon",
+						"Tue",
+						"Wed",
+					},
+					Style:  style,
+					Orient: OrientVertical,
+				})
+			},
+			box: chart.Box{
+				Right:  101,
+				Bottom: 80,
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 40 20\nL 70 20\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"55\" cy=\"20\" r=\"5\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(84,112,198,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"75\" y=\"25\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><path  d=\"M 40 40\nL 70 40\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"55\" cy=\"40\" r=\"5\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(145,204,117,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"75\" y=\"45\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><path  d=\"M 40 60\nL 70 60\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><circle cx=\"55\" cy=\"60\" r=\"5\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:3;stroke:rgba(250,200,88,1.0);fill:rgba(255,255,255,1.0)\"/><text x=\"75\" y=\"65\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text></svg>",
 		},
 	}
 
 	for _, tt := range tests {
-		r, err := chart.SVG(800, 600)
+		d := tt.newDraw()
+		b, err := tt.newLegend(d).Render()
 		assert.Nil(err)
-		fn := NewLegendCustomize(series, LegendOption{
-			Align:    tt.align,
-			IconDraw: DefaultLegendIconDraw,
-			Padding: chart.Box{
-				Left: 100,
-				Top:  100,
-			},
-		})
-		fn(r, chart.NewBox(11, 47, 784, 373), chart.Style{
-			Font: chart.StyleTextDefaults().Font,
-		})
-		buf := bytes.Buffer{}
-		err = r.Save(&buf)
+		assert.Equal(tt.box, b)
+		data, err := d.Bytes()
 		assert.Nil(err)
-		assert.Equal(tt.svg, buf.String())
+		assert.NotEmpty(data)
+		assert.Equal(tt.result, string(data))
 	}
-}
-
-func TestConvertPercent(t *testing.T) {
-	assert := assert.New(t)
-
-	assert.Equal(-1.0, convertPercent("12"))
-
-	assert.Equal(0.12, convertPercent("12%"))
-}
-
-func TestGetLegendLeft(t *testing.T) {
-	assert := assert.New(t)
-
-	assert.Equal(150, getLegendLeft(500, 200, LegendOption{}))
-
-	assert.Equal(0, getLegendLeft(500, 200, LegendOption{
-		Left: "left",
-	}))
-	assert.Equal(100, getLegendLeft(500, 200, LegendOption{
-		Left: "20%",
-	}))
-	assert.Equal(20, getLegendLeft(500, 200, LegendOption{
-		Left: "20",
-	}))
-
-	assert.Equal(300, getLegendLeft(500, 200, LegendOption{
-		Right: "right",
-	}))
-	assert.Equal(200, getLegendLeft(500, 200, LegendOption{
-		Right: "20%",
-	}))
-	assert.Equal(280, getLegendLeft(500, 200, LegendOption{
-		Right: "20",
-	}))
-
 }

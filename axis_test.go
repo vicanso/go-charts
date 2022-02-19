@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,150 +23,237 @@
 package charts
 
 import (
-	"strconv"
 	"testing"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestGetXAxisAndValues(t *testing.T) {
+func TestAxisOption(t *testing.T) {
 	assert := assert.New(t)
 
-	genLabels := func(count int) []string {
-		arr := make([]string, count)
-		for i := 0; i < count; i++ {
-			arr[i] = strconv.Itoa(i)
-		}
-		return arr
-	}
-	genValues := func(count int, betweenTicks bool) []float64 {
-		if betweenTicks {
-			count++
-		}
-		arr := make([]float64, count)
-		for i := 0; i < count; i++ {
-			arr[i] = float64(i)
-		}
-		return arr
-	}
-	genTicks := func(count int, betweenTicks bool) []chart.Tick {
-		arr := make([]chart.Tick, 0)
-		offset := 0
-		if betweenTicks {
-			offset = 1
-			arr = append(arr, chart.Tick{})
-		}
-		for i := 0; i < count; i++ {
-			arr = append(arr, chart.Tick{
-				Value: float64(i + offset),
-				Label: strconv.Itoa(i),
-			})
-		}
-		return arr
-	}
+	as := AxisOption{}
 
-	tests := []struct {
-		xAxis        XAxis
-		tickPosition chart.TickPosition
-		theme        string
-		result       chart.XAxis
-		values       []float64
-	}{
-		{
-			xAxis: XAxis{
-				Data: genLabels(5),
-			},
-			values: genValues(5, false),
-			result: chart.XAxis{
-				Ticks: genTicks(5, false),
-			},
-		},
-		// 居中
-		{
-			xAxis: XAxis{
-				Data: genLabels(5),
-			},
-			tickPosition: chart.TickPositionBetweenTicks,
-			// 居中因此value多一个
-			values: genValues(5, true),
-			result: chart.XAxis{
-				Ticks: genTicks(5, true),
-			},
-		},
-		{
-			xAxis: XAxis{
-				Data: genLabels(20),
-			},
-			// 居中因此value多一个
-			values: genValues(20, false),
-			result: chart.XAxis{
-				Ticks: []chart.Tick{
-					{Value: 0, Label: "0"}, {Value: 2, Label: "2"}, {Value: 4, Label: "4"}, {Value: 6, Label: "6"}, {Value: 8, Label: "8"}, {Value: 10, Label: "10"}, {Value: 12, Label: "12"}, {Value: 14, Label: "14"}, {Value: 16, Label: "16"}, {Value: 18, Label: "18"}, {Value: 19, Label: "19"}},
-			},
-		},
-	}
+	assert.Equal(8, as.GetLabelMargin())
+	as.LabelMargin = 10
+	assert.Equal(10, as.GetLabelMargin())
 
-	for _, tt := range tests {
-		xAxis, values := GetXAxisAndValues(tt.xAxis, tt.tickPosition, tt.theme)
+	assert.Equal(5, as.GetTickLength())
+	as.TickLength = 6
+	assert.Equal(6, as.GetTickLength())
 
-		assert.Equal(tt.result.Ticks, xAxis.Ticks)
-		assert.Equal(tt.tickPosition, xAxis.TickPosition)
-		assert.Equal(tt.values, values)
-	}
+	f := &truetype.Font{}
+	style := as.Style(f)
+	assert.Equal(float64(10), style.FontSize)
+	assert.Equal(f, style.Font)
 }
 
-func TestDefaultFloatFormater(t *testing.T) {
+func TestAxisDataList(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Equal("", defaultFloatFormater(1))
-
-	assert.Equal("0.1", defaultFloatFormater(0.1))
-	assert.Equal("0.12", defaultFloatFormater(0.123))
-	assert.Equal("10", defaultFloatFormater(10.1))
+	textList := []string{
+		"a",
+		"b",
+	}
+	data := NewAxisDataListFromStringList(textList)
+	assert.Equal(textList, data.TextList())
 }
 
-func TestSetYAxisOption(t *testing.T) {
-	assert := assert.New(t)
-	min := 10.0
-	max := 20.0
-	opt := &YAxisOption{
-		Formater: func(v interface{}) string {
-			return ""
-		},
-		Min: &min,
-		Max: &max,
-	}
-	yAxis := &chart.YAxis{
-		Range: newYContinuousRange(opt),
-	}
-	setYAxisOption(yAxis, opt)
-
-	assert.NotEmpty(yAxis.ValueFormatter)
-	assert.Equal(max, yAxis.Range.GetMax())
-	assert.Equal(min, yAxis.Range.GetMin())
-}
-
-func TestGetYAxis(t *testing.T) {
+func TestAxis(t *testing.T) {
 	assert := assert.New(t)
 
-	yAxis := GetYAxis(ThemeDark, nil)
-
-	assert.True(yAxis.GridMajorStyle.Hidden)
-	assert.True(yAxis.GridMajorStyle.Hidden)
-	assert.False(yAxis.Style.Hidden)
-
-	yAxis = GetYAxis(ThemeDark, &YAxisOption{
-		Disabled: true,
+	axisData := NewAxisDataListFromStringList([]string{
+		"Mon",
+		"Tue",
+		"Wed",
+		"Thu",
+		"Fri",
+		"Sat",
+		"Sun",
 	})
+	getDefaultOption := func() AxisOption {
+		return AxisOption{
+			StrokeColor:    drawing.ColorBlack,
+			StrokeWidth:    1,
+			FontColor:      drawing.ColorBlack,
+			Show:           TrueFlag(),
+			TickShow:       TrueFlag(),
+			SplitLineShow:  true,
+			SplitLineColor: drawing.ColorBlack.WithAlpha(60),
+		}
+	}
+	tests := []struct {
+		newOption func() AxisOption
+		newData   func() AxisDataList
+		result    string
+	}{
+		// 文本按起始位置展示
+		// axis位于bottom
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.BoundaryGap = FalseFlag()
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 270\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 270\nL 5 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 70 270\nL 70 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 135 270\nL 135 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 200 270\nL 200 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 265 270\nL 265 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 330 270\nL 330 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 395 270\nL 395 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 5 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 70 5\nL 70 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 135 5\nL 135 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 200 5\nL 200 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 265 5\nL 265 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 330 5\nL 330 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 395 5\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"-8\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"59\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"122\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"189\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"257\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"320\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"384\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// 文本居中展示
+		// axis位于bottom
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 270\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 270\nL 5 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 61 270\nL 61 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 117 270\nL 117 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 173 270\nL 173 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 229 270\nL 229 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 285 270\nL 285 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 340 270\nL 340 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 395 270\nL 395 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 5 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 61 5\nL 61 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 117 5\nL 117 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 173 5\nL 173 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 229 5\nL 229 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 285 5\nL 285 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 340 5\nL 340 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 395 5\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"20\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"78\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"132\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"190\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"249\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"303\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"356\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// 文本按起始位置展示
+		// axis位于top
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionTop
+				opt.BoundaryGap = FalseFlag()
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 25\nL 395 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 20\nL 5 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 70 20\nL 70 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 135 20\nL 135 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 200 20\nL 200 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 265 20\nL 265 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 330 20\nL 330 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 395 20\nL 395 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 25\nL 5 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 70 25\nL 70 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 135 25\nL 135 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 200 25\nL 200 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 265 25\nL 265 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 330 25\nL 330 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 395 25\nL 395 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"-8\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"59\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"122\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"189\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"257\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"320\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"384\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// 文本居中展示
+		// axis位于top
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionTop
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 25\nL 395 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 20\nL 5 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 61 20\nL 61 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 117 20\nL 117 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 173 20\nL 173 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 229 20\nL 229 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 285 20\nL 285 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 340 20\nL 340 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 395 20\nL 395 25\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 25\nL 5 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 61 25\nL 61 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 117 25\nL 117 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 173 25\nL 173 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 229 25\nL 229 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 285 25\nL 285 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 340 25\nL 340 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 395 25\nL 395 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"20\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"78\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"132\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"190\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"249\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"303\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"356\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// 文本按起始位置展示
+		// axis位于left
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionLeft
+				opt.BoundaryGap = FalseFlag()
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 44 5\nL 44 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 5\nL 44 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 54\nL 44 54\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 103\nL 44 103\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 151\nL 44 151\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 199\nL 44 199\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 247\nL 44 247\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 295\nL 44 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 44 5\nL 395 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 54\nL 395 54\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 103\nL 395 103\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 151\nL 395 151\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 199\nL 395 199\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 247\nL 395 247\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"12\" y=\"299\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"16\" y=\"251\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"12\" y=\"203\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"16\" y=\"155\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"23\" y=\"107\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"19\" y=\"58\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"16\" y=\"9\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// 文本居中展示
+		// axis位于left
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionLeft
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 44 5\nL 44 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 5\nL 44 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 47\nL 44 47\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 89\nL 44 89\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 131\nL 44 131\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 172\nL 44 172\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 213\nL 44 213\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 254\nL 44 254\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 39 295\nL 44 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 44 5\nL 395 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 47\nL 395 47\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 89\nL 395 89\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 131\nL 395 131\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 172\nL 395 172\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 213\nL 395 213\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 44 254\nL 395 254\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"12\" y=\"280\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"16\" y=\"239\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"12\" y=\"198\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"16\" y=\"157\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"23\" y=\"115\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"19\" y=\"73\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"16\" y=\"31\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// 文本按起始位置展示
+		// axis位于right
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionRight
+				opt.BoundaryGap = FalseFlag()
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 361 5\nL 361 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 5\nL 366 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 54\nL 366 54\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 103\nL 366 103\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 151\nL 366 151\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 199\nL 366 199\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 247\nL 366 247\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 295\nL 366 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 360 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 54\nL 360 54\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 103\nL 360 103\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 151\nL 360 151\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 199\nL 360 199\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 247\nL 360 247\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"369\" y=\"299\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"369\" y=\"251\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"369\" y=\"203\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"369\" y=\"155\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"369\" y=\"107\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"369\" y=\"58\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"369\" y=\"9\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// 文本居中展示
+		// axis位于right
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionRight
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 361 5\nL 361 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 5\nL 366 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 47\nL 366 47\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 89\nL 366 89\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 131\nL 366 131\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 172\nL 366 172\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 213\nL 366 213\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 254\nL 366 254\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 361 295\nL 366 295\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 360 5\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 47\nL 360 47\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 89\nL 360 89\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 131\nL 360 131\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 172\nL 360 172\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 213\nL 360 213\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 5 254\nL 360 254\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"369\" y=\"280\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Mon</text><text x=\"369\" y=\"239\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Tue</text><text x=\"369\" y=\"198\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Wed</text><text x=\"369\" y=\"157\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Thu</text><text x=\"369\" y=\"115\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Fri</text><text x=\"369\" y=\"73\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sat</text><text x=\"369\" y=\"31\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">Sun</text></svg>",
+		},
+		// text较多，仅展示部分
+		{
+			newOption: func() AxisOption {
+				opt := getDefaultOption()
+				opt.Position = PositionBottom
+				return opt
+			},
+			newData: func() AxisDataList {
+				return NewAxisDataListFromStringList([]string{
+					"01-01",
+					"01-02",
+					"01-03",
+					"01-04",
+					"01-05",
+					"01-06",
+					"01-07",
+					"01-08",
+					"01-09",
+					"01-10",
+					"01-11",
+					"01-12",
+					"01-13",
+					"01-14",
+					"01-15",
+					"01-16",
+					"01-17",
+					"01-18",
+					"01-19",
+					"01-20",
+					"01-21",
+				})
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 270\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 270\nL 5 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 62 270\nL 62 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 119 270\nL 119 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 176 270\nL 176 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 233 270\nL 233 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 287 270\nL 287 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 341 270\nL 341 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 395 270\nL 395 275\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/><path  d=\"M 5 5\nL 5 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 62 5\nL 62 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 119 5\nL 119 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 176 5\nL 176 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 233 5\nL 233 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 287 5\nL 287 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 341 5\nL 341 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><path  d=\"M 395 5\nL 395 270\" style=\"stroke-width:1;stroke:rgba(0,0,0,0.2);fill:none\"/><text x=\"16\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-02</text><text x=\"73\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-05</text><text x=\"130\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-08</text><text x=\"187\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-11</text><text x=\"243\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-14</text><text x=\"297\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-17</text><text x=\"351\" y=\"287\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">01-20</text></svg>",
+		},
+	}
+	for _, tt := range tests {
+		d, err := NewDraw(DrawOption{
+			Width:  400,
+			Height: 300,
+		}, PaddingOption(chart.Box{
+			Left:   5,
+			Top:    5,
+			Right:  5,
+			Bottom: 5,
+		}))
+		assert.Nil(err)
+		style := tt.newOption()
+		data := axisData
+		if tt.newData != nil {
+			data = tt.newData()
+		}
+		NewAxis(d, data, style).Render()
 
-	assert.True(yAxis.GridMajorStyle.Hidden)
-	assert.True(yAxis.GridMajorStyle.Hidden)
-	assert.True(yAxis.Style.Hidden)
+		result, err := d.Bytes()
+		assert.Nil(err)
+		assert.Equal(tt.result, string(result))
+	}
+}
 
-	// secondary yAxis
-	yAxis = GetSecondaryYAxis(ThemeDark, nil)
-	assert.False(yAxis.GridMajorStyle.Hidden)
-	assert.False(yAxis.GridMajorStyle.Hidden)
-	assert.True(yAxis.Style.StrokeColor.IsTransparent())
+func TestMeasureAxis(t *testing.T) {
+	assert := assert.New(t)
+
+	d, err := NewDraw(DrawOption{
+		Width:  400,
+		Height: 300,
+	})
+	assert.Nil(err)
+	data := NewAxisDataListFromStringList([]string{
+		"Mon",
+		"Sun",
+	})
+	f, _ := chart.GetDefaultFont()
+	width := NewAxis(d, data, AxisOption{
+		FontSize: 12,
+		Font:     f,
+		Position: PositionLeft,
+	}).measure().Width
+	assert.Equal(44, width)
+
+	height := NewAxis(d, data, AxisOption{
+		FontSize: 12,
+		Font:     f,
+		Position: PositionTop,
+	}).measure().Height
+	assert.Equal(28, height)
 }

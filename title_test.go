@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -31,55 +30,113 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestTitleCustomize(t *testing.T) {
+func TestSplitTitleText(t *testing.T) {
 	assert := assert.New(t)
+
+	assert.Equal([]string{
+		"a",
+		"b",
+	}, splitTitleText("a\nb"))
+	assert.Equal([]string{
+		"a",
+	}, splitTitleText("a\n "))
+}
+
+func TestDrawTitle(t *testing.T) {
+	assert := assert.New(t)
+
+	newOption := func() *TitleOption {
+		f, _ := chart.GetDefaultFont()
+		return &TitleOption{
+			Text:    "title\nHello",
+			Subtext: "subtitle\nWorld!",
+			Style: chart.Style{
+				FontSize:  14,
+				Font:      f,
+				FontColor: drawing.ColorBlack,
+			},
+			SubtextStyle: chart.Style{
+				FontSize:  10,
+				Font:      f,
+				FontColor: drawing.ColorBlue,
+			},
+		}
+	}
+	newDraw := func() *Draw {
+		d, _ := NewDraw(DrawOption{
+			Width:  400,
+			Height: 300,
+		})
+		return d
+	}
+
 	tests := []struct {
-		title Title
-		svg   string
+		newDraw   func() *Draw
+		newOption func() *TitleOption
+		result    string
+		box       chart.Box
 	}{
-		// 单行标题
 		{
-			title: Title{
-				Text: "Hello World!",
-				Style: chart.Style{
-					FontColor: drawing.ColorBlack,
-				},
+			newDraw:   newDraw,
+			newOption: newOption,
+			result:    "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"6\" y=\"17\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"0\" y=\"34\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"0\" y=\"46\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"3\" y=\"58\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			box: chart.Box{
+				Right:  43,
+				Bottom: 58,
 			},
-			svg: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<text x=\"50\" y=\"71\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:23.0px;font-family:'Roboto Medium',sans-serif\">Hello World!</text></svg>",
 		},
-		// 多行标题，靠右
 		{
-			title: Title{
-				Text: "Hello World!\nHello World",
-				Style: chart.Style{
-					FontColor: drawing.ColorBlack,
-				},
-				Left: "right",
+			newDraw: newDraw,
+			newOption: func() *TitleOption {
+				opt := newOption()
+				opt.Left = PositionRight
+				opt.Top = "50"
+				return opt
 			},
-			svg: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<text x=\"474\" y=\"71\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:23.0px;font-family:'Roboto Medium',sans-serif\">Hello World!</text><text x=\"477\" y=\"94\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:23.0px;font-family:'Roboto Medium',sans-serif\">Hello World</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"363\" y=\"67\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"357\" y=\"84\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"357\" y=\"96\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"360\" y=\"108\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			box: chart.Box{
+				Right:  400,
+				Bottom: 108,
+			},
 		},
-		// 标题居中
 		{
-			title: Title{
-				Text: "Hello World!",
-				Style: chart.Style{
-					FontColor: drawing.ColorBlack,
-				},
-				Left: "center",
+			newDraw: newDraw,
+			newOption: func() *TitleOption {
+				opt := newOption()
+				opt.Left = PositionCenter
+				opt.Top = "10"
+				return opt
 			},
-			svg: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"800\" height=\"600\">\\n<text x=\"262\" y=\"71\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:23.0px;font-family:'Roboto Medium',sans-serif\">Hello World!</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"185\" y=\"27\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"179\" y=\"44\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"179\" y=\"56\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"182\" y=\"68\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			box: chart.Box{
+				Right:  222,
+				Bottom: 68,
+			},
+		},
+		{
+			newDraw: newDraw,
+			newOption: func() *TitleOption {
+				opt := newOption()
+				opt.Left = "10%"
+				opt.Top = "10"
+				return opt
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"46\" y=\"27\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">title</text><text x=\"40\" y=\"44\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0);font-size:17.9px;font-family:'Roboto Medium',sans-serif\">Hello</text><text x=\"40\" y=\"56\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">subtitle</text><text x=\"43\" y=\"68\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,255,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">World!</text></svg>",
+			box: chart.Box{
+				Right:  83,
+				Bottom: 68,
+			},
 		},
 	}
 	for _, tt := range tests {
-		r, err := chart.SVG(800, 600)
+		d := tt.newDraw()
+		o := tt.newOption()
+		b, err := drawTitle(d, o)
 		assert.Nil(err)
-		fn := NewTitleCustomize(tt.title)
-		fn(r, chart.NewBox(50, 50, 600, 400), chart.Style{
-			Font: chart.StyleTextDefaults().Font,
-		})
-		buf := bytes.Buffer{}
-		err = r.Save(&buf)
+		assert.Equal(tt.box, b)
+		data, err := d.Bytes()
 		assert.Nil(err)
-		assert.Equal(tt.svg, buf.String())
+		assert.NotEmpty(data)
+		assert.Equal(tt.result, string(data))
 	}
 }

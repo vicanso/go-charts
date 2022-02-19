@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,220 +30,179 @@ import (
 )
 
 type LegendOption struct {
-	Style    chart.Style
-	Padding  chart.Box
-	Left     string
-	Right    string
-	Top      string
-	Bottom   string
-	Align    string
-	Theme    string
-	IconDraw LegendIconDraw
-}
-
-type LegendIconDrawOption struct {
-	Box   chart.Box
+	theme string
+	// Legend show flag, if nil or true, the legend will be shown
+	Show *bool
+	// Legend text style
 	Style chart.Style
-	Index int
-	Theme string
+	// Text array of legend
+	Data []string
+	// Distance between legend component and the left side of the container.
+	// It can be pixel value: 20, percentage value: 20%,
+	// or position value: right, center.
+	Left string
+	// Distance between legend component and the top side of the container.
+	// It can be pixel value: 20.
+	Top string
+	// Legend marker and text aligning, it can be left or right, default is left.
+	Align string
+	// The layout orientation of legend, it can be horizontal or vertical, default is horizontal.
+	Orient string
 }
 
-const (
-	LegendAlignLeft  = "left"
-	LegendAlignRight = "right"
-)
-
-type LegendIconDraw func(r chart.Renderer, opt LegendIconDrawOption)
-
-func DefaultLegendIconDraw(r chart.Renderer, opt LegendIconDrawOption) {
-	if opt.Box.IsZero() {
-		return
+// NewLegendOption creates a new legend option by legend text list
+func NewLegendOption(data []string, position ...string) LegendOption {
+	opt := LegendOption{
+		Data: data,
 	}
-	r.SetStrokeColor(opt.Style.GetStrokeColor())
-	strokeWidth := opt.Style.GetStrokeWidth()
-	r.SetStrokeWidth(strokeWidth)
-	height := opt.Box.Bottom - opt.Box.Top
-	ly := opt.Box.Top - (height / 2) + 2
-	r.MoveTo(opt.Box.Left, ly)
-	r.LineTo(opt.Box.Right, ly)
-	r.Stroke()
-	r.SetFillColor(getBackgroundColor(opt.Theme))
-	r.Circle(5, (opt.Box.Left+opt.Box.Right)/2, ly)
-	r.FillStroke()
+	if len(position) != 0 {
+		opt.Left = position[0]
+	}
+	return opt
 }
 
-func convertPercent(value string) float64 {
-	if !strings.HasSuffix(value, "%") {
-		return -1
+type legend struct {
+	d   *Draw
+	opt *LegendOption
+}
+
+func NewLegend(d *Draw, opt LegendOption) *legend {
+	return &legend{
+		d:   d,
+		opt: &opt,
 	}
-	v, err := strconv.Atoi(strings.ReplaceAll(value, "%", ""))
+}
+
+func (l *legend) Render() (chart.Box, error) {
+	d := l.d
+	opt := l.opt
+	if len(opt.Data) == 0 || isFalse(opt.Show) {
+		return chart.BoxZero, nil
+	}
+	theme := NewTheme(opt.theme)
+	padding := opt.Style.Padding
+	legendDraw, err := NewDraw(DrawOption{
+		Parent: d,
+	}, PaddingOption(padding))
 	if err != nil {
-		return -1
+		return chart.BoxZero, err
 	}
-	return float64(v) / 100
-}
+	r := legendDraw.Render
+	opt.Style.GetTextOptions().WriteToRenderer(r)
 
-func getLegendLeft(canvasWidth, legendBoxWidth int, opt LegendOption) int {
-	left := (canvasWidth - legendBoxWidth) / 2
-	leftValue := opt.Left
-	if leftValue == "auto" || leftValue == "center" {
-		leftValue = ""
+	x := 0
+	y := 0
+	top := 0
+	// TODO TOP 暂只支持数值
+	if opt.Top != "" {
+		top, _ = strconv.Atoi(opt.Top)
+		y += top
 	}
-	if leftValue == "left" {
-		leftValue = "0"
-	}
+	legendWidth := 30
+	legendDotHeight := 5
+	textPadding := 5
+	legendMargin := 10
+	// 往下移2倍dot的高度
+	y += 2 * legendDotHeight
 
-	rightValue := opt.Right
-	if rightValue == "auto" || leftValue == "center" {
-		rightValue = ""
-	}
-	if rightValue == "right" {
-		rightValue = "0"
-	}
-	if leftValue == "" && rightValue == "" {
-		return left
-	}
-	if leftValue != "" {
-		percent := convertPercent(leftValue)
-		if percent >= 0 {
-			return int(float64(canvasWidth) * percent)
+	widthCount := 0
+	maxTextWidth := 0
+	// 文本宽度
+	for _, text := range opt.Data {
+		b := r.MeasureText(text)
+		if b.Width() > maxTextWidth {
+			maxTextWidth = b.Width()
 		}
-		v, _ := strconv.Atoi(leftValue)
-		return v
+		widthCount += b.Width()
 	}
-	if rightValue != "" {
-		percent := convertPercent(rightValue)
-		if percent >= 0 {
-			return canvasWidth - legendBoxWidth - int(float64(canvasWidth)*percent)
-		}
-		v, _ := strconv.Atoi(rightValue)
-		return canvasWidth - legendBoxWidth - v
+	if opt.Orient == OrientVertical {
+		widthCount = maxTextWidth + legendWidth + textPadding
+	} else {
+		// 加上标记
+		widthCount += legendWidth * len(opt.Data)
+		// 文本的padding
+		widthCount += 2 * textPadding * len(opt.Data)
+		// margin的宽度
+		widthCount += legendMargin * (len(opt.Data) - 1)
 	}
-	return left
-}
 
-func getLegendTop(height, legendBoxHeight int, opt LegendOption) int {
-	// TODO 支持top的处理
-	return 0
-}
-
-func NewLegendCustomize(series []chart.Series, opt LegendOption) chart.Renderable {
-	return func(r chart.Renderer, cb chart.Box, chartDefaults chart.Style) {
-		legendDefaults := chart.Style{
-			FontColor:   getTextColor(opt.Theme),
-			FontSize:    8.0,
-			StrokeColor: chart.DefaultAxisColor,
+	left := 0
+	switch opt.Left {
+	case PositionRight:
+		left = legendDraw.Box.Width() - widthCount
+	case PositionCenter:
+		left = (legendDraw.Box.Width() - widthCount) >> 1
+	default:
+		if strings.HasSuffix(opt.Left, "%") {
+			value, _ := strconv.Atoi(strings.ReplaceAll(opt.Left, "%", ""))
+			left = legendDraw.Box.Width() * value / 100
+		} else {
+			value, _ := strconv.Atoi(opt.Left)
+			left = value
 		}
+	}
+	x = left
+	for index, text := range opt.Data {
+		seriesColor := theme.GetSeriesColor(index)
+		fillColor := seriesColor
+		if !theme.IsDark() {
+			fillColor = theme.GetBackgroundColor()
+		}
+		style := chart.Style{
+			StrokeColor: seriesColor,
+			FillColor:   fillColor,
+			StrokeWidth: 3,
+		}
+		style.GetFillAndStrokeOptions().WriteDrawingOptionsToRenderer(r)
 
-		legendStyle := opt.Style.InheritFrom(chartDefaults.InheritFrom(legendDefaults))
+		textBox := r.MeasureText(text)
+		var renderText func()
+		if opt.Orient == OrientVertical {
+			// 垂直
+			// 重置x的位置
+			x = left
+			renderText = func() {
+				x += textPadding
+				legendDraw.text(text, x, y+legendDotHeight)
+				x += textBox.Width()
+				y += (2*legendDotHeight + legendMargin)
+			}
 
-		r.SetFont(legendStyle.GetFont())
-		r.SetFontColor(legendStyle.GetFontColor())
-		r.SetFontSize(legendStyle.GetFontSize())
-
-		var labels []string
-		var lines []chart.Style
-		// 计算label和lines
-		for _, s := range series {
-			if !s.GetStyle().Hidden {
-				if _, isAnnotationSeries := s.(chart.AnnotationSeries); !isAnnotationSeries {
-					labels = append(labels, s.GetName())
-					lines = append(lines, s.GetStyle())
-				}
+		} else {
+			// 水平
+			if index != 0 {
+				x += legendMargin
+			}
+			renderText = func() {
+				x += textPadding
+				legendDraw.text(text, x, y+legendDotHeight)
+				x += textBox.Width()
+				x += textPadding
 			}
 		}
-
-		var textHeight int
-		var textBox chart.Box
-		labelWidth := 0
-		// 计算文本宽度与高度（取最大值）
-		for x := 0; x < len(labels); x++ {
-			if len(labels[x]) > 0 {
-				textBox = r.MeasureText(labels[x])
-				labelWidth += textBox.Width()
-				textHeight = chart.MaxInt(textBox.Height(), textHeight)
-			}
+		if opt.Align == PositionRight {
+			renderText()
 		}
 
-		legendBoxHeight := textHeight + legendStyle.Padding.Top + legendStyle.Padding.Bottom
-		chartPadding := cb.Top
-		legendYMargin := (chartPadding - legendBoxHeight) >> 1
+		legendDraw.moveTo(x, y)
+		legendDraw.lineTo(x+legendWidth, y)
+		r.Stroke()
+		legendDraw.circle(float64(legendDotHeight), x+legendWidth>>1, y)
+		r.FillStroke()
+		x += legendWidth
 
-		iconWidth := 25
-		lineTextGap := 5
-
-		iconAllWidth := iconWidth * len(labels)
-		spaceAllWidth := (chart.DefaultMinimumTickHorizontalSpacing + lineTextGap) * (len(labels) - 1)
-
-		legendBoxWidth := labelWidth + iconAllWidth + spaceAllWidth
-
-		left := getLegendLeft(cb.Width(), legendBoxWidth, opt)
-		top := getLegendTop(cb.Height(), legendBoxHeight, opt)
-
-		left += (opt.Padding.Left + cb.Left)
-		top += (opt.Padding.Top + cb.Top)
-
-		legendBox := chart.Box{
-			Left:   left,
-			Right:  left + legendBoxWidth,
-			Top:    top,
-			Bottom: top + legendBoxHeight,
-		}
-
-		chart.Draw.Box(r, legendBox, legendDefaults)
-
-		r.SetFont(legendStyle.GetFont())
-		r.SetFontColor(legendStyle.GetFontColor())
-		r.SetFontSize(legendStyle.GetFontSize())
-
-		startX := legendBox.Left + legendStyle.Padding.Left
-		ty := top + legendYMargin + legendStyle.Padding.Top + textHeight
-		var label string
-		var x int
-		iconDraw := opt.IconDraw
-		if iconDraw == nil {
-			iconDraw = DefaultLegendIconDraw
-		}
-		align := opt.Align
-		if align == "" {
-			align = LegendAlignLeft
-		}
-		for index := range labels {
-			label = labels[index]
-			if len(label) > 0 {
-				x = startX
-
-				// 如果图例标记靠右展示
-				if align == LegendAlignRight {
-					textBox = r.MeasureText(label)
-					r.Text(label, x, ty)
-					x = startX + textBox.Width() + lineTextGap
-				}
-
-				// 图标
-				iconDraw(r, LegendIconDrawOption{
-					Theme: opt.Theme,
-					Index: index,
-					Style: lines[index],
-					Box: chart.Box{
-						Left:   x,
-						Top:    ty,
-						Right:  x + iconWidth,
-						Bottom: ty + textHeight,
-					},
-				})
-				x += (iconWidth + lineTextGap)
-
-				// 如果图例标记靠左展示
-				if align == LegendAlignLeft {
-					textBox = r.MeasureText(label)
-					r.Text(label, x, ty)
-					x += textBox.Width()
-				}
-
-				// 计算下一个legend的位置
-				startX = x + chart.DefaultMinimumTickHorizontalSpacing
-			}
+		if opt.Align != PositionRight {
+			renderText()
 		}
 	}
+	legendBox := padding.Clone()
+	// 计算展示区域
+	if opt.Orient == OrientVertical {
+		legendBox.Right = legendBox.Left + left + maxTextWidth + legendWidth + textPadding
+		legendBox.Bottom = legendBox.Top + y
+	} else {
+		legendBox.Right = legendBox.Left + x
+		legendBox.Bottom = legendBox.Top + 2*legendDotHeight + top + textPadding
+	}
+	return legendBox, nil
 }

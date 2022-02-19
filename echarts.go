@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,20 +28,9 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/wcharczuk/go-chart/v2"
 )
-
-type EChartStyle struct {
-	Color string `json:"color"`
-}
-type ECharsSeriesData struct {
-	Value     float64     `json:"value"`
-	Name      string      `json:"name"`
-	ItemStyle EChartStyle `json:"itemStyle"`
-}
-type _ECharsSeriesData ECharsSeriesData
 
 func convertToArray(data []byte) []byte {
 	data = bytes.TrimSpace(data)
@@ -54,12 +43,47 @@ func convertToArray(data []byte) []byte {
 	return data
 }
 
-func (es *ECharsSeriesData) UnmarshalJSON(data []byte) error {
-	data = bytes.TrimSpace(data)
+type EChartsPosition string
+
+func (p *EChartsPosition) UnmarshalJSON(data []byte) error {
 	if len(data) == 0 {
 		return nil
 	}
 	if regexp.MustCompile(`^\d+`).Match(data) {
+		data = []byte(fmt.Sprintf(`"%s"`, string(data)))
+	}
+	s := (*string)(p)
+	return json.Unmarshal(data, s)
+}
+
+type EChartStyle struct {
+	Color string `json:"color"`
+}
+
+func (es *EChartStyle) ToStyle() chart.Style {
+	color := parseColor(es.Color)
+	return chart.Style{
+		FillColor:   color,
+		FontColor:   color,
+		StrokeColor: color,
+	}
+}
+
+type EChartsSeriesData struct {
+	Value     float64     `json:"value"`
+	Name      string      `json:"name"`
+	ItemStyle EChartStyle `json:"itemStyle"`
+}
+type _EChartsSeriesData EChartsSeriesData
+
+var numericRep = regexp.MustCompile("^[-+]?[0-9]+(?:\\.[0-9]+)?$")
+
+func (es *EChartsSeriesData) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return nil
+	}
+	if numericRep.Match(data) {
 		v, err := strconv.ParseFloat(string(data), 64)
 		if err != nil {
 			return err
@@ -67,7 +91,7 @@ func (es *ECharsSeriesData) UnmarshalJSON(data []byte) error {
 		es.Value = v
 		return nil
 	}
-	v := _ECharsSeriesData{}
+	v := _EChartsSeriesData{}
 	err := json.Unmarshal(data, &v)
 	if err != nil {
 		return err
@@ -78,24 +102,53 @@ func (es *ECharsSeriesData) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type EChartsPadding struct {
-	box chart.Box
+type EChartsXAxisData struct {
+	BoundaryGap *bool    `json:"boundaryGap"`
+	SplitNumber int      `json:"splitNumber"`
+	Data        []string `json:"data"`
+}
+type EChartsXAxis struct {
+	Data []EChartsXAxisData
 }
 
-type Position string
-
-func (lp *Position) UnmarshalJSON(data []byte) error {
+func (ex *EChartsXAxis) UnmarshalJSON(data []byte) error {
+	data = convertToArray(data)
 	if len(data) == 0 {
 		return nil
 	}
-	if regexp.MustCompile(`^\d+`).Match(data) {
-		data = []byte(fmt.Sprintf(`"%s"`, string(data)))
-	}
-	s := (*string)(lp)
-	return json.Unmarshal(data, s)
+	return json.Unmarshal(data, &ex.Data)
 }
 
-func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
+type EChartsAxisLabel struct {
+	Formatter string `json:"formatter"`
+}
+type EChartsYAxisData struct {
+	Min       *float64         `json:"min"`
+	Max       *float64         `json:"max"`
+	AxisLabel EChartsAxisLabel `json:"axisLabel"`
+	AxisLine  struct {
+		LineStyle struct {
+			Color string
+		}
+	}
+}
+type EChartsYAxis struct {
+	Data []EChartsYAxisData `json:"data"`
+}
+
+func (ey *EChartsYAxis) UnmarshalJSON(data []byte) error {
+	data = convertToArray(data)
+	if len(data) == 0 {
+		return nil
+	}
+	return json.Unmarshal(data, &ey.Data)
+}
+
+type EChartsPadding struct {
+	Box chart.Box
+}
+
+func (eb *EChartsPadding) UnmarshalJSON(data []byte) error {
 	data = convertToArray(data)
 	if len(data) == 0 {
 		return nil
@@ -110,14 +163,14 @@ func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
 	}
 	switch len(arr) {
 	case 1:
-		ep.box = chart.Box{
+		eb.Box = chart.Box{
 			Left:   arr[0],
 			Top:    arr[0],
 			Bottom: arr[0],
 			Right:  arr[0],
 		}
 	case 2:
-		ep.box = chart.Box{
+		eb.Box = chart.Box{
 			Top:    arr[0],
 			Bottom: arr[0],
 			Left:   arr[1],
@@ -130,7 +183,7 @@ func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
 			result[3] = result[1]
 		}
 		// 上右下左
-		ep.box = chart.Box{
+		eb.Box = chart.Box{
 			Top:    result[0],
 			Right:  result[1],
 			Bottom: result[2],
@@ -140,264 +193,247 @@ func (ep *EChartsPadding) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-type EChartsYAxis struct {
-	Data []struct {
-		Min *float64 `json:"min"`
-		Max *float64 `json:"max"`
-		// Interval  int      `json:"interval"`
-		AxisLabel struct {
-			Formatter string `json:"formatter"`
-		} `json:"axisLabel"`
+type EChartsLabelOption struct {
+	Show     bool   `json:"show"`
+	Distance int    `json:"distance"`
+	Color    string `json:"color"`
+}
+type EChartsLegend struct {
+	Show      *bool            `json:"show"`
+	Data      []string         `json:"data"`
+	Align     string           `json:"align"`
+	Orient    string           `json:"orient"`
+	Padding   EChartsPadding   `json:"padding"`
+	Left      EChartsPosition  `json:"left"`
+	Top       EChartsPosition  `json:"top"`
+	TextStyle EChartsTextStyle `json:"textStyle"`
+}
+
+type EChartsMarkPoint struct {
+	SymbolSize int `json:"symbolSize"`
+	Data       []struct {
+		Type string `json:"type"`
 	} `json:"data"`
 }
 
-func (ey *EChartsYAxis) UnmarshalJSON(data []byte) error {
-	data = convertToArray(data)
-	if len(data) == 0 {
-		return nil
+func (emp *EChartsMarkPoint) ToSeriesMarkPoint() SeriesMarkPoint {
+	sp := SeriesMarkPoint{
+		SymbolSize: emp.SymbolSize,
 	}
-	return json.Unmarshal(data, &ey.Data)
+	if len(emp.Data) == 0 {
+		return sp
+	}
+	data := make([]SeriesMarkData, len(emp.Data))
+	for index, item := range emp.Data {
+		data[index] = SeriesMarkData{
+			Type: item.Type,
+		}
+	}
+	sp.Data = data
+	return sp
 }
 
-type EChartsXAxis struct {
+type EChartsMarkLine struct {
 	Data []struct {
-		// Type        string   `json:"type"`
-		BoundaryGap *bool    `json:"boundaryGap"`
-		SplitNumber int      `json:"splitNumber"`
-		Data        []string `json:"data"`
-	}
+		Type string `json:"type"`
+	} `json:"data"`
 }
 
-func (ex *EChartsXAxis) UnmarshalJSON(data []byte) error {
-	data = convertToArray(data)
-	if len(data) == 0 {
-		return nil
+func (eml *EChartsMarkLine) ToSeriesMarkLine() SeriesMarkLine {
+	sl := SeriesMarkLine{}
+	if len(eml.Data) == 0 {
+		return sl
 	}
-	return json.Unmarshal(data, &ex.Data)
+	data := make([]SeriesMarkData, len(eml.Data))
+	for index, item := range eml.Data {
+		data[index] = SeriesMarkData{
+			Type: item.Type,
+		}
+	}
+	sl.Data = data
+	return sl
 }
 
-type EChartsLabelOption struct {
-	Show     bool `json:"show"`
-	Distance int  `json:"distance"`
+type EChartsSeries struct {
+	Data       []EChartsSeriesData `json:"data"`
+	Name       string              `json:"name"`
+	Type       string              `json:"type"`
+	Radius     string              `json:"radius"`
+	YAxisIndex int                 `json:"yAxisIndex"`
+	ItemStyle  EChartStyle         `json:"itemStyle"`
+	// label的配置
+	Label     EChartsLabelOption `json:"label"`
+	MarkPoint EChartsMarkPoint   `json:"markPoint"`
+	MarkLine  EChartsMarkLine    `json:"markLine"`
 }
+type EChartsSeriesList []EChartsSeries
 
-func (elo EChartsLabelOption) ToLabel() SeriesLabel {
-	if !elo.Show {
-		return SeriesLabel{}
-	}
-	return SeriesLabel{
-		Show: true,
-		Offset: chart.Box{
-			// 默认位置为top，因此设置为负
-			Top: -elo.Distance,
-		},
-	}
-}
-
-type ECharsOptions struct {
-	Theme   string         `json:"theme"`
-	Padding EChartsPadding `json:"padding"`
-	Title   struct {
-		Text      string   `json:"text"`
-		Left      Position `json:"left"`
-		Top       Position `json:"top"`
-		TextStyle struct {
-			Color      string  `json:"color"`
-			FontFamily string  `json:"fontFamily"`
-			FontSize   float64 `json:"fontSize"`
-			Height     float64 `json:"height"`
-		} `json:"textStyle"`
-	} `json:"title"`
-	XAxis  EChartsXAxis `json:"xAxis"`
-	YAxis  EChartsYAxis `json:"yAxis"`
-	Legend struct {
-		Data    []string       `json:"data"`
-		Align   string         `json:"align"`
-		Padding EChartsPadding `json:"padding"`
-		Left    Position       `json:"left"`
-		Right   Position       `json:"right"`
-		// Top     string         `json:"top"`
-		// Bottom  string         `json:"bottom"`
-	} `json:"legend"`
-	Series []struct {
-		Data       []ECharsSeriesData `json:"data"`
-		Type       string             `json:"type"`
-		YAxisIndex int                `json:"yAxisIndex"`
-		ItemStyle  EChartStyle        `json:"itemStyle"`
-		// label的配置
-		Label EChartsLabelOption `json:"label"`
-	} `json:"series"`
-}
-
-func convertEChartsSeries(e *ECharsOptions) ([]Series, chart.TickPosition) {
-	tickPosition := chart.TickPositionUnset
-
-	if len(e.Series) == 0 {
-		return nil, tickPosition
-	}
-	seriesType := e.Series[0].Type
-	if seriesType == SeriesPie {
-		series := make([]Series, len(e.Series[0].Data))
-		label := e.Series[0].Label.ToLabel()
-		for index, item := range e.Series[0].Data {
-			style := chart.Style{}
-			if item.ItemStyle.Color != "" {
-				c := parseColor(item.ItemStyle.Color)
-				style.FillColor = c
-				style.StrokeColor = c
-			}
-
-			series[index] = Series{
-				Style: style,
-				Data: []SeriesData{
-					{
-						Value: item.Value,
+func (esList EChartsSeriesList) ToSeriesList() SeriesList {
+	seriesList := make(SeriesList, 0, len(esList))
+	for _, item := range esList {
+		// 如果是pie，则每个子荐生成一个series
+		if item.Type == ChartTypePie {
+			for _, dataItem := range item.Data {
+				seriesList = append(seriesList, Series{
+					Type: ChartTypePie,
+					Name: dataItem.Name,
+					Label: SeriesLabel{
+						Show: true,
 					},
-				},
-				Type:  seriesType,
-				Name:  item.Name,
-				Label: label,
+					Radius: item.Radius,
+					Data: []SeriesData{
+						{
+							Value: dataItem.Value,
+						},
+					},
+				})
 			}
-		}
-		return series, tickPosition
-	}
-	series := make([]Series, len(e.Series))
-	for index, item := range e.Series {
-		// bar默认tick居中
-		if item.Type == SeriesBar {
-			tickPosition = chart.TickPositionBetweenTicks
-		}
-		style := chart.Style{}
-		if item.ItemStyle.Color != "" {
-			c := parseColor(item.ItemStyle.Color)
-			style.FillColor = c
-			style.StrokeColor = c
+			continue
 		}
 		data := make([]SeriesData, len(item.Data))
-		for j, itemData := range item.Data {
-			sd := SeriesData{
-				Value: itemData.Value,
+		for j, dataItem := range item.Data {
+			data[j] = SeriesData{
+				Value: dataItem.Value,
+				Style: dataItem.ItemStyle.ToStyle(),
 			}
-			if itemData.ItemStyle.Color != "" {
-				c := parseColor(itemData.ItemStyle.Color)
-				sd.Style.FillColor = c
-				sd.Style.StrokeColor = c
-			}
-			data[j] = sd
 		}
-		series[index] = Series{
-			Style:      style,
-			YAxisIndex: item.YAxisIndex,
-			Data:       data,
+		seriesList = append(seriesList, Series{
 			Type:       item.Type,
-			Label:      item.Label.ToLabel(),
-		}
+			Data:       data,
+			YAxisIndex: item.YAxisIndex,
+			Style:      item.ItemStyle.ToStyle(),
+			Label: SeriesLabel{
+				Color:    parseColor(item.Label.Color),
+				Show:     item.Label.Show,
+				Distance: item.Label.Distance,
+			},
+			Name:      item.Name,
+			MarkPoint: item.MarkPoint.ToSeriesMarkPoint(),
+			MarkLine:  item.MarkLine.ToSeriesMarkLine(),
+		})
 	}
-	return series, tickPosition
+	return seriesList
 }
 
-func (e *ECharsOptions) ToOptions() Options {
-	o := Options{
-		Theme:   e.Theme,
-		Padding: e.Padding.box,
-	}
+type EChartsTextStyle struct {
+	Color      string  `json:"color"`
+	FontFamily string  `json:"fontFamily"`
+	FontSize   float64 `json:"fontSize"`
+}
 
-	titleTextStyle := e.Title.TextStyle
-	o.Title = Title{
-		Text: e.Title.Text,
-		Left: string(e.Title.Left),
-		Top:  string(e.Title.Top),
-		Style: chart.Style{
-			FontColor: parseColor(titleTextStyle.Color),
-			FontSize:  titleTextStyle.FontSize,
+func (et *EChartsTextStyle) ToStyle() chart.Style {
+	s := chart.Style{
+		FontSize:  et.FontSize,
+		FontColor: parseColor(et.Color),
+	}
+	if et.FontFamily != "" {
+		s.Font, _ = GetFont(et.FontFamily)
+	}
+	return s
+}
+
+type EChartsOption struct {
+	Type       string         `json:"type"`
+	Theme      string         `json:"theme"`
+	FontFamily string         `json:"fontFamily"`
+	Padding    EChartsPadding `json:"padding"`
+	Box        chart.Box      `json:"box"`
+	Width      int            `json:"width"`
+	Height     int            `json:"height"`
+	Title      struct {
+		Text         string           `json:"text"`
+		Subtext      string           `json:"subtext"`
+		Left         EChartsPosition  `json:"left"`
+		Top          EChartsPosition  `json:"top"`
+		TextStyle    EChartsTextStyle `json:"textStyle"`
+		SubtextStyle EChartsTextStyle `json:"subtextStyle"`
+	} `json:"title"`
+	XAxis    EChartsXAxis      `json:"xAxis"`
+	YAxis    EChartsYAxis      `json:"yAxis"`
+	Legend   EChartsLegend     `json:"legend"`
+	Series   EChartsSeriesList `json:"series"`
+	Children []EChartsOption   `json:"children"`
+}
+
+func (eo *EChartsOption) ToOption() ChartOption {
+	fontFamily := eo.FontFamily
+	if len(fontFamily) == 0 {
+		fontFamily = eo.Title.TextStyle.FontFamily
+	}
+	o := ChartOption{
+		Type:       eo.Type,
+		FontFamily: fontFamily,
+		Theme:      eo.Theme,
+		Title: TitleOption{
+			Text:         eo.Title.Text,
+			Subtext:      eo.Title.Subtext,
+			Style:        eo.Title.TextStyle.ToStyle(),
+			SubtextStyle: eo.Title.SubtextStyle.ToStyle(),
+			Left:         string(eo.Title.Left),
+			Top:          string(eo.Title.Top),
 		},
+		Legend: LegendOption{
+			Show:   eo.Legend.Show,
+			Style:  eo.Legend.TextStyle.ToStyle(),
+			Data:   eo.Legend.Data,
+			Left:   string(eo.Legend.Left),
+			Top:    string(eo.Legend.Top),
+			Align:  eo.Legend.Align,
+			Orient: eo.Legend.Orient,
+		},
+		Width:      eo.Width,
+		Height:     eo.Height,
+		Padding:    eo.Padding.Box,
+		Box:        eo.Box,
+		SeriesList: eo.Series.ToSeriesList(),
 	}
-	if e.Title.TextStyle.FontFamily != "" {
-		// 如果获取字体失败忽略
-		o.Font, _ = GetFont(e.Title.TextStyle.FontFamily)
-	}
-
-	if titleTextStyle.FontSize != 0 && titleTextStyle.Height > titleTextStyle.FontSize {
-		padding := int(titleTextStyle.Height-titleTextStyle.FontSize) / 2
-		o.Title.Style.Padding.Top = padding
-		o.Title.Style.Padding.Bottom = padding
-	}
-
-	boundaryGap := false
-	if len(e.XAxis.Data) != 0 {
-		xAxis := e.XAxis.Data[0]
-		o.XAxis = XAxis{
-			Data:        xAxis.Data,
-			SplitNumber: xAxis.SplitNumber,
+	if len(eo.XAxis.Data) != 0 {
+		xAxisData := eo.XAxis.Data[0]
+		o.XAxis = XAxisOption{
+			BoundaryGap: xAxisData.BoundaryGap,
+			Data:        xAxisData.Data,
+			SplitNumber: xAxisData.SplitNumber,
 		}
-		if xAxis.BoundaryGap == nil || *xAxis.BoundaryGap {
-			boundaryGap = true
+	}
+	yAxisOptions := make([]YAxisOption, len(eo.YAxis.Data))
+	for index, item := range eo.YAxis.Data {
+		yAxisOptions[index] = YAxisOption{
+			Min:       item.Min,
+			Max:       item.Max,
+			Formatter: item.AxisLabel.Formatter,
+			Color:     parseColor(item.AxisLine.LineStyle.Color),
 		}
 	}
+	o.YAxisList = yAxisOptions
 
-	o.Legend = Legend{
-		Data:    e.Legend.Data,
-		Align:   e.Legend.Align,
-		Padding: e.Legend.Padding.box,
-		Left:    string(e.Legend.Left),
-		Right:   string(e.Legend.Right),
-	}
-	if len(e.YAxis.Data) != 0 {
-		yAxisOptions := make([]*YAxisOption, len(e.YAxis.Data))
-		for index, item := range e.YAxis.Data {
-			opt := &YAxisOption{
-				Max: item.Max,
-				Min: item.Min,
-			}
-			template := item.AxisLabel.Formatter
-			if template != "" {
-				opt.Formater = func(v interface{}) string {
-					str := defaultFloatFormater(v)
-					return strings.ReplaceAll(template, "{value}", str)
-				}
-			}
-			yAxisOptions[index] = opt
+	if len(eo.Children) != 0 {
+		o.Children = make([]ChartOption, len(eo.Children))
+		for index, item := range eo.Children {
+			o.Children[index] = item.ToOption()
 		}
-		o.YAxisOptions = yAxisOptions
 	}
-
-	series, tickPosition := convertEChartsSeries(e)
-
-	o.Series = series
-
-	if boundaryGap {
-		tickPosition = chart.TickPositionBetweenTicks
-	}
-	o.TickPosition = tickPosition
 	return o
 }
 
-func ParseECharsOptions(options string) (Options, error) {
-	e := ECharsOptions{}
-	err := json.Unmarshal([]byte(options), &e)
-	if err != nil {
-		return Options{}, err
-	}
-
-	return e.ToOptions(), nil
-}
-
-func echartsRender(options string, rp chart.RendererProvider) ([]byte, error) {
-	o, err := ParseECharsOptions(options)
+func renderEcharts(options, outputType string) ([]byte, error) {
+	o := EChartsOption{}
+	err := json.Unmarshal([]byte(options), &o)
 	if err != nil {
 		return nil, err
 	}
-	g, err := New(o)
+	opt := o.ToOption()
+	opt.Type = outputType
+	d, err := Render(opt)
 	if err != nil {
 		return nil, err
 	}
-	return render(g, rp)
+	return d.Bytes()
 }
 
 func RenderEChartsToPNG(options string) ([]byte, error) {
-	return echartsRender(options, chart.PNG)
+	return renderEcharts(options, "png")
 }
 
 func RenderEChartsToSVG(options string) ([]byte, error) {
-	return echartsRender(options, chart.SVG)
+	return renderEcharts(options, "svg")
 }

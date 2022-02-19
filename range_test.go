@@ -1,6 +1,6 @@
 // MIT License
 
-// Copyright (c) 2021 Tree Xie
+// Copyright (c) 2022 Tree Xie
 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -23,55 +23,72 @@
 package charts
 
 import (
-	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
 func TestRange(t *testing.T) {
 	assert := assert.New(t)
 
+	r := NewRange(0, 8, 6)
+	assert.Equal(0.0, r.Min)
+	assert.Equal(12.0, r.Max)
+
+	r = NewRange(0, 12, 6)
+	assert.Equal(0.0, r.Min)
+	assert.Equal(24.0, r.Max)
+
+	r = NewRange(-13, 18, 6)
+	assert.Equal(-20.0, r.Min)
+	assert.Equal(40.0, r.Max)
+
+	r = NewRange(0, 150, 6)
+	assert.Equal(0.0, r.Min)
+	assert.Equal(180.0, r.Max)
+
+	r = NewRange(0, 400, 6)
+	assert.Equal(0.0, r.Min)
+	assert.Equal(480.0, r.Max)
+}
+
+func TestRangeHeightWidth(t *testing.T) {
+	assert := assert.New(t)
+	r := NewRange(0, 8, 6)
+	r.Size = 100
+
+	assert.Equal(33, r.getHeight(4))
+	assert.Equal(67, r.getRestHeight(4))
+
+	assert.Equal(33, r.getWidth(4))
+	r.Boundary = true
+	assert.Equal(41, r.getWidth(4))
+}
+
+func TestRangeGetRange(t *testing.T) {
+	assert := assert.New(t)
+	r := NewRange(0, 8, 6)
+	r.Size = 120
+
+	f1, f2 := r.GetRange(0)
+	assert.Equal(0.0, f1)
+	assert.Equal(20.0, f2)
+
+	f1, f2 = r.GetRange(2)
+	assert.Equal(40.0, f1)
+	assert.Equal(60.0, f2)
+}
+
+func TestRangeAutoDivide(t *testing.T) {
+	assert := assert.New(t)
+
 	r := Range{
-		ContinuousRange: chart.ContinuousRange{
-			Min:    0,
-			Max:    5,
-			Domain: 500,
-		},
+		Size:        120,
+		divideCount: 6,
 	}
 
-	assert.Equal(100, r.Translate(1))
+	assert.Equal([]int{0, 20, 40, 60, 80, 100, 120}, r.AutoDivide())
 
-	r.TickPosition = chart.TickPositionBetweenTicks
-	assert.Equal(50, r.Translate(1))
-}
-
-func TestHiddenRange(t *testing.T) {
-	assert := assert.New(t)
-	r := HiddenRange{}
-
-	assert.Equal(float64(0), r.GetDelta())
-}
-
-func TestYContinuousRange(t *testing.T) {
-	assert := assert.New(t)
-	r := YContinuousRange{}
-	r.Min = -math.MaxFloat64
-	r.Max = math.MaxFloat64
-
-	assert.True(r.IsZero())
-
-	r.SetMin(1.0)
-	assert.Equal(1.0, r.GetMin())
-	// 再次设置无效
-	r.SetMin(2.0)
-	assert.Equal(1.0, r.GetMin())
-
-	r.SetMax(5.0)
-	// *1.2
-	assert.Equal(6.0, r.GetMax())
-	// 再次设置无效
-	r.SetMax(10.0)
-	assert.Equal(6.0, r.GetMax())
+	r.Size = 130
+	assert.Equal([]int{0, 22, 44, 66, 88, 109, 130}, r.AutoDivide())
 }

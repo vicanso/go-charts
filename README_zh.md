@@ -8,7 +8,9 @@
 `Apache ECharts`在前端开发中得到众多开发者的认可，因此`go-charts`提供了兼容`Apache ECharts`的配置参数，简单快捷的生成相似的图表(`svg`或`png`)，方便插入至Email或分享使用。下面为常用的图表截图(主题为light与grafana)：
 
 
-![go-charts](./assets/go-charts.png)
+<p align="center">
+    <img src="./assets/go-charts.png" alt="go-charts">
+</p>
 
 ## 支持图表类型
 
@@ -117,18 +119,18 @@ func main() {
 
 ## ECharts参数说明
 
-标记为[非echarts配置]的参数为新增参数，可根据实际使用场景添加。
+名称有[]的参数非echarts的原有参数，为`go-charts`的新增参数，可根据实际使用场景添加。
 
-- `type` 画布类型，支持`svg`与`png`，默认为`svg`
-- `theme` 颜色主题，支持`dark`、`light`以及`grafana`模式，默认为`light`
-- `fontFamily` 字体，全局的字体设置[非echarts配置]
-- `padding` 图表的内边距，单位px。支持以下几种模式的设置[非echarts配置]
+- `[type]` 画布类型，支持`svg`与`png`，默认为`svg`
+- `[theme]` 颜色主题，支持`dark`、`light`以及`grafana`模式，默认为`light`
+- `[fontFamily]` 字体，全局的字体设置
+- `[padding]` 图表的内边距，单位px。支持以下几种模式的设置
   - `padding: 5` 设置内边距为5
   - `padding: [5, 10]` 设置上下的内边距为 5，左右的内边距为 10
   - `padding:[5, 10, 5, 10]` 分别设置`上右下左`边距
-- `box` 图表的区域，以{"left": Int, "right": Int, "top": Int, "bottom": Int}的形式配置，[非echarts配置]
-- `width` 画布宽度，默认为600[非echarts配置]
-- `height` 画布高度，默认为400[非echarts配置]
+- `[box]` 图表的区域，以{"left": Int, "right": Int, "top": Int, "bottom": Int}的形式配置
+- `[width]` 画布宽度，默认为600
+- `[height]` 画布高度，默认为400
 - `title` 图表标题，包括标题内容、高度、颜色等
   - `title.text` 标题文本，支持以`\n`的形式换行
   - `title.subtext` 副标题文本，支持以`\n`的形式换行
@@ -170,7 +172,7 @@ func main() {
   - `series.data` 数据项对应的数据数组，支持以下形式的数据：
     - `数值` 常用形式，数组数据为浮点数组，如[1.1, 2,3, 5.2]
     - `结构体` pie图表或bar图表中指定样式使用，如[{"value": 1048, "name": "Search Engine"},{"value": 735,"name": "Direct"}]
-- `children` 嵌套的子图表参数列表，图表支持嵌套的形式非echarts配置]
+- `[children]` 嵌套的子图表参数列表，图表支持嵌套的形式=
 
 ## 性能
 

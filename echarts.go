@@ -128,9 +128,9 @@ type EChartsYAxisData struct {
 	AxisLabel EChartsAxisLabel `json:"axisLabel"`
 	AxisLine  struct {
 		LineStyle struct {
-			Color string
-		}
-	}
+			Color string `json:"color"`
+		} `json:"lineStyle"`
+	} `json:"axisLine"`
 }
 type EChartsYAxis struct {
 	Data []EChartsYAxisData `json:"data"`

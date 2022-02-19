@@ -209,11 +209,33 @@ type EChartsLegend struct {
 	TextStyle EChartsTextStyle `json:"textStyle"`
 }
 
+type EChartsMarkData struct {
+	Type string `json:"type"`
+}
+type _EChartsMarkData EChartsMarkData
+
+func (emd *EChartsMarkData) UnmarshalJSON(data []byte) error {
+	data = bytes.TrimSpace(data)
+	if len(data) == 0 {
+		return nil
+	}
+	data = convertToArray(data)
+	ds := make([]*_EChartsMarkData, 0)
+	err := json.Unmarshal(data, &ds)
+	if err != nil {
+		return err
+	}
+	for _, d := range ds {
+		if d.Type != "" {
+			emd.Type = d.Type
+		}
+	}
+	return nil
+}
+
 type EChartsMarkPoint struct {
-	SymbolSize int `json:"symbolSize"`
-	Data       []struct {
-		Type string `json:"type"`
-	} `json:"data"`
+	SymbolSize int               `json:"symbolSize"`
+	Data       []EChartsMarkData `json:"data"`
 }
 
 func (emp *EChartsMarkPoint) ToSeriesMarkPoint() SeriesMarkPoint {

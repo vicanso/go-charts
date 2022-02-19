@@ -330,6 +330,20 @@ func TestEChartsSeries(t *testing.T) {
 	}, esList)
 }
 
+func TestEChartsMarkData(t *testing.T) {
+	assert := assert.New(t)
+
+	emd := EChartsMarkData{}
+	err := emd.UnmarshalJSON([]byte(`{"type": "average"}`))
+	assert.Nil(err)
+	assert.Equal("average", emd.Type)
+
+	emd = EChartsMarkData{}
+	err = emd.UnmarshalJSON([]byte(`[{}, {"type": "average"}]`))
+	assert.Nil(err)
+	assert.Equal("average", emd.Type)
+}
+
 func TestEChartsMarkPoint(t *testing.T) {
 	assert := assert.New(t)
 

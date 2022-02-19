@@ -76,7 +76,7 @@ type EChartsSeriesData struct {
 }
 type _EChartsSeriesData EChartsSeriesData
 
-var numericRep = regexp.MustCompile(`^[-+]?[0-9]+(?:\\.[0-9]+)?$`)
+var numericRep = regexp.MustCompile(`^[-+]?[0-9]+(?:\.[0-9]+)?$`)
 
 func (es *EChartsSeriesData) UnmarshalJSON(data []byte) error {
 	data = bytes.TrimSpace(data)

@@ -257,6 +257,13 @@ func TestEChartsSeriesData(t *testing.T) {
 	}, esd)
 
 	esd = EChartsSeriesData{}
+	err = esd.UnmarshalJSON([]byte(`2.1`))
+	assert.Nil(err)
+	assert.Equal(EChartsSeriesData{
+		Value: 2.1,
+	}, esd)
+
+	esd = EChartsSeriesData{}
 	err = esd.UnmarshalJSON([]byte(`{
 		"value": 123.12,
 		"name": "test",

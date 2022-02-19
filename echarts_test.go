@@ -165,7 +165,8 @@ func TestEChartsPadding(t *testing.T) {
 
 	ep := EChartsPadding{}
 
-	ep.UnmarshalJSON([]byte(`10`))
+	err := ep.UnmarshalJSON([]byte(`10`))
+	assert.Nil(err)
 	assert.Equal(EChartsPadding{
 		Box: chart.Box{
 			Top:    10,
@@ -176,7 +177,8 @@ func TestEChartsPadding(t *testing.T) {
 	}, ep)
 
 	ep = EChartsPadding{}
-	ep.UnmarshalJSON([]byte(`[10, 20]`))
+	err = ep.UnmarshalJSON([]byte(`[10, 20]`))
+	assert.Nil(err)
 	assert.Equal(EChartsPadding{
 		Box: chart.Box{
 			Top:    10,
@@ -187,7 +189,8 @@ func TestEChartsPadding(t *testing.T) {
 	}, ep)
 
 	ep = EChartsPadding{}
-	ep.UnmarshalJSON([]byte(`[10, 20, 30]`))
+	err = ep.UnmarshalJSON([]byte(`[10, 20, 30]`))
+	assert.Nil(err)
 	assert.Equal(EChartsPadding{
 		Box: chart.Box{
 			Top:    10,
@@ -198,7 +201,8 @@ func TestEChartsPadding(t *testing.T) {
 	}, ep)
 
 	ep = EChartsPadding{}
-	ep.UnmarshalJSON([]byte(`[10, 20, 30, 40]`))
+	err = ep.UnmarshalJSON([]byte(`[10, 20, 30, 40]`))
+	assert.Nil(err)
 	assert.Equal(EChartsPadding{
 		Box: chart.Box{
 			Top:    10,

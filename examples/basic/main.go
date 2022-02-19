@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -15,7 +16,7 @@ func writeFile(file string, buf []byte) error {
 	}
 
 	file = filepath.Join(tmpPath, file)
-	err = os.WriteFile(file, buf, 0600)
+	err = ioutil.WriteFile(file, buf, 0600)
 	if err != nil {
 		return err
 	}

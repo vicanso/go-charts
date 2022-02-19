@@ -4,6 +4,7 @@
 [![Build Status](https://github.com/vicanso/go-charts/workflows/Test/badge.svg)](https://github.com/vicanso/go-charts/actions)
 
 `go-charts`基于[go-chart](https://github.com/wcharczuk/go-chart)生成数据图表，支持`svg`与`png`两种方式的输出，支持三种主题`light`, `dark`以及`grafana`。
+
 `Apache ECharts`在前端开发中得到众多开发者的认可，因此`go-charts`提供了兼容`Apache ECharts`的配置参数，简单快捷的生成相似的图表(`svg`或`png`)，方便插入至Email或分享使用。下面为常用的图表截图(主题为light与grafana)：
 
 
@@ -162,6 +163,11 @@ func main() {
   - `series.label.distance` 距离图形元素的距离
   - `series.label.color` 文本标签的颜色
   - `series.itemStyle.color` 该数据项展示时使用的颜色
+  - `series.markPoint` 图表的标注配置
+  - `series.markPoint.symbolSize` 标注的大小，默认为30
+  - `series.markPoint.data` 标注类型，仅支持数组形式，其类型只支持`max`与`min`，如：`[{"type": "max"}, {"type": "min"}]
+  - `series.markLine` 图表的标线配置 
+  - `series.markPoint.data` 标线类型，仅支持数组形式，其类型只支持`max`、`min`以及`average`，如：`[{"type": "max"}, {"type": "min"}, {"type": "average"}]
   - `series.data` 数据项对应的数据数组，支持以下形式的数据：
     - `数值` 常用形式，数组数据为浮点数组，如[1.1, 2,3, 5.2]
     - `结构体` pie图表或bar图表中指定样式使用，如[{"value": 1048, "name": "Search Engine"},{"value": 735,"name": "Direct"}]

@@ -98,7 +98,7 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 		})
 		divideValues := xRange.AutoDivide()
 		for j, item := range series.Data {
-			if j >= len(divideValues) {
+			if j >= xRange.divideCount {
 				continue
 			}
 			x := divideValues[j]

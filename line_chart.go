@@ -63,7 +63,7 @@ func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]markPoin
 		seriesColor := theme.GetSeriesColor(index)
 
 		yRange := result.getYRange(series.YAxisIndex)
-		points := make([]Point, len(series.Data))
+		points := make([]Point, 0, len(series.Data))
 		// mark line
 		markLineRender(markLineRenderOption{
 			Draw:        d,
@@ -76,12 +76,15 @@ func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]markPoin
 		})
 
 		for j, item := range series.Data {
+			if j >= xRange.divideCount {
+				continue
+			}
 			y := yRange.getRestHeight(item.Value)
 			x := xRange.getWidth(float64(j))
-			points[j] = Point{
+			points = append(points, Point{
 				Y: y,
 				X: x,
-			}
+			})
 			if !series.Label.Show {
 				continue
 			}

@@ -247,18 +247,14 @@ func (emp *EChartsMarkPoint) ToSeriesMarkPoint() SeriesMarkPoint {
 	}
 	data := make([]SeriesMarkData, len(emp.Data))
 	for index, item := range emp.Data {
-		data[index] = SeriesMarkData{
-			Type: item.Type,
-		}
+		data[index].Type = item.Type
 	}
 	sp.Data = data
 	return sp
 }
 
 type EChartsMarkLine struct {
-	Data []struct {
-		Type string `json:"type"`
-	} `json:"data"`
+	Data []EChartsMarkData `json:"data"`
 }
 
 func (eml *EChartsMarkLine) ToSeriesMarkLine() SeriesMarkLine {
@@ -268,9 +264,7 @@ func (eml *EChartsMarkLine) ToSeriesMarkLine() SeriesMarkLine {
 	}
 	data := make([]SeriesMarkData, len(eml.Data))
 	for index, item := range eml.Data {
-		data[index] = SeriesMarkData{
-			Type: item.Type,
-		}
+		data[index].Type = item.Type
 	}
 	sl.Data = data
 	return sl

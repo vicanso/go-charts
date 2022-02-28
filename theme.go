@@ -29,6 +29,7 @@ import (
 const ThemeDark = "dark"
 const ThemeLight = "light"
 const ThemeGrafana = "grafana"
+const ThemeAnt = "ant"
 
 type Theme struct {
 	palette *themeColorPalette
@@ -66,6 +67,16 @@ func init() {
 		parseColor("#1F78C1"),
 		parseColor("#705DA0"),
 		parseColor("#508642"),
+	}
+	antSeriesColors := []drawing.Color{
+		parseColor("#5b8ff9"),
+		parseColor("#5ad8a6"),
+		parseColor("#5d7092"),
+		parseColor("#f6bd16"),
+		parseColor("#6f5ef9"),
+		parseColor("#6dc8ec"),
+		parseColor("#945fb9"),
+		parseColor("#ff9845"),
 	}
 	AddTheme(
 		ThemeDark,
@@ -120,6 +131,30 @@ func init() {
 			A: 255,
 		},
 		echartSeriesColors,
+	)
+	AddTheme(
+		ThemeAnt,
+		false,
+		drawing.Color{
+			R: 110,
+			G: 112,
+			B: 121,
+			A: 255,
+		},
+		drawing.Color{
+			R: 224,
+			G: 230,
+			B: 242,
+			A: 255,
+		},
+		drawing.ColorWhite,
+		drawing.Color{
+			R: 70,
+			G: 70,
+			B: 70,
+			A: 255,
+		},
+		antSeriesColors,
 	)
 	AddTheme(
 		ThemeGrafana,

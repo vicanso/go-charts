@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -167,4 +168,48 @@ func parseColor(color string) drawing.Color {
 		}
 	}
 	return c
+}
+
+const defaultRadiusPercent = 0.4
+
+func getRadius(diameter float64, radiusValue string) float64 {
+	var radius float64
+	if len(radiusValue) != 0 {
+		v := convertPercent(radiusValue)
+		if v != -1 {
+			radius = float64(diameter) * v
+		} else {
+			radius, _ = strconv.ParseFloat(radiusValue, 64)
+		}
+	}
+	if radius <= 0 {
+		radius = float64(diameter) * defaultRadiusPercent
+	}
+	return radius
+}
+
+func getPolygonPointAngles(sides int) []float64 {
+	angles := make([]float64, sides)
+	for i := 0; i < sides; i++ {
+		angle := 2*math.Pi/float64(sides)*float64(i) - (math.Pi / 2)
+		angles[i] = angle
+	}
+	return angles
+}
+
+func getPolygonPoint(center Point, radius, angle float64) Point {
+	x := center.X + int(radius*math.Cos(angle))
+	y := center.Y + int(radius*math.Sin(angle))
+	return Point{
+		X: x,
+		Y: y,
+	}
+}
+
+func getPolygonPoints(center Point, radius float64, sides int) []Point {
+	points := make([]Point, sides)
+	for i, angle := range getPolygonPointAngles(sides) {
+		points[i] = getPolygonPoint(center, radius, angle)
+	}
+	return points
 }

@@ -309,3 +309,16 @@ func (d *Draw) setBackground(width, height int, color drawing.Color) {
 	r.LineTo(0, 0)
 	r.FillStroke()
 }
+
+func (d *Draw) polygon(center Point, radius float64, sides int) {
+	points := getPolygonPoints(center, radius, sides)
+	for i, p := range points {
+		if i == 0 {
+			d.moveTo(p.X, p.Y)
+		} else {
+			d.lineTo(p.X, p.Y)
+		}
+	}
+	d.lineTo(points[0].X, points[0].Y)
+	d.Render.Stroke()
+}

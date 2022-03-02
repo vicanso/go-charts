@@ -70,6 +70,14 @@ func TestAutoDivide(t *testing.T) {
 	}, autoDivide(600, 7))
 }
 
+func TestGetRadius(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.Equal(50.0, getRadius(100, "50%"))
+	assert.Equal(30.0, getRadius(100, "30"))
+	assert.Equal(40.0, getRadius(100, ""))
+}
+
 func TestMeasureTextMaxWidthHeight(t *testing.T) {
 	assert := assert.New(t)
 	r, err := chart.SVG(400, 300)

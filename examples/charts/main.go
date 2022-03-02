@@ -496,6 +496,66 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				Radius: "35%",
 			}),
 		},
+		// 雷达图
+		{
+			Title: charts.TitleOption{
+				Text: "Basic Radar Chart",
+			},
+			Legend: charts.NewLegendOption([]string{
+				"Allocated Budget",
+				"Actual Spending",
+			}),
+			RadarIndicators: []charts.RadarIndicator{
+				{
+					Name: "Sales",
+					Max:  6500,
+				},
+				{
+					Name: "Administration",
+					Max:  16000,
+				},
+				{
+					Name: "Information Technology",
+					Max:  30000,
+				},
+				{
+					Name: "Customer Support",
+					Max:  38000,
+				},
+				{
+					Name: "Development",
+					Max:  52000,
+				},
+				{
+					Name: "Marketing",
+					Max:  25000,
+				},
+			},
+			SeriesList: charts.SeriesList{
+				{
+					Type: charts.ChartTypeRadar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						4200,
+						3000,
+						20000,
+						35000,
+						50000,
+						18000,
+					}),
+				},
+				{
+					Type: charts.ChartTypeRadar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						5000,
+						14000,
+						28000,
+						26000,
+						42000,
+						21000,
+					}),
+				},
+			},
+		},
 		// 多图展示
 		{
 			Legend: charts.LegendOption{

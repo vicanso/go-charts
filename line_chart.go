@@ -114,7 +114,7 @@ func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]markPoin
 			StrokeColor:  seriesColor,
 			StrokeWidth:  2,
 			DotColor:     seriesColor,
-			DotWidth:     2,
+			DotWidth:     defaultDotWidth,
 			DotFillColor: dotFillColor,
 		})
 		// draw mark point

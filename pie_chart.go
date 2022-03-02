@@ -24,13 +24,10 @@ package charts
 
 import (
 	"math"
-	"strconv"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 )
-
-const defaultRadiusPercent = 0.4
 
 func getPieStyle(theme *Theme, index int) chart.Style {
 	seriesColor := theme.GetSeriesColor(index)
@@ -45,22 +42,6 @@ type pieChartOption struct {
 	Theme      string
 	Font       *truetype.Font
 	SeriesList SeriesList
-}
-
-func getPieRadius(diameter float64, radiusValue string) float64 {
-	var radius float64
-	if len(radiusValue) != 0 {
-		v := convertPercent(radiusValue)
-		if v != -1 {
-			radius = float64(diameter) * v
-		} else {
-			radius, _ = strconv.ParseFloat(radiusValue, 64)
-		}
-	}
-	if radius <= 0 {
-		radius = float64(diameter) * defaultRadiusPercent
-	}
-	return radius
 }
 
 func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
@@ -95,7 +76,7 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 	cy := box.Height() >> 1
 
 	diameter := chart.MinInt(box.Width(), box.Height())
-	radius := getPieRadius(float64(diameter), radiusValue)
+	radius := getRadius(float64(diameter), radiusValue)
 
 	labelLineWidth := 15
 	if radius < 50 {

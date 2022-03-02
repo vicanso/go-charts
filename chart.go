@@ -33,9 +33,10 @@ import (
 )
 
 const (
-	ChartTypeLine = "line"
-	ChartTypeBar  = "bar"
-	ChartTypePie  = "pie"
+	ChartTypeLine  = "line"
+	ChartTypeBar   = "bar"
+	ChartTypePie   = "pie"
+	ChartTypeRadar = "radar"
 )
 
 const (
@@ -49,6 +50,8 @@ type Point struct {
 }
 
 const labelFontSize = 10
+const defaultDotWidth = 2.0
+const defaultStrokeWidth = 2.0
 
 var defaultChartWidth = 600
 var defaultChartHeight = 400
@@ -82,6 +85,8 @@ type ChartOption struct {
 	Box chart.Box
 	// The series list
 	SeriesList SeriesList
+	// The radar indicator list
+	RadarIndicators []RadarIndicator
 	// The background color of chart
 	BackgroundColor drawing.Color
 	// The child charts
@@ -283,11 +288,14 @@ func Render(opt ChartOption) (*Draw, error) {
 	lineSeries := make([]Series, 0)
 	barSeries := make([]Series, 0)
 	isPieChart := false
+	isRadarChart := false
 	for index, item := range opt.SeriesList {
 		item.index = index
 		switch item.Type {
 		case ChartTypePie:
 			isPieChart = true
+		case ChartTypeRadar:
+			isRadarChart = true
 		case ChartTypeBar:
 			barSeries = append(barSeries, item)
 		default:
@@ -296,7 +304,8 @@ func Render(opt ChartOption) (*Draw, error) {
 	}
 	// 如果指定了pie，则以pie的形式处理，pie不支持多类型图表
 	// pie不需要axis
-	if isPieChart {
+	// radar 同样处理
+	if isPieChart || isRadarChart {
 		opt.XAxis.Hidden = true
 		for index := range opt.YAxisList {
 			opt.YAxisList[index].Hidden = true
@@ -313,12 +322,23 @@ func Render(opt ChartOption) (*Draw, error) {
 			if !isPieChart {
 				return nil
 			}
-			err := pieChartRender(pieChartOption{
+			return pieChartRender(pieChartOption{
 				SeriesList: opt.SeriesList,
 				Theme:      opt.Theme,
 				Font:       opt.Font,
 			}, result)
-			return err
+		},
+		// radar render
+		func() error {
+			if !isRadarChart {
+				return nil
+			}
+			return radarChartRender(radarChartOption{
+				SeriesList: opt.SeriesList,
+				Theme:      opt.Theme,
+				Font:       opt.Font,
+				Indicators: opt.RadarIndicators,
+			}, result)
 		},
 		// bar render
 		func() error {

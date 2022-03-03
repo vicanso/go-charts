@@ -152,6 +152,11 @@ The name with `[]` is new parameter, others are the same as `echarts`.
   - `legend.padding` legend space around content
   - `legend.left` Distance between legend component and the left side of the container. Left value can be instant pixel value like 20; it can also be a percentage value relative to container width like '20%'; and it can also be 'left', 'center', or 'right'.
   - `legend.top` Distance between legend component and the top side of the container. Top value can be instant pixel value like 20
+- `radar` Coordinate for radar charts
+  - `radar.indicator` Indicator of radar chart, which is used to assign multiple variables(dimensions) in radar chart
+    - `radar.indicator.name` Indicator's name
+    - `radar.indicator.max` The maximum value of indicator
+    - `radar.indicator.min` The minimum value of indicator, default value is 0.
 - `series` The series for chart 
   - `series.name` Series name used for displaying in legend.
   - `series.type` Series type: `line`, `bar` or`pie`

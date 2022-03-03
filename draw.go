@@ -322,3 +322,22 @@ func (d *Draw) polygon(center Point, radius float64, sides int) {
 	d.lineTo(points[0].X, points[0].Y)
 	d.Render.Stroke()
 }
+
+func (d *Draw) fill(points []Point, s chart.Style) {
+	if !s.ShouldDrawFill() {
+		return
+	}
+	r := d.Render
+	var x, y int
+	s.GetFillOptions().WriteDrawingOptionsToRenderer(r)
+	for index, point := range points {
+		x = point.X
+		y = point.Y
+		if index == 0 {
+			d.moveTo(x, y)
+		} else {
+			d.lineTo(x, y)
+		}
+	}
+	r.Fill()
+}

@@ -69,10 +69,30 @@ func (es *EChartStyle) ToStyle() chart.Style {
 	}
 }
 
+type EChartsSeriesDataValue struct {
+	values []float64
+}
+
+func (value *EChartsSeriesDataValue) UnmarshalJSON(data []byte) error {
+	data = convertToArray(data)
+	return json.Unmarshal(data, &value.values)
+}
+func (value *EChartsSeriesDataValue) First() float64 {
+	if len(value.values) == 0 {
+		return 0
+	}
+	return value.values[0]
+}
+func NewEChartsSeriesDataValue(values ...float64) EChartsSeriesDataValue {
+	return EChartsSeriesDataValue{
+		values: values,
+	}
+}
+
 type EChartsSeriesData struct {
-	Value     float64     `json:"value"`
-	Name      string      `json:"name"`
-	ItemStyle EChartStyle `json:"itemStyle"`
+	Value     EChartsSeriesDataValue `json:"value"`
+	Name      string                 `json:"name"`
+	ItemStyle EChartStyle            `json:"itemStyle"`
 }
 type _EChartsSeriesData EChartsSeriesData
 
@@ -88,7 +108,11 @@ func (es *EChartsSeriesData) UnmarshalJSON(data []byte) error {
 		if err != nil {
 			return err
 		}
-		es.Value = v
+		es.Value = EChartsSeriesDataValue{
+			values: []float64{
+				v,
+			},
+		}
 		return nil
 	}
 	v := _EChartsSeriesData{}
@@ -291,7 +315,7 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 		if item.Type == ChartTypePie {
 			for _, dataItem := range item.Data {
 				seriesList = append(seriesList, Series{
-					Type: ChartTypePie,
+					Type: item.Type,
 					Name: dataItem.Name,
 					Label: SeriesLabel{
 						Show: true,
@@ -299,9 +323,20 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 					Radius: item.Radius,
 					Data: []SeriesData{
 						{
-							Value: dataItem.Value,
+							Value: dataItem.Value.First(),
 						},
 					},
+				})
+			}
+			continue
+		}
+		// 如果是radar
+		if item.Type == ChartTypeRadar {
+			for _, dataItem := range item.Data {
+				seriesList = append(seriesList, Series{
+					Name: dataItem.Name,
+					Type: item.Type,
+					Data: NewSeriesDataFromValues(dataItem.Value.values),
 				})
 			}
 			continue
@@ -309,7 +344,7 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 		data := make([]SeriesData, len(item.Data))
 		for j, dataItem := range item.Data {
 			data[j] = SeriesData{
-				Value: dataItem.Value,
+				Value: dataItem.Value.First(),
 				Style: dataItem.ItemStyle.ToStyle(),
 			}
 		}
@@ -364,9 +399,12 @@ type EChartsOption struct {
 		TextStyle    EChartsTextStyle `json:"textStyle"`
 		SubtextStyle EChartsTextStyle `json:"subtextStyle"`
 	} `json:"title"`
-	XAxis    EChartsXAxis      `json:"xAxis"`
-	YAxis    EChartsYAxis      `json:"yAxis"`
-	Legend   EChartsLegend     `json:"legend"`
+	XAxis  EChartsXAxis  `json:"xAxis"`
+	YAxis  EChartsYAxis  `json:"yAxis"`
+	Legend EChartsLegend `json:"legend"`
+	Radar  struct {
+		Indicator []RadarIndicator `json:"indicator"`
+	} `json:"radar"`
 	Series   EChartsSeriesList `json:"series"`
 	Children []EChartsOption   `json:"children"`
 }
@@ -397,11 +435,12 @@ func (eo *EChartsOption) ToOption() ChartOption {
 			Align:  eo.Legend.Align,
 			Orient: eo.Legend.Orient,
 		},
-		Width:      eo.Width,
-		Height:     eo.Height,
-		Padding:    eo.Padding.Box,
-		Box:        eo.Box,
-		SeriesList: eo.Series.ToSeriesList(),
+		RadarIndicators: eo.Radar.Indicator,
+		Width:           eo.Width,
+		Height:          eo.Height,
+		Padding:         eo.Padding.Box,
+		Box:             eo.Box,
+		SeriesList:      eo.Series.ToSeriesList(),
 	}
 	if len(eo.XAxis.Data) != 0 {
 		xAxisData := eo.XAxis.Data[0]

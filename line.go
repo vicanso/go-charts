@@ -55,25 +55,23 @@ func (d *Draw) lineFill(points []Point, style LineStyle) {
 	if !(s.ShouldDrawStroke() && s.ShouldDrawFill()) {
 		return
 	}
-	r := d.Render
-	var x, y int
-	s.GetFillOptions().WriteDrawingOptionsToRenderer(r)
-	for index, point := range points {
-		x = point.X
-		y = point.Y
-		if index == 0 {
-			d.moveTo(x, y)
-		} else {
-			d.lineTo(x, y)
-		}
-	}
-	height := d.Box.Height()
-	d.lineTo(x, height)
+
+	newPoints := make([]Point, len(points))
+	copy(newPoints, points)
 	x0 := points[0].X
 	y0 := points[0].Y
-	d.lineTo(x0, height)
-	d.lineTo(x0, y0)
-	r.Fill()
+	height := d.Box.Height()
+	newPoints = append(newPoints, Point{
+		X: points[len(points)-1].X,
+		Y: height,
+	}, Point{
+		X: x0,
+		Y: height,
+	}, Point{
+		X: x0,
+		Y: y0,
+	})
+	d.fill(newPoints, style.Style())
 }
 
 func (d *Draw) lineDot(points []Point, style LineStyle) {

@@ -30,12 +30,13 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-// 线 E0E6F1
-// 填充 rgb(210,219,238) fill-opacity="0.2"
-
 type RadarIndicator struct {
+	// Indicator's name
 	Name string
-	Max  float64
+	// The maximum value of indicator
+	Max float64
+	// The minimum value of indicator
+	Min float64
 }
 
 type radarChartOption struct {
@@ -150,18 +151,19 @@ func radarChartRender(opt radarChartOption, result *basicRenderResult) error {
 	// 雷达图
 	angles := getPolygonPointAngles(sides)
 	maxCount := len(opt.Indicators)
-	for i, series := range opt.SeriesList {
+	for _, series := range opt.SeriesList {
 		linePoints := make([]Point, 0, maxCount)
 		for j, item := range series.Data {
 			if j >= maxCount {
 				continue
 			}
-			percent := item.Value / opt.Indicators[j].Max
+			indicator := opt.Indicators[j]
+			percent := (item.Value - indicator.Min) / (indicator.Max - indicator.Min)
 			r := percent * radius
 			p := getPolygonPoint(center, r, angles[j])
 			linePoints = append(linePoints, p)
 		}
-		color := theme.GetSeriesColor(i)
+		color := theme.GetSeriesColor(series.index)
 		dotFillColor := drawing.ColorWhite
 		if theme.IsDark() {
 			dotFillColor = color
@@ -176,7 +178,7 @@ func radarChartRender(opt radarChartOption, result *basicRenderResult) error {
 			FillColor:    color.WithAlpha(20),
 		}
 		d.lineStroke(linePoints, s)
-		d.lineFill(linePoints, s)
+		d.fill(linePoints, s.Style())
 		d.lineDot(linePoints[0:len(linePoints)-1], s)
 	}
 	return nil

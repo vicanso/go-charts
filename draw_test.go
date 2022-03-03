@@ -409,6 +409,56 @@ func TestDraw(t *testing.T) {
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<circle cx=\"5\" cy=\"30\" r=\"3\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path stroke-dasharray=\"4.0, 2.0\" d=\"\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path stroke-dasharray=\"4.0, 2.0\" d=\"M 10 30\nL 289 30\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path  d=\"M 289 25\nL 305 30\nL 289 35\nL 294 30\nL 289 25\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
+		// polygon
+		{
+			fn: func(d *Draw) {
+				chart.Style{
+					StrokeWidth: 1,
+					StrokeColor: drawing.Color{
+						R: 84,
+						G: 112,
+						B: 198,
+						A: 255,
+					},
+				}.WriteToRenderer(d.Render)
+				d.polygon(Point{
+					X: 100,
+					Y: 100,
+				}, 50, 6)
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 105 60\nL 148 85\nL 148 134\nL 105 160\nL 62 135\nL 62 86\nL 105 60\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:none\"/></svg>",
+		},
+		// fill
+		{
+			fn: func(d *Draw) {
+				d.fill([]Point{
+					{
+						X: 0,
+						Y: 0,
+					},
+					{
+						X: 0,
+						Y: 100,
+					},
+					{
+						X: 100,
+						Y: 100,
+					},
+					{
+						X: 0,
+						Y: 0,
+					},
+				}, chart.Style{
+					FillColor: drawing.Color{
+						R: 84,
+						G: 112,
+						B: 198,
+						A: 255,
+					},
+				})
+			},
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 10\nL 5 110\nL 105 110\nL 5 10\" style=\"stroke-width:0;stroke:none;fill:rgba(84,112,198,1.0)\"/></svg>",
+		},
 	}
 	for _, tt := range tests {
 		d, err := NewDraw(DrawOption{

@@ -253,14 +253,14 @@ func TestEChartsSeriesData(t *testing.T) {
 	err := esd.UnmarshalJSON([]byte(`123`))
 	assert.Nil(err)
 	assert.Equal(EChartsSeriesData{
-		Value: 123,
+		Value: NewEChartsSeriesDataValue(123),
 	}, esd)
 
 	esd = EChartsSeriesData{}
 	err = esd.UnmarshalJSON([]byte(`2.1`))
 	assert.Nil(err)
 	assert.Equal(EChartsSeriesData{
-		Value: 2.1,
+		Value: NewEChartsSeriesDataValue(2.1),
 	}, esd)
 
 	esd = EChartsSeriesData{}
@@ -273,7 +273,7 @@ func TestEChartsSeriesData(t *testing.T) {
 	}`))
 	assert.Nil(err)
 	assert.Equal(EChartsSeriesData{
-		Value: 123.12,
+		Value: NewEChartsSeriesDataValue(123.12),
 		Name:  "test",
 		ItemStyle: EChartStyle{
 			Color: "#aaa",
@@ -308,10 +308,10 @@ func TestEChartsSeries(t *testing.T) {
 			Name: "Email",
 			Data: []EChartsSeriesData{
 				{
-					Value: 120,
+					Value: NewEChartsSeriesDataValue(120),
 				},
 				{
-					Value: 132,
+					Value: NewEChartsSeriesDataValue(132),
 				},
 			},
 		},
@@ -320,10 +320,10 @@ func TestEChartsSeries(t *testing.T) {
 			Type: "bar",
 			Data: []EChartsSeriesData{
 				{
-					Value: 220,
+					Value: NewEChartsSeriesDataValue(220),
 				},
 				{
-					Value: 182,
+					Value: NewEChartsSeriesDataValue(182),
 				},
 			},
 		},
@@ -430,12 +430,20 @@ func TestEChartsSeriesList(t *testing.T) {
 			Radius: "30%",
 			Data: []EChartsSeriesData{
 				{
-					Name:  "1",
-					Value: 1,
+					Name: "1",
+					Value: EChartsSeriesDataValue{
+						values: []float64{
+							1,
+						},
+					},
 				},
 				{
-					Name:  "2",
-					Value: 2,
+					Name: "2",
+					Value: EChartsSeriesDataValue{
+						values: []float64{
+							2,
+						},
+					},
 				},
 			},
 		},
@@ -474,13 +482,13 @@ func TestEChartsSeriesList(t *testing.T) {
 			Type: ChartTypeBar,
 			Data: []EChartsSeriesData{
 				{
-					Value: 1,
+					Value: NewEChartsSeriesDataValue(1),
 					ItemStyle: EChartStyle{
 						Color: "#aaa",
 					},
 				},
 				{
-					Value: 2,
+					Value: NewEChartsSeriesDataValue(2),
 				},
 			},
 			YAxisIndex: 1,
@@ -488,10 +496,10 @@ func TestEChartsSeriesList(t *testing.T) {
 		{
 			Data: []EChartsSeriesData{
 				{
-					Value: 3,
+					Value: NewEChartsSeriesDataValue(3),
 				},
 				{
-					Value: 4,
+					Value: NewEChartsSeriesDataValue(4),
 				},
 			},
 			ItemStyle: EChartStyle{

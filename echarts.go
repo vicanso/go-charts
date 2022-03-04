@@ -330,8 +330,9 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 			}
 			continue
 		}
-		// 如果是radar
-		if item.Type == ChartTypeRadar {
+		// 如果是radar或funnel
+		if item.Type == ChartTypeRadar ||
+			item.Type == ChartTypeFunnel {
 			for _, dataItem := range item.Data {
 				seriesList = append(seriesList, Series{
 					Name: dataItem.Name,

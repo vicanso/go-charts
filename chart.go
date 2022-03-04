@@ -25,6 +25,7 @@ package charts
 import (
 	"errors"
 	"math"
+	"sort"
 	"strings"
 
 	"github.com/golang/freetype/truetype"
@@ -33,10 +34,11 @@ import (
 )
 
 const (
-	ChartTypeLine  = "line"
-	ChartTypeBar   = "bar"
-	ChartTypePie   = "pie"
-	ChartTypeRadar = "radar"
+	ChartTypeLine   = "line"
+	ChartTypeBar    = "bar"
+	ChartTypePie    = "pie"
+	ChartTypeRadar  = "radar"
+	ChartTypeFunnel = "funnel"
 )
 
 const (
@@ -161,10 +163,19 @@ func (o *ChartOption) FillDefault(theme string) {
 	} else {
 		seriesCount := len(o.SeriesList)
 		for index, name := range o.Legend.Data {
-			if index < seriesCount {
+			if index < seriesCount &&
+				len(o.SeriesList[index].Name) == 0 {
 				o.SeriesList[index].Name = name
 			}
 		}
+		nameIndexDict := map[string]int{}
+		for index, name := range o.Legend.Data {
+			nameIndexDict[name] = index
+		}
+		// 保证series的顺序与legend一致
+		sort.Slice(o.SeriesList, func(i, j int) bool {
+			return nameIndexDict[o.SeriesList[i].Name] < nameIndexDict[o.SeriesList[j].Name]
+		})
 	}
 	// 如果无legend数据，则隐藏
 	if len(strings.Join(o.Legend.Data, "")) == 0 {
@@ -289,13 +300,17 @@ func Render(opt ChartOption) (*Draw, error) {
 	barSeries := make([]Series, 0)
 	isPieChart := false
 	isRadarChart := false
-	for index, item := range opt.SeriesList {
-		item.index = index
+	isFunnelChart := false
+	for index := range opt.SeriesList {
+		opt.SeriesList[index].index = index
+		item := opt.SeriesList[index]
 		switch item.Type {
 		case ChartTypePie:
 			isPieChart = true
 		case ChartTypeRadar:
 			isRadarChart = true
+		case ChartTypeFunnel:
+			isFunnelChart = true
 		case ChartTypeBar:
 			barSeries = append(barSeries, item)
 		default:
@@ -305,7 +320,9 @@ func Render(opt ChartOption) (*Draw, error) {
 	// 如果指定了pie，则以pie的形式处理，pie不支持多类型图表
 	// pie不需要axis
 	// radar 同样处理
-	if isPieChart || isRadarChart {
+	if isPieChart ||
+		isRadarChart ||
+		isFunnelChart {
 		opt.XAxis.Hidden = true
 		for index := range opt.YAxisList {
 			opt.YAxisList[index].Hidden = true
@@ -338,6 +355,17 @@ func Render(opt ChartOption) (*Draw, error) {
 				Theme:      opt.Theme,
 				Font:       opt.Font,
 				Indicators: opt.RadarIndicators,
+			}, result)
+		},
+		// funnel render
+		func() error {
+			if !isFunnelChart {
+				return nil
+			}
+			return funnelChartRender(funnelChartOption{
+				SeriesList: opt.SeriesList,
+				Theme:      opt.Theme,
+				Font:       opt.Font,
 			}, result)
 		},
 		// bar render

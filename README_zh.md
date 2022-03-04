@@ -3,7 +3,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/vicanso/go-charts/blob/master/LICENSE)
 [![Build Status](https://github.com/vicanso/go-charts/workflows/Test/badge.svg)](https://github.com/vicanso/go-charts/actions)
 
-`go-charts`基于[go-chart](https://github.com/wcharczuk/go-chart)，更简单方便的形式生成数据图表，支持`svg`与`png`两种方式的输出，支持三种主题`light`, `dark`以及`grafana`。
+`go-charts`基于[go-chart](https://github.com/wcharczuk/go-chart)，更简单方便的形式生成数据图表，支持`svg`与`png`两种方式的输出，支持主题`light`, `dark`, `grafana`以及`ant`。
 
 `Apache ECharts`在前端开发中得到众多开发者的认可，因此`go-charts`提供了兼容`Apache ECharts`的配置参数，简单快捷的生成相似的图表(`svg`或`png`)，方便插入至Email或分享使用。下面为常用的图表截图(主题为light与grafana)：
 
@@ -14,7 +14,7 @@
 
 ## 支持图表类型
 
-暂仅支持三种的图表类型：`line`, `bar` 以及 `pie`
+支持以下的图表类型：`line`, `bar`, `pie`, `radar` 以及 `funnel` 
 
 
 ## 示例
@@ -155,9 +155,14 @@ func main() {
   - `legend.padding` legend的padding，配置方式与图表的`padding`一致
   - `legend.left` legend离容器左侧的距离，其值可以为具体的像素值(20)或百分比(20%)、`left`或者`right`
   - `legend.top` legend离容器顶部的距离，暂仅支持数值形式
+- `radar` 雷达图的坐标系 
+  - `radar.indicator` 雷达图的指示器，用来指定雷达图中的多个变量（维度）
+    - `radar.indicator.name` 指示器名称
+    - `radar.indicator.max` 指示器的最大值，可选，建议设置
+    - `radar.indicator.min` 指示器的最小值，可选，默认为 0
 - `series` 图表的数据项列表
   - `series.name` 图表的名称，与`legend.data`对应，两者只只设置其一
-  - `series.type` 图表的展示类型，暂支持`line`, `bar`以及`pie`，需要注意`pie`只能单独使用
+  - `series.type` 图表的展示类型，暂支持`line`, `bar`, `pie`, `radar` 以及 `funnel`。需要注意只有`line`与`bar`可以混用
   - `series.radius` 饼图的半径值，如`50%`，默认为`40%`
   - `series.yAxisIndex` 该数据项使用的y轴，默认为0，对yAxis的配置对应
   - `series.label.show` 是否显示文本标签(默认为对应的值)

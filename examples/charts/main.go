@@ -556,6 +556,57 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				},
 			},
 		},
+		// 漏斗图
+		{
+			Title: charts.TitleOption{
+				Text: "Funnel",
+			},
+			Legend: charts.NewLegendOption([]string{
+				"Show",
+				"Click",
+				"Visit",
+				"Inquiry",
+				"Order",
+			}),
+			SeriesList: []charts.Series{
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Visit",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						60,
+					}),
+					Max: charts.NewFloatPoint(120),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Inquiry",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						40,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Order",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						20,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Click",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						80,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Show",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						100,
+					}),
+				},
+			},
+		},
 		// 多图展示
 		{
 			Legend: charts.LegendOption{
@@ -1547,6 +1598,91 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 								21000
 							],
 							"name": "Actual Spending"
+						}
+					]
+				}
+			]
+		}`,
+		`{
+			"title": {
+				"text": "Funnel"
+			},
+			"tooltip": {
+				"trigger": "item",
+				"formatter": "{a} <br/>{b} : {c}%"
+			},
+			"toolbox": {
+				"feature": {
+					"dataView": {
+						"readOnly": false
+					},
+					"restore": {},
+					"saveAsImage": {}
+				}
+			},
+			"legend": {
+				"data": [
+					"Show",
+					"Click",
+					"Visit",
+					"Inquiry",
+					"Order"
+				]
+			},
+			"series": [
+				{
+					"name": "Funnel",
+					"type": "funnel",
+					"left": "10%",
+					"top": 60,
+					"bottom": 60,
+					"width": "80%",
+					"min": 0,
+					"max": 100,
+					"minSize": "0%",
+					"maxSize": "100%",
+					"sort": "descending",
+					"gap": 2,
+					"label": {
+						"show": true,
+						"position": "inside"
+					},
+					"labelLine": {
+						"length": 10,
+						"lineStyle": {
+							"width": 1,
+							"type": "solid"
+						}
+					},
+					"itemStyle": {
+						"borderColor": "#fff",
+						"borderWidth": 1
+					},
+					"emphasis": {
+						"label": {
+							"fontSize": 20
+						}
+					},
+					"data": [
+						{
+							"value": 60,
+							"name": "Visit"
+						},
+						{
+							"value": 40,
+							"name": "Inquiry"
+						},
+						{
+							"value": 20,
+							"name": "Order"
+						},
+						{
+							"value": 80,
+							"name": "Click"
+						},
+						{
+							"value": 100,
+							"name": "Show"
 						}
 					]
 				}

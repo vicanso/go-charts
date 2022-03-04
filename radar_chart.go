@@ -51,9 +51,17 @@ func radarChartRender(opt radarChartOption, result *basicRenderResult) error {
 	if sides < 3 {
 		return errors.New("The count of indicator should be >= 3")
 	}
-	for _, indicator := range opt.Indicators {
+	maxValues := make([]float64, len(opt.Indicators))
+	for _, series := range opt.SeriesList {
+		for index, item := range series.Data {
+			if index < len(maxValues) && item.Value > maxValues[index] {
+				maxValues[index] = item.Value
+			}
+		}
+	}
+	for index, indicator := range opt.Indicators {
 		if indicator.Max <= 0 {
-			return errors.New("The max of indicator should be > 0")
+			opt.Indicators[index].Max = maxValues[index]
 		}
 	}
 	d, err := NewDraw(DrawOption{

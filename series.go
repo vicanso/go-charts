@@ -115,6 +115,10 @@ type Series struct {
 	MarkPoint SeriesMarkPoint
 	// Make line for series
 	MarkLine SeriesMarkLine
+	// Max value of series
+	Min *float64
+	// Min value of series
+	Max *float64
 }
 type SeriesList []Series
 

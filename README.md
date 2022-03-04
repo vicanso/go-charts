@@ -5,7 +5,7 @@
 
 [中文](./README_zh.md)
 
-`go-charts` base on [go-chart](https://github.com/wcharczuk/go-chart)，it is simpler way for generating charts, which supports `svg` and `png` format and three themes: `light`, `dark` and `grafana`.
+`go-charts` base on [go-chart](https://github.com/wcharczuk/go-chart)，it is simpler way for generating charts, which supports `svg` and `png` format and themes: `light`, `dark`, `grafana` and `ant`.
 
 `Apache ECharts` is popular among Front-end developers, so `go-charts` supports the option of `Apache ECharts`. Developers can generate charts almost the same as `Apache ECharts`. 
 
@@ -17,7 +17,7 @@ Screenshot of common charts, the left part is light theme, the right part is gra
 
 ## Chart Type
 
-Support three chart types: `line`, `bar` and `pie`.
+These chart types are supported: `line`, `bar`, `pie`, `radar` or `funnel`.
 
 ## Example
 
@@ -159,7 +159,7 @@ The name with `[]` is new parameter, others are the same as `echarts`.
     - `radar.indicator.min` The minimum value of indicator, default value is 0.
 - `series` The series for chart 
   - `series.name` Series name used for displaying in legend.
-  - `series.type` Series type: `line`, `bar` or`pie`
+  - `series.type` Series type: `line`, `bar`, `pie`, `radar` or `funnel`
   - `series.radius` Radius of Pie chart:`50%`, default is `40%`
   - `series.yAxisIndex` Index of y axis to combine with, which is useful for multiple y axes in one chart
   - `series.label.show` Whether to show label

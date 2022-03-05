@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/vicanso/elton v1.8.3
-	github.com/vicanso/go-charts v1.0.1-0.20220305001656-1894670c2a4e
+	github.com/vicanso/go-charts v1.0.1-0.20220305054331-58aa096ae1a7
 )
 
 require (

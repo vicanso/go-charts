@@ -305,6 +305,8 @@ type EChartsSeries struct {
 	Label     EChartsLabelOption `json:"label"`
 	MarkPoint EChartsMarkPoint   `json:"markPoint"`
 	MarkLine  EChartsMarkLine    `json:"markLine"`
+	Max       *float64           `json:"max"`
+	Min       *float64           `json:"min"`
 }
 type EChartsSeriesList []EChartsSeries
 
@@ -338,6 +340,8 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 					Name: dataItem.Name,
 					Type: item.Type,
 					Data: NewSeriesDataFromValues(dataItem.Value.values),
+					Max:  item.Max,
+					Min:  item.Min,
 				})
 			}
 			continue

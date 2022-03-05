@@ -52,7 +52,7 @@ func funnelChartRender(opt funnelChartOption, result *basicRenderResult) error {
 		// 大的数据在前
 		return seriesList[i].Data[0].Value > seriesList[j].Data[0].Value
 	})
-	max := float64(100)
+	max := seriesList[0].Data[0].Value
 	min := float64(0)
 	for _, item := range seriesList {
 		if item.Max != nil {
@@ -76,10 +76,10 @@ func funnelChartRender(opt funnelChartOption, result *basicRenderResult) error {
 	textList := make([]string, len(seriesList))
 	for index, item := range seriesList {
 		value := item.Data[0].Value
-		percent := (item.Data[0].Value - min) / (max - min)
-		w := int(percent * float64(width))
+		widthPercent := (value - min) / (max - min)
+		w := int(widthPercent * float64(width))
 		widthList[index] = w
-		p := humanize.CommafWithDigits(value, 2) + "%"
+		p := humanize.CommafWithDigits(value/max*100, 2) + "%"
 		textList[index] = fmt.Sprintf("%s(%s)", item.Name, p)
 	}
 

@@ -575,7 +575,6 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 					Data: charts.NewSeriesDataFromValues([]float64{
 						60,
 					}),
-					Max: charts.NewFloatPoint(120),
 				},
 				{
 					Type: charts.ChartTypeFunnel,

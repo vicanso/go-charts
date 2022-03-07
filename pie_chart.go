@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"errors"
 	"math"
 
 	"github.com/golang/freetype/truetype"
@@ -67,6 +68,9 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 		}
 		values[index] = value
 		total += value
+	}
+	if total <= 0 {
+		return errors.New("The sum value of pie chart should gt 0")
 	}
 	r := d.Render
 	theme := NewTheme(opt.Theme)

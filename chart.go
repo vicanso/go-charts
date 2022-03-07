@@ -370,8 +370,8 @@ func Render(opt ChartOption) (*Draw, error) {
 		},
 		// bar render
 		func() error {
-			// 如果是pie或者无bar类型的series
-			if isPieChart || len(barSeries) == 0 {
+			// 如果无bar类型的series
+			if len(barSeries) == 0 {
 				return nil
 			}
 			options, err := barChartRender(barChartOption{
@@ -387,8 +387,8 @@ func Render(opt ChartOption) (*Draw, error) {
 		},
 		// line render
 		func() error {
-			// 如果是pie或者无line类型的series
-			if isPieChart || len(lineSeries) == 0 {
+			// 如果无line类型的series
+			if len(lineSeries) == 0 {
 				return nil
 			}
 			options, err := lineChartRender(lineChartOption{
@@ -444,8 +444,8 @@ func chartBasicRender(opt *ChartOption) (*basicRenderResult, error) {
 			Width:  opt.getWidth(),
 			Height: opt.getHeight(),
 		},
-		PaddingOption(opt.Padding),
 		BoxOption(opt.Box),
+		PaddingOption(opt.Padding),
 	)
 	if err != nil {
 		return nil, err

@@ -66,7 +66,7 @@ func TestNewSeriesDataFromValues(t *testing.T) {
 func TestNewPieSeriesList(t *testing.T) {
 	assert := assert.New(t)
 
-	assert.Equal([]Series{
+	assert.Equal(SeriesList{
 		{
 			Type: ChartTypePie,
 			Name: "a",

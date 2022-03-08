@@ -283,7 +283,10 @@ func (r *basicRenderResult) getYRange(index int) *Range {
 }
 
 // Render renders the chart by option
-func Render(opt ChartOption) (*Draw, error) {
+func Render(opt ChartOption, optFuncs ...OptionFunc) (*Draw, error) {
+	for _, optFunc := range optFuncs {
+		optFunc(&opt)
+	}
 	if len(opt.SeriesList) == 0 {
 		return nil, errors.New("series can not be nil")
 	}

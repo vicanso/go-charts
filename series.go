@@ -128,7 +128,7 @@ type PieSeriesOption struct {
 	Names  []string
 }
 
-func NewPieSeriesList(values []float64, opts ...PieSeriesOption) []Series {
+func NewPieSeriesList(values []float64, opts ...PieSeriesOption) SeriesList {
 	result := make([]Series, len(values))
 	var opt PieSeriesOption
 	if len(opts) != 0 {

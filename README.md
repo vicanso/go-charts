@@ -49,12 +49,25 @@ func writeFile(file string, buf []byte) error {
 }
 
 func chartsRender() ([]byte, error) {
-	d, err := charts.Render(charts.ChartOption{
-		Type: charts.ChartOutputPNG,
-		Title: charts.TitleOption{
-			Text: "Line",
+	d, err := charts.LineRender([][]float64{
+		{
+			150,
+			230,
+			224,
+			218,
+			135,
+			147,
+			260,
 		},
-		XAxis: charts.NewXAxisOption([]string{
+	},
+		// output type
+		charts.PNGTypeOption(),
+		// title
+		charts.TitleOptionFunc(charts.TitleOption{
+			Text: "Line",
+		}),
+		// x axis
+		charts.XAxisOptionFunc(charts.NewXAxisOption([]string{
 			"Mon",
 			"Tue",
 			"Wed",
@@ -62,19 +75,8 @@ func chartsRender() ([]byte, error) {
 			"Fri",
 			"Sat",
 			"Sun",
-		}),
-		SeriesList: charts.SeriesList{
-			charts.NewSeriesFromValues([]float64{
-				150,
-				230,
-				224,
-				218,
-				135,
-				147,
-				260,
-			}),
-		},
-	})
+		})),
+	)
 	if err != nil {
 		return nil, err
 	}

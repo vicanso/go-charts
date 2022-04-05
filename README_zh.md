@@ -119,6 +119,30 @@ func main() {
 }
 ```
 
+## 常用函数
+
+`go-charts`针对常用的几种图表提供了简单的调用方式以及几种常用的Option设置，便捷的生成常用图表。
+
+- `LineRender`: 折线图表，第一个参数为二维浮点数，对应图表中的点，支持不定长的OptionFunc参数，用于指定其它的属性
+- `BarRender`: 柱状图表，第一个参数为二维浮点数，对应柱状图的高度，支持不定长的OptionFunc参数，用于指定其它的属性
+- `PieRender`: 饼图表，第一个参数为浮点数数组，对应各占比，支持不定长的OptionFunc参数，用于指定其它的属性
+- `RadarRender`: 雷达图，第一个参数为二维浮点数，对应雷达图中的各值，支持不定长的OptionFunc参数，用于指定其它的属性
+- `FunnelRender`: 漏斗图，第一个参数为浮点数数组，对应各占比，支持不定长的OptionFunc参数，用于指定其它的属性
+- `PNGTypeOption`: 指定输出PNG
+- `FontFamilyOptionFunc`: 指定使用的字体
+- `ThemeOptionFunc`: 指定使用的主题类型
+- `TitleOptionFunc`: 指定标题相关属性
+- `LegendOptionFunc`: 指定图例相关属性
+- `XAxisOptionFunc`: 指定x轴的相关属性
+- `YAxisOptionFunc`: 指定y轴的相关属性
+- `WidthOptionFunc`: 指定宽度
+- `HeightOptionFunc`: 指定高度
+- `PaddingOptionFunc`: 指定空白填充区域
+- `BoxOptionFunc`: 指定内容区域
+- `ChildOptionFunc`: 指定子图表
+- `RadarIndicatorOptionFunc`: 雷达图指示器相关属性
+- `BackgroundColorOptionFunc`: 设置背景图颜色
+
 ## ECharts参数说明
 
 名称有[]的参数非echarts的原有参数，为`go-charts`的新增参数，可根据实际使用场景添加。

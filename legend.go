@@ -48,7 +48,13 @@ type LegendOption struct {
 	Align string
 	// The layout orientation of legend, it can be horizontal or vertical, default is horizontal.
 	Orient string
+	// Icon of the legend.
+	Icon string
 }
+
+const (
+	LegendIconRect = "rect"
+)
 
 // NewLegendOption creates a new legend option by legend text list
 func NewLegendOption(data []string, position ...string) LegendOption {
@@ -143,18 +149,6 @@ func (l *legend) Render() (chart.Box, error) {
 	}
 	x = left
 	for index, text := range opt.Data {
-		seriesColor := theme.GetSeriesColor(index)
-		fillColor := seriesColor
-		if !theme.IsDark() {
-			fillColor = theme.GetBackgroundColor()
-		}
-		style := chart.Style{
-			StrokeColor: seriesColor,
-			FillColor:   fillColor,
-			StrokeWidth: 3,
-		}
-		style.GetFillAndStrokeOptions().WriteDrawingOptionsToRenderer(r)
-
 		textBox := r.MeasureText(text)
 		var renderText func()
 		if opt.Orient == OrientVertical {
@@ -183,12 +177,36 @@ func (l *legend) Render() (chart.Box, error) {
 		if opt.Align == PositionRight {
 			renderText()
 		}
+		seriesColor := theme.GetSeriesColor(index)
+		fillColor := seriesColor
+		if !theme.IsDark() {
+			fillColor = theme.GetBackgroundColor()
+		}
+		style := chart.Style{
+			StrokeColor: seriesColor,
+			FillColor:   fillColor,
+			StrokeWidth: 3,
+		}
+		if opt.Icon == LegendIconRect {
+			style.FillColor = seriesColor
+			style.StrokeWidth = 1
+		}
+		style.GetFillAndStrokeOptions().WriteDrawingOptionsToRenderer(r)
 
-		legendDraw.moveTo(x, y)
-		legendDraw.lineTo(x+legendWidth, y)
-		r.Stroke()
-		legendDraw.circle(float64(legendDotHeight), x+legendWidth>>1, y)
-		r.FillStroke()
+		if opt.Icon == LegendIconRect {
+			legendDraw.moveTo(x, y-legendDotHeight)
+			legendDraw.lineTo(x+legendWidth, y-legendDotHeight)
+			legendDraw.lineTo(x+legendWidth, y+legendDotHeight)
+			legendDraw.lineTo(x, y+legendDotHeight)
+			legendDraw.lineTo(x, y-legendDotHeight)
+			r.FillStroke()
+		} else {
+			legendDraw.moveTo(x, y)
+			legendDraw.lineTo(x+legendWidth, y)
+			r.Stroke()
+			legendDraw.circle(float64(legendDotHeight), x+legendWidth>>1, y)
+			r.FillStroke()
+		}
 		x += legendWidth
 
 		if opt.Align != PositionRight {

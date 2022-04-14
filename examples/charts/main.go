@@ -235,10 +235,13 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				"Sat",
 				"Sun",
 			}),
-			Legend: charts.NewLegendOption([]string{
-				"Rainfall",
-				"Evaporation",
-			}),
+			Legend: charts.LegendOption{
+				Data: []string{
+					"Rainfall",
+					"Evaporation",
+				},
+				Icon: charts.LegendIconRect,
+			},
 			SeriesList: []charts.Series{
 				charts.NewSeriesFromValues([]float64{
 					120,

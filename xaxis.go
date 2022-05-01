@@ -68,7 +68,9 @@ func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
 			Right: right,
 		}),
 	)
-	dXAxis.Font = opt.Font
+	if opt.Font != nil {
+		dXAxis.Font = opt.Font
+	}
 	if err != nil {
 		return 0, nil, err
 	}

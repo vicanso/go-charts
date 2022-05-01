@@ -96,7 +96,9 @@ func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding ch
 	if err != nil {
 		return nil, err
 	}
-	dYAxis.Font = opt.Font
+	if opt.Font != nil {
+		dYAxis.Font = opt.Font
+	}
 	NewAxis(dYAxis, data, style).Render()
 	yRange.Size = dYAxis.Box.Height()
 	return &yRange, nil

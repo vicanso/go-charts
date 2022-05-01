@@ -23,10 +23,12 @@
 package charts
 
 import (
+	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 )
 
 type XAxisOption struct {
+	Font *truetype.Font
 	// The boundary gap on both sides of a coordinate axis.
 	// Nil or *true means the center part of two axis ticks
 	BoundaryGap *bool
@@ -66,6 +68,7 @@ func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
 			Right: right,
 		}),
 	)
+	dXAxis.Font = opt.Font
 	if err != nil {
 		return 0, nil, err
 	}

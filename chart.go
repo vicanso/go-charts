@@ -190,6 +190,7 @@ func (o *ChartOption) FillDefault(theme string) {
 	if o.XAxis.Theme == "" {
 		o.XAxis.Theme = theme
 	}
+	o.XAxis.Font = o.Font
 }
 
 func (o *ChartOption) getWidth() int {

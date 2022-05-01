@@ -219,3 +219,5 @@ BenchmarkMultiChartSVGRender-8               367           3356325 ns/op        
 
 默认使用的字符为`roboto`为英文字体库，因此如果需要显示中文字符需要增加中文字体库，`InstallFont`函数可添加对应的字体库，成功添加之后则指定`title.textStyle.fontFamily`即可。
 在浏览器中使用`svg`时，如果指定的`fontFamily`不支持中文字符，展示的中文并不会乱码，但是会导致在计算字符宽度等错误。
+
+[中文字库noto-cjk](https://github.com/googlefonts/noto-cjk)

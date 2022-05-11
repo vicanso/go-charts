@@ -475,3 +475,33 @@ func TestDraw(t *testing.T) {
 		assert.Equal(tt.result, string(data))
 	}
 }
+
+func TestDrawTextFit(t *testing.T) {
+	assert := assert.New(t)
+	d, err := NewDraw(DrawOption{
+		Width:  400,
+		Height: 300,
+	})
+	assert.Nil(err)
+	f, _ := chart.GetDefaultFont()
+	style := chart.Style{
+		FontSize:  12,
+		FontColor: chart.ColorBlack,
+		Font:      f,
+	}
+	box := d.textFit("Hello World!", 0, 20, 80, style)
+	assert.Equal(chart.Box{
+		Right:  45,
+		Bottom: 35,
+	}, box)
+
+	box = d.textFit("Hello World!", 0, 100, 200, style)
+	assert.Equal(chart.Box{
+		Right:  84,
+		Bottom: 15,
+	}, box)
+
+	buf, err := d.Bytes()
+	assert.Nil(err)
+	assert.Equal(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="300">\n<text x="0" y="20" style="stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:15.3px;font-family:'Roboto Medium',sans-serif">Hello</text><text x="0" y="40" style="stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:15.3px;font-family:'Roboto Medium',sans-serif">World!</text><text x="0" y="100" style="stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:15.3px;font-family:'Roboto Medium',sans-serif">Hello World!</text></svg>`, string(buf))
+}

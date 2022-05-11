@@ -277,6 +277,35 @@ func (d *Draw) text(body string, x, y int) {
 	d.Render.Text(body, x+d.Box.Left, y+d.Box.Top)
 }
 
+func (d *Draw) textFit(body string, x, y, width int, style chart.Style) chart.Box {
+	style.TextWrap = chart.TextWrapWord
+	r := d.Render
+	lines := chart.Text.WrapFit(r, body, width, style)
+	style.WriteTextOptionsToRenderer(r)
+	var output chart.Box
+
+	for index, line := range lines {
+		x0 := x
+		y0 := y + output.Height()
+		d.text(line, x0, y0)
+		lineBox := r.MeasureText(line)
+		output.Right = chart.MaxInt(lineBox.Right, output.Right)
+		output.Bottom += lineBox.Height()
+		if index < len(lines)-1 {
+			output.Bottom += +style.GetTextLineSpacing()
+		}
+	}
+	return output
+}
+
+func (d *Draw) measureTextFit(body string, x, y, width int, style chart.Style) chart.Box {
+	style.TextWrap = chart.TextWrapWord
+	r := d.Render
+	lines := chart.Text.WrapFit(r, body, width, style)
+	style.WriteTextOptionsToRenderer(r)
+	return chart.Text.MeasureLines(r, lines, style)
+}
+
 func (d *Draw) lineStroke(points []Point, style LineStyle) {
 	s := style.Style()
 	if !s.ShouldDrawStroke() {

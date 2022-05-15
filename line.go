@@ -24,18 +24,17 @@ package charts
 
 import (
 	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 type LineStyle struct {
 	ClassName       string
 	StrokeDashArray []float64
-	StrokeColor     drawing.Color
+	StrokeColor     Color
 	StrokeWidth     float64
-	FillColor       drawing.Color
+	FillColor       Color
 	DotWidth        float64
-	DotColor        drawing.Color
-	DotFillColor    drawing.Color
+	DotColor        Color
+	DotFillColor    Color
 }
 
 func (ls *LineStyle) Style() chart.Style {

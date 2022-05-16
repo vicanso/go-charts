@@ -31,3 +31,34 @@ type Box = chart.Box
 type Renderer = chart.Renderer
 type Style = chart.Style
 type Color = drawing.Color
+
+type Point struct {
+	X int
+	Y int
+}
+
+const (
+	ChartTypeLine   = "line"
+	ChartTypeBar    = "bar"
+	ChartTypePie    = "pie"
+	ChartTypeRadar  = "radar"
+	ChartTypeFunnel = "funnel"
+)
+
+const (
+	ChartOutputSVG = "svg"
+	ChartOutputPNG = "png"
+)
+
+const (
+	PositionLeft   = "left"
+	PositionRight  = "right"
+	PositionCenter = "center"
+	PositionTop    = "top"
+	PositionBottom = "bottom"
+)
+
+const (
+	OrientHorizontal = "horizontal"
+	OrientVertical   = "vertical"
+)

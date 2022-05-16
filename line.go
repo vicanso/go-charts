@@ -22,10 +22,6 @@
 
 package charts
 
-import (
-	"github.com/wcharczuk/go-chart/v2"
-)
-
 type LineStyle struct {
 	ClassName       string
 	StrokeDashArray []float64
@@ -37,8 +33,8 @@ type LineStyle struct {
 	DotFillColor    Color
 }
 
-func (ls *LineStyle) Style() chart.Style {
-	return chart.Style{
+func (ls *LineStyle) Style() Style {
+	return Style{
 		ClassName:       ls.ClassName,
 		StrokeDashArray: ls.StrokeDashArray,
 		StrokeColor:     ls.StrokeColor,
@@ -47,56 +43,4 @@ func (ls *LineStyle) Style() chart.Style {
 		DotWidth:        ls.DotWidth,
 		DotColor:        ls.DotColor,
 	}
-}
-
-func (d *Draw) lineFill(points []Point, style LineStyle) {
-	s := style.Style()
-	if !(s.ShouldDrawStroke() && s.ShouldDrawFill()) {
-		return
-	}
-
-	newPoints := make([]Point, len(points))
-	copy(newPoints, points)
-	x0 := points[0].X
-	y0 := points[0].Y
-	height := d.Box.Height()
-	newPoints = append(newPoints, Point{
-		X: points[len(points)-1].X,
-		Y: height,
-	}, Point{
-		X: x0,
-		Y: height,
-	}, Point{
-		X: x0,
-		Y: y0,
-	})
-	d.fill(newPoints, style.Style())
-}
-
-func (d *Draw) lineDot(points []Point, style LineStyle) {
-	s := style.Style()
-	if !s.ShouldDrawDot() {
-		return
-	}
-	r := d.Render
-	dotWith := s.GetDotWidth()
-
-	s.GetDotOptions().WriteDrawingOptionsToRenderer(r)
-	for _, point := range points {
-		if !style.DotFillColor.IsZero() {
-			r.SetFillColor(style.DotFillColor)
-		}
-		r.SetStrokeColor(s.DotColor)
-		d.circle(dotWith, point.X, point.Y)
-		r.FillStroke()
-	}
-}
-
-func (d *Draw) Line(points []Point, style LineStyle) {
-	if len(points) == 0 {
-		return
-	}
-	d.lineFill(points, style)
-	d.lineStroke(points, style)
-	d.lineDot(points, style)
 }

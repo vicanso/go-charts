@@ -94,7 +94,7 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.Text("hello world!", 3, 6)
 			},
-			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"8\" y=\"16\" style=\"stroke-width:0;stroke:none;fill:none\">hello world!</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"8\" y=\"16\" style=\"stroke-width:0;stroke:none;fill:none;font-family:'Roboto Medium',sans-serif\">hello world!</text></svg>",
 		},
 		// line stroke
 		{

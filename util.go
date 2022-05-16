@@ -134,8 +134,8 @@ func commafWithDigits(value float64) string {
 	return humanize.CommafWithDigits(value, decimals)
 }
 
-func parseColor(color string) drawing.Color {
-	c := drawing.Color{}
+func parseColor(color string) Color {
+	c := Color{}
 	if color == "" {
 		return c
 	}

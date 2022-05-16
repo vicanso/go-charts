@@ -135,6 +135,8 @@ func NewPainter(opts PainterOptions, opt ...PainterOption) (*Painter, error) {
 	if err != nil {
 		return nil, err
 	}
+	r.SetFont(font)
+
 	p := &Painter{
 		render: r,
 		box: Box{
@@ -167,6 +169,9 @@ func (p *Painter) Child(opt ...PainterOption) *Painter {
 }
 
 func (p *Painter) SetStyle(style Style) {
+	if style.Font == nil {
+		style.Font = p.font
+	}
 	p.previousStyle = p.style
 	p.style = style
 	style.WriteToRenderer(p.render)
@@ -179,6 +184,9 @@ func (p *Painter) SetDrawingStyle(style Style) {
 }
 
 func (p *Painter) SetTextStyle(style Style) {
+	if style.Font == nil {
+		style.Font = p.font
+	}
 	p.previousStyle = p.style
 	p.style = style
 	style.WriteTextOptionsToRenderer(p.render)

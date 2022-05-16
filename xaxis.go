@@ -24,7 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
 type XAxisOption struct {
@@ -53,27 +52,19 @@ func NewXAxisOption(data []string, boundaryGap ...*bool) XAxisOption {
 }
 
 // drawXAxis draws x axis, and returns the height, range of if.
-func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
+func drawXAxis(p *Painter, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
 	if opt.Hidden {
 		return 0, nil, nil
 	}
 	left := YAxisWidth
 	right := (yAxisCount - 1) * YAxisWidth
-	dXAxis, err := NewDraw(
-		DrawOption{
-			Parent: p,
-		},
-		PaddingOption(chart.Box{
+	pXAxis := p.Child(
+		PainterPaddingOption(Box{
 			Left:  left,
 			Right: right,
 		}),
+		PainterFontOption(opt.Font),
 	)
-	if opt.Font != nil {
-		dXAxis.Font = opt.Font
-	}
-	if err != nil {
-		return 0, nil, err
-	}
 	theme := NewTheme(opt.Theme)
 	data := NewAxisDataListFromStringList(opt.Data)
 	style := AxisOption{
@@ -90,13 +81,13 @@ func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
 		boundary = false
 		max--
 	}
-	axis := NewAxis(dXAxis, data, style)
+	axis := NewAxis(pXAxis, data, style)
 	axis.Render()
 	return axis.measure().Height, &Range{
 		divideCount: len(opt.Data),
 		Min:         0,
 		Max:         max,
-		Size:        dXAxis.Box.Width(),
+		Size:        pXAxis.Width(),
 		Boundary:    boundary,
 	}, nil
 }

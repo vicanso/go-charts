@@ -38,14 +38,15 @@ type Painter struct {
 	parent        *Painter
 	style         Style
 	previousStyle Style
+	theme         *Theme
 }
 
 type PainterOptions struct {
 	// Draw type, "svg" or "png", default type is "svg"
 	Type string
-	// The width of draw canvas
+	// The width of draw painter
 	Width int
-	// The height of draw canvas
+	// The height of draw painter
 	Height int
 	// The font for painter
 	Font *truetype.Font
@@ -53,7 +54,7 @@ type PainterOptions struct {
 
 type PainterOption func(*Painter)
 
-// PainterPaddingOption sets the padding of draw canvas
+// PainterPaddingOption sets the padding of draw painter
 func PainterPaddingOption(padding Box) PainterOption {
 	return func(p *Painter) {
 		p.box.Left += padding.Left
@@ -63,7 +64,7 @@ func PainterPaddingOption(padding Box) PainterOption {
 	}
 }
 
-// PainterBoxOption sets the box of draw canvas
+// PainterBoxOption sets the box of draw painter
 func PainterBoxOption(box Box) PainterOption {
 	return func(p *Painter) {
 		if box.IsZero() {
@@ -73,21 +74,45 @@ func PainterBoxOption(box Box) PainterOption {
 	}
 }
 
-// PainterFontOption sets the font of draw canvas
+// PainterFontOption sets the font of draw painter
 func PainterFontOption(font *truetype.Font) PainterOption {
 	return func(p *Painter) {
+		if font == nil {
+			return
+		}
 		p.font = font
 	}
 }
 
-// PainterStyleOption sets the style of draw canvas
+// PainterStyleOption sets the style of draw painter
 func PainterStyleOption(style Style) PainterOption {
 	return func(p *Painter) {
 		p.SetDrawingStyle(style)
 	}
 }
 
-// NewPainter creates a new Painter
+// PainterThemeOption sets the theme of draw painter
+func PainterThemeOption(theme *Theme) PainterOption {
+	return func(p *Painter) {
+		if theme == nil {
+			return
+		}
+		p.theme = theme
+	}
+}
+
+func PainterWidthHeightOption(width, height int) PainterOption {
+	return func(p *Painter) {
+		if width > 0 {
+			p.box.Right = p.box.Left + width
+		}
+		if height > 0 {
+			p.box.Bottom = p.box.Top + height
+		}
+	}
+}
+
+// NewPainter creates a new painter
 func NewPainter(opts PainterOptions, opt ...PainterOption) (*Painter, error) {
 	if opts.Width <= 0 || opts.Height <= 0 {
 		return nil, errors.New("width/height can not be nil")
@@ -135,6 +160,7 @@ func (p *Painter) Child(opt ...PainterOption) *Painter {
 		parent:        p,
 		style:         p.style,
 		previousStyle: p.previousStyle,
+		theme:         p.theme,
 	}
 	child.setOptions(opt...)
 	return child
@@ -284,6 +310,22 @@ func (p *Painter) FillStroke() {
 
 func (p *Painter) Fill() {
 	p.render.Fill()
+}
+
+func (p *Painter) Width() int {
+	return p.box.Width()
+}
+
+func (p *Painter) Height() int {
+	return p.box.Height()
+}
+
+func (p *Painter) MeasureText(text string) Box {
+	return p.render.MeasureText(text)
+}
+
+func (p *Painter) SetStrokeColor(color Color) {
+	p.render.SetStrokeColor(color)
 }
 
 func (p *Painter) LineStroke(points []Point, style LineStyle) {

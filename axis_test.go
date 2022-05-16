@@ -207,10 +207,10 @@ func TestAxis(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		d, err := NewDraw(DrawOption{
+		p, err := NewPainter(PainterOptions{
 			Width:  400,
 			Height: 300,
-		}, PaddingOption(chart.Box{
+		}, PainterPaddingOption(chart.Box{
 			Left:   5,
 			Top:    5,
 			Right:  5,
@@ -222,9 +222,9 @@ func TestAxis(t *testing.T) {
 		if tt.newData != nil {
 			data = tt.newData()
 		}
-		NewAxis(d, data, style).Render()
+		NewAxis(p, data, style).Render()
 
-		result, err := d.Bytes()
+		result, err := p.Bytes()
 		assert.Nil(err)
 		assert.Equal(tt.result, string(result))
 	}
@@ -233,7 +233,7 @@ func TestAxis(t *testing.T) {
 func TestMeasureAxis(t *testing.T) {
 	assert := assert.New(t)
 
-	d, err := NewDraw(DrawOption{
+	p, err := NewPainter(PainterOptions{
 		Width:  400,
 		Height: 300,
 	})
@@ -243,14 +243,14 @@ func TestMeasureAxis(t *testing.T) {
 		"Sun",
 	})
 	f, _ := chart.GetDefaultFont()
-	width := NewAxis(d, data, AxisOption{
+	width := NewAxis(p, data, AxisOption{
 		FontSize: 12,
 		Font:     f,
 		Position: PositionLeft,
 	}).measure().Width
 	assert.Equal(44, width)
 
-	height := NewAxis(d, data, AxisOption{
+	height := NewAxis(p, data, AxisOption{
 		FontSize: 12,
 		Font:     f,
 		Position: PositionTop,

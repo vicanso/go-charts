@@ -27,7 +27,6 @@ import (
 
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 type AxisOption struct {
@@ -42,7 +41,7 @@ type AxisOption struct {
 	SplitNumber int
 	ClassName   string
 	// The line color of axis
-	StrokeColor drawing.Color
+	StrokeColor Color
 	// The line width
 	StrokeWidth float64
 	// The length of the axis tick
@@ -56,17 +55,17 @@ type AxisOption struct {
 	// The font of label
 	Font *truetype.Font
 	// The color of label
-	FontColor drawing.Color
+	FontColor Color
 	// The flag for show axis split line, set this to true will show axis split line
 	SplitLineShow bool
 	// The color of split line
-	SplitLineColor drawing.Color
+	SplitLineColor Color
 }
 
 type axis struct {
-	d      *Draw
-	data   *AxisDataList
-	option *AxisOption
+	painter *Painter
+	data    *AxisDataList
+	option  *AxisOption
 }
 type axisMeasurement struct {
 	Width  int
@@ -74,11 +73,11 @@ type axisMeasurement struct {
 }
 
 // NewAxis creates a new axis with data and style options
-func NewAxis(d *Draw, data AxisDataList, option AxisOption) *axis {
+func NewAxis(p *Painter, data AxisDataList, option AxisOption) *axis {
 	return &axis{
-		d:      d,
-		data:   &data,
-		option: &option,
+		painter: p,
+		data:    &data,
+		option:  &option,
 	}
 
 }
@@ -149,17 +148,19 @@ func NewAxisDataListFromStringList(textList []string) AxisDataList {
 func (a *axis) axisLabel(renderOpt *axisRenderOption) {
 	option := a.option
 	data := *a.data
-	d := a.d
+	// d := a.d
 	if option.FontColor.IsZero() || len(data) == 0 {
 		return
 	}
-	r := d.Render
+	// r := d.Render
 
-	s := option.Style(d.Font)
-	s.GetTextOptions().WriteTextOptionsToRenderer(r)
+	// s.GetTextOptions().WriteTextOptionsToRenderer(r)
+	p := a.painter
+	s := option.Style(p.font)
+	p.SetTextStyle(s)
 
-	width := d.Box.Width()
-	height := d.Box.Height()
+	width := p.Width()
+	height := p.Height()
 	textList := data.TextList()
 	count := len(textList)
 
@@ -188,7 +189,7 @@ func (a *axis) axisLabel(renderOpt *axisRenderOption) {
 		reverseIntSlice(values)
 		for index, text := range textList {
 			y := values[index] - 2
-			b := r.MeasureText(text)
+			b := p.MeasureText(text)
 			if boundaryGap {
 				height := y - values[index+1]
 				y -= (height - b.Height()) >> 1
@@ -200,7 +201,7 @@ func (a *axis) axisLabel(renderOpt *axisRenderOption) {
 			if position == PositionLeft {
 				x = labelWidth - b.Width() - 1
 			}
-			d.text(text, x, y)
+			p.Text(text, x, y)
 		}
 	default:
 		// 定位bottom，重新计算y0的定位
@@ -215,7 +216,7 @@ func (a *axis) axisLabel(renderOpt *axisRenderOption) {
 			}
 			x := values[index]
 			leftOffset := 0
-			b := r.MeasureText(text)
+			b := p.MeasureText(text)
 			if boundaryGap {
 				width := values[index+1] - x
 				leftOffset = (width - b.Width()) >> 1
@@ -223,24 +224,25 @@ func (a *axis) axisLabel(renderOpt *axisRenderOption) {
 				// 左移文本长度
 				leftOffset = -b.Width() >> 1
 			}
-			d.text(text, x+leftOffset, y0)
+			p.Text(text, x+leftOffset, y0)
 		}
 	}
 }
 
 func (a *axis) axisLine(renderOpt *axisRenderOption) {
-	d := a.d
-	r := d.Render
+	// d := a.d
+	// r := d.Render
+	p := a.painter
 	option := a.option
-	s := option.Style(d.Font)
-	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
+	s := option.Style(p.font)
+	p.SetDrawingStyle(s.GetStrokeOptions())
 
 	x0 := 0
 	y0 := 0
 	x1 := 0
 	y1 := 0
-	width := d.Box.Width()
-	height := d.Box.Height()
+	width := p.Width()
+	height := p.Height()
 	labelMargin := option.GetLabelMargin()
 
 	// 轴线
@@ -271,21 +273,22 @@ func (a *axis) axisLine(renderOpt *axisRenderOption) {
 		y1 = y0
 	}
 
-	d.moveTo(x0, y0)
-	d.lineTo(x1, y1)
-	r.FillStroke()
+	p.MoveTo(x0, y0)
+	p.LineTo(x1, y1)
+	p.FillStroke()
 }
 
 func (a *axis) axisTick(renderOpt *axisRenderOption) {
-	d := a.d
-	r := d.Render
+	// d := a.d
+	// r := d.Render
 
+	p := a.painter
 	option := a.option
-	s := option.Style(d.Font)
-	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
+	s := option.Style(p.font)
+	p.SetDrawingStyle(s.GetStrokeOptions())
 
-	width := d.Box.Width()
-	height := d.Box.Height()
+	width := p.Width()
+	height := p.Height()
 	data := *a.data
 	tickCount := len(data)
 	if tickCount == 0 {
@@ -319,14 +322,14 @@ func (a *axis) axisTick(renderOpt *axisRenderOption) {
 			for _, v := range values {
 				x := x0
 				y := v
-				d.moveTo(x, y)
-				d.lineTo(x+tickLengthValue, y)
-				r.Stroke()
+				p.MoveTo(x, y)
+				p.LineTo(x+tickLengthValue, y)
+				p.Stroke()
 			}
 		}
 		// 辅助线
 		if option.SplitLineShow && !option.SplitLineColor.IsZero() {
-			r.SetStrokeColor(option.SplitLineColor)
+			p.SetStrokeColor(option.SplitLineColor)
 			splitLineWidth := width - labelWidth - tickLengthValue
 			x0 = labelWidth + tickLengthValue
 			if position == PositionRight {
@@ -336,9 +339,9 @@ func (a *axis) axisTick(renderOpt *axisRenderOption) {
 			for _, v := range values[0 : len(values)-1] {
 				x := x0
 				y := v
-				d.moveTo(x, y)
-				d.lineTo(x+splitLineWidth, y)
-				r.Stroke()
+				p.MoveTo(x, y)
+				p.LineTo(x+splitLineWidth, y)
+				p.Stroke()
 			}
 		}
 	default:
@@ -355,14 +358,14 @@ func (a *axis) axisTick(renderOpt *axisRenderOption) {
 				}
 				x := v
 				y := y0
-				d.moveTo(x, y-tickLengthValue)
-				d.lineTo(x, y)
-				r.Stroke()
+				p.MoveTo(x, y-tickLengthValue)
+				p.LineTo(x, y)
+				p.Stroke()
 			}
 		}
 		// 辅助线
 		if option.SplitLineShow && !option.SplitLineColor.IsZero() {
-			r.SetStrokeColor(option.SplitLineColor)
+			p.SetStrokeColor(option.SplitLineColor)
 			y0 = 0
 			splitLineHeight := height - labelHeight - tickLengthValue
 			if position == PositionTop {
@@ -377,22 +380,23 @@ func (a *axis) axisTick(renderOpt *axisRenderOption) {
 				x := v
 				y := y0
 
-				d.moveTo(x, y)
-				d.lineTo(x, y0+splitLineHeight)
-				r.Stroke()
+				p.MoveTo(x, y)
+				p.LineTo(x, y0+splitLineHeight)
+				p.Stroke()
 			}
 		}
 	}
 }
 
 func (a *axis) measureTextMaxWidthHeight() (int, int) {
-	d := a.d
-	r := d.Render
-	s := a.option.Style(d.Font)
+	// d := a.d
+	// r := d.Render
+	p := a.painter
+	s := a.option.Style(p.font)
 	data := a.data
-	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
-	s.GetTextOptions().WriteTextOptionsToRenderer(r)
-	return measureTextMaxWidthHeight(data.TextList(), r)
+	p.SetDrawingStyle(s.GetStrokeOptions())
+	p.SetTextStyle(s.GetTextOptions())
+	return measureTextMaxWidthHeight(data.TextList(), p)
 }
 
 // measure returns the measurement of axis.
@@ -429,7 +433,7 @@ func (a *axis) Render() {
 	}
 
 	unitCount := chart.MaxInt(option.SplitNumber, 1)
-	width := a.d.Box.Width()
+	width := a.painter.Width()
 	textList := a.data.TextList()
 	count := len(textList)
 

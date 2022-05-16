@@ -76,11 +76,11 @@ func autoDivide(max, size int) []int {
 }
 
 // measureTextMaxWidthHeight returns maxWidth and maxHeight of text list
-func measureTextMaxWidthHeight(textList []string, r chart.Renderer) (int, int) {
+func measureTextMaxWidthHeight(textList []string, p *Painter) (int, int) {
 	maxWidth := 0
 	maxHeight := 0
 	for _, text := range textList {
-		box := r.MeasureText(text)
+		box := p.MeasureText(text)
 		maxWidth = chart.MaxInt(maxWidth, box.Width())
 		maxHeight = chart.MaxInt(maxHeight, box.Height())
 	}

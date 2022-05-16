@@ -45,7 +45,7 @@ type YAxisOption struct {
 // TODO 长度是否可以变化
 const YAxisWidth = 40
 
-func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding chart.Box) (*Range, error) {
+func drawYAxis(p *Painter, opt *ChartOption, axisIndex, xAxisHeight int, padding chart.Box) (*Range, error) {
 	theme := NewTheme(opt.Theme)
 	yRange := opt.newYRange(axisIndex)
 	values := yRange.Values()
@@ -74,32 +74,22 @@ func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding ch
 	width := NewAxis(p, data, style).measure().Width
 
 	yAxisCount := len(opt.YAxisList)
-	boxWidth := p.Box.Width()
+	boxWidth := p.Width()
 	if axisIndex > 0 {
 		style.SplitLineShow = false
 		style.Position = PositionRight
 		padding.Right += (axisIndex - 1) * YAxisWidth
 	} else {
-		boxWidth = p.Box.Width() - (yAxisCount-1)*YAxisWidth
+		boxWidth = p.Width() - (yAxisCount-1)*YAxisWidth
 		padding.Left += (YAxisWidth - width)
 	}
 
-	dYAxis, err := NewDraw(
-		DrawOption{
-			Parent: p,
-			Width:  boxWidth,
-			// 减去x轴的高
-			Height: p.Box.Height() - xAxisHeight,
-		},
-		PaddingOption(padding),
+	pYAxis := p.Child(
+		PainterWidthHeightOption(boxWidth, p.Height()-xAxisHeight),
+		PainterPaddingOption(padding),
+		PainterFontOption(opt.Font),
 	)
-	if err != nil {
-		return nil, err
-	}
-	if opt.Font != nil {
-		dYAxis.Font = opt.Font
-	}
-	NewAxis(dYAxis, data, style).Render()
-	yRange.Size = dYAxis.Box.Height()
+	NewAxis(pYAxis, data, style).Render()
+	yRange.Size = pYAxis.Height()
 	return &yRange, nil
 }

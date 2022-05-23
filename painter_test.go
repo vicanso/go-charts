@@ -99,6 +99,10 @@ func TestPainter(t *testing.T) {
 		// line stroke
 		{
 			fn: func(p *Painter) {
+				p.SetDrawingStyle(Style{
+					StrokeColor: drawing.ColorBlack,
+					StrokeWidth: 1,
+				})
 				p.LineStroke([]Point{
 					{
 						X: 1,
@@ -108,9 +112,6 @@ func TestPainter(t *testing.T) {
 						X: 3,
 						Y: 4,
 					},
-				}, LineStyle{
-					StrokeColor: drawing.ColorBlack,
-					StrokeWidth: 1,
 				})
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 6 12\nL 8 14\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/></svg>",
@@ -294,6 +295,14 @@ func TestPainter(t *testing.T) {
 		// FillArea
 		{
 			fn: func(p *Painter) {
+				p.SetDrawingStyle(Style{
+					FillColor: drawing.Color{
+						R: 84,
+						G: 112,
+						B: 198,
+						A: 255,
+					},
+				})
 				p.FillArea([]Point{
 					{
 						X: 0,
@@ -310,13 +319,6 @@ func TestPainter(t *testing.T) {
 					{
 						X: 0,
 						Y: 0,
-					},
-				}, Style{
-					FillColor: drawing.Color{
-						R: 84,
-						G: 112,
-						B: 198,
-						A: 255,
 					},
 				})
 			},

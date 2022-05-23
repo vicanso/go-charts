@@ -38,7 +38,7 @@ type Painter struct {
 	parent        *Painter
 	style         Style
 	previousStyle Style
-	theme         *Theme
+	theme         ColorPalette
 }
 
 type PainterOptions struct {
@@ -92,7 +92,7 @@ func PainterStyleOption(style Style) PainterOption {
 }
 
 // PainterThemeOption sets the theme of draw painter
-func PainterThemeOption(theme *Theme) PainterOption {
+func PainterThemeOption(theme ColorPalette) PainterOption {
 	return func(p *Painter) {
 		if theme == nil {
 			return
@@ -194,6 +194,7 @@ func (p *Painter) SetTextStyle(style Style) {
 
 func (p *Painter) RestoreStyle() {
 	p.style = p.previousStyle
+	p.style.WriteToRenderer(p.render)
 }
 
 // Bytes returns the data of draw canvas
@@ -336,13 +337,7 @@ func (p *Painter) SetStrokeColor(color Color) {
 	p.render.SetStrokeColor(color)
 }
 
-func (p *Painter) LineStroke(points []Point, style LineStyle) {
-	s := style.Style()
-	if !s.ShouldDrawStroke() {
-		return
-	}
-	defer p.RestoreStyle()
-	p.SetDrawingStyle(s.GetStrokeOptions())
+func (p *Painter) LineStroke(points []Point) {
 	for index, point := range points {
 		x := point.X
 		y := point.Y
@@ -360,8 +355,9 @@ func (p *Painter) SetBackground(width, height int, color Color) {
 	s := chart.Style{
 		FillColor: color,
 	}
-	defer p.RestoreStyle()
+	// 背景色
 	p.SetStyle(s)
+	defer p.RestoreStyle()
 	// 设置背景色不使用box，因此不直接使用Painter
 	r.MoveTo(0, 0)
 	r.LineTo(width, 0)
@@ -396,13 +392,8 @@ func (p *Painter) Polygon(center Point, radius float64, sides int) {
 	p.Stroke()
 }
 
-func (p *Painter) FillArea(points []Point, s Style) {
-	if !s.ShouldDrawFill() {
-		return
-	}
-	defer p.RestoreStyle()
+func (p *Painter) FillArea(points []Point) {
 	var x, y int
-	p.SetDrawingStyle(s.GetFillOptions())
 	for index, point := range points {
 		x = point.X
 		y = point.Y

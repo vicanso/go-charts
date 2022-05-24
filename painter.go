@@ -32,13 +32,12 @@ import (
 )
 
 type Painter struct {
-	render        Renderer
-	box           Box
-	font          *truetype.Font
-	parent        *Painter
-	style         Style
-	previousStyle Style
-	theme         ColorPalette
+	render Renderer
+	box    Box
+	font   *truetype.Font
+	parent *Painter
+	style  Style
+	theme  ColorPalette
 }
 
 type PainterOptions struct {
@@ -53,6 +52,12 @@ type PainterOptions struct {
 }
 
 type PainterOption func(*Painter)
+
+type TicksOption struct {
+	Length int
+	Orient string
+	Count  int
+}
 
 // PainterPaddingOption sets the padding of draw painter
 func PainterPaddingOption(padding Box) PainterOption {
@@ -87,7 +92,7 @@ func PainterFontOption(font *truetype.Font) PainterOption {
 // PainterStyleOption sets the style of draw painter
 func PainterStyleOption(style Style) PainterOption {
 	return func(p *Painter) {
-		p.SetDrawingStyle(style)
+		p.SetStyle(style)
 	}
 }
 
@@ -156,13 +161,12 @@ func (p *Painter) setOptions(opts ...PainterOption) {
 
 func (p *Painter) Child(opt ...PainterOption) *Painter {
 	child := &Painter{
-		render:        p.render,
-		box:           p.box.Clone(),
-		font:          p.font,
-		parent:        p,
-		style:         p.style,
-		previousStyle: p.previousStyle,
-		theme:         p.theme,
+		render: p.render,
+		box:    p.box.Clone(),
+		font:   p.font,
+		parent: p,
+		style:  p.style,
+		theme:  p.theme,
 	}
 	child.setOptions(opt...)
 	return child
@@ -172,29 +176,65 @@ func (p *Painter) SetStyle(style Style) {
 	if style.Font == nil {
 		style.Font = p.font
 	}
-	p.previousStyle = p.style
 	p.style = style
 	style.WriteToRenderer(p.render)
 }
 
-func (p *Painter) SetDrawingStyle(style Style) {
-	p.previousStyle = p.style
-	p.style = style
-	style.WriteDrawingOptionsToRenderer(p.render)
-}
-
-func (p *Painter) SetTextStyle(style Style) {
-	if style.Font == nil {
-		style.Font = p.font
+func overrideStyle(defaultStyle Style, style Style) Style {
+	if style.StrokeWidth == 0 {
+		style.StrokeWidth = defaultStyle.StrokeWidth
 	}
-	p.previousStyle = p.style
-	p.style = style
-	style.WriteTextOptionsToRenderer(p.render)
+	if style.StrokeColor.IsZero() {
+		style.StrokeColor = defaultStyle.StrokeColor
+	}
+	if style.StrokeDashArray == nil {
+		style.StrokeDashArray = defaultStyle.StrokeDashArray
+	}
+	if style.DotColor.IsZero() {
+		style.DotColor = defaultStyle.DotColor
+	}
+	if style.DotWidth == 0 {
+		style.DotWidth = defaultStyle.DotWidth
+	}
+	if style.FillColor.IsZero() {
+		style.FillColor = defaultStyle.FillColor
+	}
+	if style.FontSize == 0 {
+		style.FontSize = defaultStyle.FontSize
+	}
+	if style.FontColor.IsZero() {
+		style.FontColor = defaultStyle.FontColor
+	}
+	if style.Font == nil {
+		style.Font = defaultStyle.Font
+	}
+	return style
 }
 
-func (p *Painter) RestoreStyle() {
-	p.style = p.previousStyle
+func (p *Painter) OverrideDrawingStyle(style Style) *Painter {
+	s := overrideStyle(p.style, style)
+	p.SetDrawingStyle(s)
+	return p
+}
+
+func (p *Painter) SetDrawingStyle(style Style) *Painter {
+	style.WriteDrawingOptionsToRenderer(p.render)
+	return p
+}
+
+func (p *Painter) SetTextStyle(style Style) *Painter {
+	style.WriteTextOptionsToRenderer(p.render)
+	return p
+}
+func (p *Painter) OverrideTextStyle(style Style) *Painter {
+	s := overrideStyle(p.style, style)
+	p.SetTextStyle(s)
+	return p
+}
+
+func (p *Painter) ResetStyle() *Painter {
 	p.style.WriteToRenderer(p.render)
+	return p
 }
 
 // Bytes returns the data of draw canvas
@@ -208,19 +248,22 @@ func (p *Painter) Bytes() ([]byte, error) {
 }
 
 // MoveTo moves the cursor to a given point
-func (p *Painter) MoveTo(x, y int) {
+func (p *Painter) MoveTo(x, y int) *Painter {
 	p.render.MoveTo(x+p.box.Left, y+p.box.Top)
+	return p
 }
 
-func (p *Painter) ArcTo(cx, cy int, rx, ry, startAngle, delta float64) {
+func (p *Painter) ArcTo(cx, cy int, rx, ry, startAngle, delta float64) *Painter {
 	p.render.ArcTo(cx+p.box.Left, cy+p.box.Top, rx, ry, startAngle, delta)
+	return p
 }
 
-func (p *Painter) LineTo(x, y int) {
+func (p *Painter) LineTo(x, y int) *Painter {
 	p.render.LineTo(x+p.box.Left, y+p.box.Top)
+	return p
 }
 
-func (p *Painter) Pin(x, y, width int) {
+func (p *Painter) Pin(x, y, width int) *Painter {
 	r := float64(width) / 2
 	y -= width / 4
 	angle := chart.DegreesToRadians(15)
@@ -246,9 +289,10 @@ func (p *Painter) Pin(x, y, width int) {
 	p.render.QuadCurveTo(cx+left, cy+top, endX+left, endY+top)
 	p.Close()
 	p.Fill()
+	return p
 }
 
-func (p *Painter) arrow(x, y, width, height int, direction string) {
+func (p *Painter) arrow(x, y, width, height int, direction string) *Painter {
 	halfWidth := width >> 1
 	halfHeight := height >> 1
 	if direction == PositionTop || direction == PositionBottom {
@@ -284,41 +328,51 @@ func (p *Painter) arrow(x, y, width, height int, direction string) {
 		p.LineTo(x0, y0)
 	}
 	p.FillStroke()
+	return p
 }
 
-func (p *Painter) ArrowLeft(x, y, width, height int) {
+func (p *Painter) ArrowLeft(x, y, width, height int) *Painter {
 	p.arrow(x, y, width, height, PositionLeft)
+	return p
 }
 
-func (p *Painter) ArrowRight(x, y, width, height int) {
+func (p *Painter) ArrowRight(x, y, width, height int) *Painter {
 	p.arrow(x, y, width, height, PositionRight)
+	return p
 }
 
-func (p *Painter) ArrowTop(x, y, width, height int) {
+func (p *Painter) ArrowTop(x, y, width, height int) *Painter {
 	p.arrow(x, y, width, height, PositionTop)
+	return p
 }
-func (p *Painter) ArrowBottom(x, y, width, height int) {
+func (p *Painter) ArrowBottom(x, y, width, height int) *Painter {
 	p.arrow(x, y, width, height, PositionBottom)
+	return p
 }
 
-func (p *Painter) Circle(radius float64, x, y int) {
+func (p *Painter) Circle(radius float64, x, y int) *Painter {
 	p.render.Circle(radius, x+p.box.Left, y+p.box.Top)
+	return p
 }
 
-func (p *Painter) Stroke() {
+func (p *Painter) Stroke() *Painter {
 	p.render.Stroke()
+	return p
 }
 
-func (p *Painter) Close() {
+func (p *Painter) Close() *Painter {
 	p.render.Close()
+	return p
 }
 
-func (p *Painter) FillStroke() {
+func (p *Painter) FillStroke() *Painter {
 	p.render.FillStroke()
+	return p
 }
 
-func (p *Painter) Fill() {
+func (p *Painter) Fill() *Painter {
 	p.render.Fill()
+	return p
 }
 
 func (p *Painter) Width() int {
@@ -333,11 +387,7 @@ func (p *Painter) MeasureText(text string) Box {
 	return p.render.MeasureText(text)
 }
 
-func (p *Painter) SetStrokeColor(color Color) {
-	p.render.SetStrokeColor(color)
-}
-
-func (p *Painter) LineStroke(points []Point) {
+func (p *Painter) LineStroke(points []Point) *Painter {
 	for index, point := range points {
 		x := point.X
 		y := point.Y
@@ -348,16 +398,17 @@ func (p *Painter) LineStroke(points []Point) {
 		}
 	}
 	p.Stroke()
+	return p
 }
 
-func (p *Painter) SetBackground(width, height int, color Color) {
+func (p *Painter) SetBackground(width, height int, color Color) *Painter {
 	r := p.render
 	s := chart.Style{
 		FillColor: color,
 	}
 	// 背景色
-	p.SetStyle(s)
-	defer p.RestoreStyle()
+	p.SetDrawingStyle(s)
+	defer p.ResetStyle()
 	// 设置背景色不使用box，因此不直接使用Painter
 	r.MoveTo(0, 0)
 	r.LineTo(width, 0)
@@ -365,21 +416,23 @@ func (p *Painter) SetBackground(width, height int, color Color) {
 	r.LineTo(0, height)
 	r.LineTo(0, 0)
 	p.FillStroke()
+	return p
 }
-func (p *Painter) MarkLine(x, y, width int) {
+func (p *Painter) MarkLine(x, y, width int) *Painter {
 	arrowWidth := 16
 	arrowHeight := 10
 	endX := x + width
-	p.Circle(3, x, y)
+	radius := 3
+	p.Circle(3, x+radius, y)
 	p.render.Fill()
-	p.MoveTo(x+5, y)
+	p.MoveTo(x+radius*3, y)
 	p.LineTo(endX-arrowWidth, y)
 	p.Stroke()
-	p.render.SetStrokeDashArray([]float64{})
 	p.ArrowRight(endX, y, arrowWidth, arrowHeight)
+	return p
 }
 
-func (p *Painter) Polygon(center Point, radius float64, sides int) {
+func (p *Painter) Polygon(center Point, radius float64, sides int) *Painter {
 	points := getPolygonPoints(center, radius, sides)
 	for i, item := range points {
 		if i == 0 {
@@ -390,9 +443,10 @@ func (p *Painter) Polygon(center Point, radius float64, sides int) {
 	}
 	p.LineTo(points[0].X, points[0].Y)
 	p.Stroke()
+	return p
 }
 
-func (p *Painter) FillArea(points []Point) {
+func (p *Painter) FillArea(points []Point) *Painter {
 	var x, y int
 	for index, point := range points {
 		x = point.X
@@ -404,10 +458,12 @@ func (p *Painter) FillArea(points []Point) {
 		}
 	}
 	p.Fill()
+	return p
 }
 
-func (p *Painter) Text(body string, x, y int) {
+func (p *Painter) Text(body string, x, y int) *Painter {
 	p.render.Text(body, x+p.box.Left, y+p.box.Top)
+	return p
 }
 
 func (p *Painter) TextFit(body string, x, y, width int) chart.Box {
@@ -432,4 +488,47 @@ func (p *Painter) TextFit(body string, x, y, width int) chart.Box {
 	}
 	p.style.TextWrap = textWarp
 	return output
+}
+
+func (p *Painter) Ticks(opt TicksOption) *Painter {
+	if opt.Count <= 0 || opt.Length <= 0 {
+		return p
+	}
+	count := opt.Count - 1
+	width := p.Width()
+	height := p.Height()
+	var values []int
+	if opt.Orient == OrientHorizontal {
+		values = autoDivide(height, count)
+	} else {
+		values = autoDivide(width, count)
+	}
+
+	for _, value := range values {
+		if opt.Orient == OrientVertical {
+			p.LineStroke([]Point{
+				{
+					X: 0,
+					Y: value,
+				},
+				{
+					X: opt.Length,
+					Y: value,
+				},
+			})
+		} else {
+			p.LineStroke([]Point{
+				{
+					X: value,
+					Y: opt.Length,
+				},
+				{
+					X: value,
+					Y: 0,
+				},
+			})
+		}
+	}
+
+	return p
 }

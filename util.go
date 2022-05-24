@@ -59,19 +59,16 @@ func getDefaultInt(value, defaultValue int) int {
 }
 
 func autoDivide(max, size int) []int {
-	unit := max / size
+	unit := float64(max) / float64(size)
 
-	rest := max - unit*size
 	values := make([]int, size+1)
-	value := 0
-	for i := 0; i < size; i++ {
-		values[i] = value
-		if i < rest {
-			value++
+	for i := 0; i < size+1; i++ {
+		if i == size {
+			values[i] = max
+		} else {
+			values[i] = int(float64(i) * unit)
 		}
-		value += unit
 	}
-	values[size] = max
 	return values
 }
 

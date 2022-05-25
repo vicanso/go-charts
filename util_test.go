@@ -60,12 +60,12 @@ func TestAutoDivide(t *testing.T) {
 
 	assert.Equal([]int{
 		0,
-		86,
-		172,
-		258,
-		344,
-		430,
-		515,
+		85,
+		171,
+		257,
+		342,
+		428,
+		514,
 		600,
 	}, autoDivide(600, 7))
 }

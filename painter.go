@@ -57,6 +57,15 @@ type TicksOption struct {
 	Length int
 	Orient string
 	Count  int
+	Unit   int
+}
+
+type MultiTextOption struct {
+	TextList []string
+	Orient   string
+	Unit     int
+	Position string
+	Align    string
 }
 
 // PainterPaddingOption sets the padding of draw painter
@@ -223,6 +232,9 @@ func (p *Painter) SetDrawingStyle(style Style) *Painter {
 }
 
 func (p *Painter) SetTextStyle(style Style) *Painter {
+	if style.Font == nil {
+		style.Font = p.font
+	}
 	style.WriteTextOptionsToRenderer(p.render)
 	return p
 }
@@ -494,18 +506,25 @@ func (p *Painter) Ticks(opt TicksOption) *Painter {
 	if opt.Count <= 0 || opt.Length <= 0 {
 		return p
 	}
-	count := opt.Count - 1
+	count := opt.Count
 	width := p.Width()
 	height := p.Height()
+	unit := 1
+	if opt.Unit > 1 {
+		unit = opt.Unit
+	}
 	var values []int
-	if opt.Orient == OrientHorizontal {
+	isVertical := opt.Orient == OrientVertical
+	if isVertical {
 		values = autoDivide(height, count)
 	} else {
 		values = autoDivide(width, count)
 	}
-
-	for _, value := range values {
-		if opt.Orient == OrientVertical {
+	for index, value := range values {
+		if index%unit != 0 {
+			continue
+		}
+		if isVertical {
 			p.LineStroke([]Point{
 				{
 					X: 0,
@@ -529,6 +548,49 @@ func (p *Painter) Ticks(opt TicksOption) *Painter {
 			})
 		}
 	}
+	return p
+}
 
+func (p *Painter) MultiText(opt MultiTextOption) *Painter {
+	if len(opt.TextList) == 0 {
+		return p
+	}
+	count := len(opt.TextList)
+	positionCenter := true
+	if opt.Position == PositionLeft {
+		positionCenter = false
+	}
+	width := p.Width()
+	height := p.Height()
+	var values []int
+	isVertical := opt.Orient == OrientVertical
+	if isVertical {
+		values = autoDivide(height, count)
+	} else {
+		values = autoDivide(width, count)
+	}
+	for index, text := range opt.TextList {
+		box := p.MeasureText(text)
+		start := values[index]
+		if positionCenter {
+			start = (values[index] + values[index+1]) >> 1
+		}
+		x := 0
+		y := 0
+		if isVertical {
+			y = start - box.Height()>>1
+			switch opt.Align {
+			case AlignRight:
+				x = width - box.Width()
+			case AlignCenter:
+				x = width - box.Width()>>1
+			default:
+				x = 0
+			}
+		} else {
+			x = start - box.Width()>>1
+		}
+		p.Text(text, x, y)
+	}
 	return p
 }

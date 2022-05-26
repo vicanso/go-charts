@@ -59,6 +59,12 @@ const (
 )
 
 const (
+	AlignLeft   = "left"
+	AlignRight  = "right"
+	AlignCenter = "center"
+)
+
+const (
 	OrientHorizontal = "horizontal"
 	OrientVertical   = "vertical"
 )

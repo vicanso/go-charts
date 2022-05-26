@@ -68,6 +68,15 @@ type MultiTextOption struct {
 	Align    string
 }
 
+type GridOption struct {
+	Column int
+	Row    int
+	// 忽略不展示的column
+	IgnoreColumnLines []int
+	// 忽略不展示的row
+	IgnoreRowLines []int
+}
+
 // PainterPaddingOption sets the padding of draw painter
 func PainterPaddingOption(padding Box) PainterOption {
 	return func(p *Painter) {
@@ -275,6 +284,11 @@ func (p *Painter) LineTo(x, y int) *Painter {
 	return p
 }
 
+func (p *Painter) QuadCurveTo(cx, cy, x, y int) *Painter {
+	p.render.QuadCurveTo(cx+p.box.Left, cy+p.box.Top, x+p.box.Left, y+p.box.Top)
+	return p
+}
+
 func (p *Painter) Pin(x, y, width int) *Painter {
 	r := float64(width) / 2
 	y -= width / 4
@@ -408,6 +422,27 @@ func (p *Painter) LineStroke(points []Point) *Painter {
 		} else {
 			p.LineTo(x, y)
 		}
+	}
+	p.Stroke()
+	return p
+}
+
+func (p *Painter) SmoothLineStroke(points []Point) *Painter {
+	prevX := 0
+	prevY := 0
+	// TODO 如何生成平滑的折线
+	for index, point := range points {
+		x := point.X
+		y := point.Y
+		if index == 0 {
+			p.MoveTo(x, y)
+		} else {
+			cx := prevX + (x-prevX)/5
+			cy := y + (y-prevY)/2
+			p.QuadCurveTo(cx, cy, x, y)
+		}
+		prevX = x
+		prevY = y
 	}
 	p.Stroke()
 	return p
@@ -557,8 +592,12 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	}
 	count := len(opt.TextList)
 	positionCenter := true
-	if opt.Position == PositionLeft {
+	if containsString([]string{
+		PositionLeft,
+		PositionTop,
+	}, opt.Position) {
 		positionCenter = false
+		count--
 	}
 	width := p.Width()
 	height := p.Height()
@@ -591,6 +630,51 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 			x = start - box.Width()>>1
 		}
 		p.Text(text, x, y)
+	}
+	return p
+}
+
+func (p *Painter) Grid(opt GridOption) *Painter {
+	width := p.Width()
+	height := p.Height()
+	drawLines := func(values []int, ignoreIndexList []int, isVertical bool) {
+		for index, v := range values {
+			if containsInt(ignoreIndexList, index) {
+				continue
+			}
+			x0 := 0
+			y0 := 0
+			x1 := 0
+			y1 := 0
+			if isVertical {
+
+				x0 = v
+				x1 = v
+				y1 = height
+			} else {
+				x1 = width
+				y0 = v
+				y1 = v
+			}
+			p.LineStroke([]Point{
+				{
+					X: x0,
+					Y: y0,
+				},
+				{
+					X: x1,
+					Y: y1,
+				},
+			})
+		}
+	}
+	if opt.Column > 0 {
+		values := autoDivide(width, opt.Column)
+		drawLines(values, opt.IgnoreColumnLines, true)
+	}
+	if opt.Row > 0 {
+		values := autoDivide(height, opt.Row)
+		drawLines(values, opt.IgnoreRowLines, false)
 	}
 	return p
 }

@@ -43,6 +43,24 @@ func FalseFlag() *bool {
 	return &f
 }
 
+func containsInt(values []int, value int) bool {
+	for _, v := range values {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
+func containsString(values []string, value string) bool {
+	for _, v := range values {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
 func ceilFloatToInt(value float64) int {
 	i := int(value)
 	if value == float64(i) {

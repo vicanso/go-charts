@@ -1,8 +1,8 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
-	"os"
 
 	charts "github.com/vicanso/go-charts"
 )
@@ -30,7 +30,7 @@ func echartsRender() ([]byte, error) {
 }
 
 func main() {
-	fontData, err := os.ReadFile("/Users/darcy/Downloads/NotoSansCJKsc-VF.ttf")
+	fontData, err := ioutil.ReadFile("/Users/darcy/Downloads/NotoSansCJKsc-VF.ttf")
 	if err != nil {
 		log.Fatalln("Error when reading font file:", err)
 	}
@@ -44,7 +44,7 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error when rendering image:", err)
 	}
-	if err := os.WriteFile("chinese.png", fileData, 0644); err != nil {
+	if err := ioutil.WriteFile("chinese.png", fileData, 0644); err != nil {
 		log.Fatalln("Error when save image to chinese.png:", err)
 	}
 }

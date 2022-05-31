@@ -124,6 +124,7 @@ func PainterThemeOption(theme ColorPalette) PainterOption {
 	}
 }
 
+// PainterWidthHeightOption set width or height of draw painter
 func PainterWidthHeightOption(width, height int) PainterOption {
 	return func(p *Painter) {
 		if width > 0 {
@@ -676,5 +677,13 @@ func (p *Painter) Grid(opt GridOption) *Painter {
 		values := autoDivide(height, opt.Row)
 		drawLines(values, opt.IgnoreRowLines, false)
 	}
+	return p
+}
+
+func (p *Painter) Dots(points []Point) *Painter {
+	for _, item := range points {
+		p.Circle(5, item.X, item.Y)
+	}
+	p.FillStroke()
 	return p
 }

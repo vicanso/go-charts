@@ -96,6 +96,8 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 		d.circle(radius, cx, cy)
 	} else {
 		currentValue := float64(0)
+		prevEndX := 0
+		prevEndY := 0
 		for index, v := range values {
 
 			pieStyle := getPieStyle(theme, index)
@@ -124,6 +126,14 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 
 			endx := cx + int(labelRadius*math.Cos(angle))
 			endy := cy + int(labelRadius*math.Sin(angle))
+			// 计算是否有重叠，如果有则调整y坐标位置
+			if index != 0 &&
+				math.Abs(float64(endx-prevEndX)) < labelFontSize &&
+				math.Abs(float64(endy-prevEndY)) < labelFontSize {
+				endy -= (labelFontSize << 1)
+			}
+			prevEndX = endx
+			prevEndY = endy
 			d.moveTo(startx, starty)
 			d.lineTo(endx, endy)
 			offset := labelLineWidth

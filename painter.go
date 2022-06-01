@@ -687,3 +687,29 @@ func (p *Painter) Dots(points []Point) *Painter {
 	p.FillStroke()
 	return p
 }
+
+func (p *Painter) Rect(box Box) *Painter {
+	p.MoveTo(box.Left, box.Top)
+	p.LineTo(box.Right, box.Top)
+	p.LineTo(box.Right, box.Bottom)
+	p.LineTo(box.Left, box.Bottom)
+	p.LineTo(box.Left, box.Top)
+	p.FillStroke()
+	return p
+}
+
+func (p *Painter) LegendLineDot(box Box) *Painter {
+	width := box.Width()
+	height := box.Height()
+	strokeWidth := 3
+	dotHeight := 5
+
+	p.render.SetStrokeWidth(float64(strokeWidth))
+	center := (height - strokeWidth) >> 1
+	p.MoveTo(box.Left, box.Top+center)
+	p.LineTo(box.Right, box.Top+center)
+	p.Stroke()
+	p.Circle(float64(dotHeight), box.Left+width>>1, center)
+	p.FillStroke()
+	return p
+}

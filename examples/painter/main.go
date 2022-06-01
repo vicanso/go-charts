@@ -373,6 +373,42 @@ func main() {
 		},
 	})
 
+	// rect
+	top += 30
+	p.Child(
+		charts.PainterBoxOption(charts.Box{
+			Top:    top,
+			Left:   1,
+			Right:  200,
+			Bottom: top + 50,
+		}),
+	).OverrideDrawingStyle(charts.Style{
+		StrokeColor: drawing.ColorBlack,
+		FillColor:   drawing.ColorBlack,
+	}).Rect(charts.Box{
+		Left:   10,
+		Top:    0,
+		Right:  110,
+		Bottom: 20,
+	})
+	// legend line dot
+	p.Child(
+		charts.PainterBoxOption(charts.Box{
+			Top:    top,
+			Left:   200,
+			Right:  p.Width() - 1,
+			Bottom: top + 50,
+		}),
+	).OverrideDrawingStyle(charts.Style{
+		StrokeColor: drawing.ColorBlack,
+		FillColor:   drawing.ColorBlack,
+	}).LegendLineDot(charts.Box{
+		Left:   10,
+		Top:    0,
+		Right:  50,
+		Bottom: 20,
+	})
+
 	buf, err := p.Bytes()
 	if err != nil {
 		panic(err)

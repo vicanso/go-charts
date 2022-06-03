@@ -409,6 +409,19 @@ func main() {
 		Bottom: 20,
 	})
 
+	top += 50
+	charts.NewGridPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   1,
+		Right:  p.Width() - 1,
+		Bottom: top + 100,
+	})), charts.GridPainterOption{
+		Row:            5,
+		IgnoreFirstRow: true,
+		IgnoreLastRow:  true,
+		StrokeColor:    drawing.ColorBlue,
+	}).Render()
+
 	buf, err := p.Bytes()
 	if err != nil {
 		panic(err)

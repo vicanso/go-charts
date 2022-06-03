@@ -32,7 +32,7 @@ import (
 )
 
 type Painter struct {
-	render Renderer
+	render chart.Renderer
 	box    Box
 	font   *truetype.Font
 	parent *Painter

@@ -170,6 +170,9 @@ func NewPainter(opts PainterOptions, opt ...PainterOption) (*Painter, error) {
 		font: font,
 	}
 	p.setOptions(opt...)
+	if p.theme == nil {
+		p.theme = NewTheme(ThemeLight)
+	}
 	return p, nil
 }
 func (p *Painter) setOptions(opts ...PainterOption) {
@@ -705,11 +708,11 @@ func (p *Painter) LegendLineDot(box Box) *Painter {
 	dotHeight := 5
 
 	p.render.SetStrokeWidth(float64(strokeWidth))
-	center := (height - strokeWidth) >> 1
-	p.MoveTo(box.Left, box.Top+center)
-	p.LineTo(box.Right, box.Top+center)
+	center := (height-strokeWidth)>>1 - 1
+	p.MoveTo(box.Left, box.Top-center)
+	p.LineTo(box.Right, box.Top-center)
 	p.Stroke()
-	p.Circle(float64(dotHeight), box.Left+width>>1, center)
+	p.Circle(float64(dotHeight), box.Left+width>>1, box.Top-center)
 	p.FillStroke()
 	return p
 }

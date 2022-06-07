@@ -26,7 +26,7 @@ func writeFile(buf []byte) error {
 
 func main() {
 	p, err := charts.NewPainter(charts.PainterOptions{
-		Width:  400,
+		Width:  600,
 		Height: 1200,
 		Type:   charts.ChartOutputPNG,
 	})
@@ -420,6 +420,60 @@ func main() {
 		IgnoreFirstRow: true,
 		IgnoreLastRow:  true,
 		StrokeColor:    drawing.ColorBlue,
+	}).Render()
+
+	top += 100
+	charts.NewLegendPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   1,
+		Right:  p.Width() - 1,
+		Bottom: top + 30,
+	})), charts.LegendPainterOption{
+		Data: []string{
+			"Email",
+			"Union Ads",
+			"Video Ads",
+			"Direct",
+		},
+		FontSize:  12,
+		FontColor: drawing.ColorBlack,
+	}).Render()
+
+	top += 30
+	charts.NewLegendPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   1,
+		Right:  p.Width() - 1,
+		Bottom: top + 30,
+	})), charts.LegendPainterOption{
+		Data: []string{
+			"Email",
+			"Union Ads",
+			"Video Ads",
+			"Direct",
+		},
+		Align:     charts.AlignRight,
+		FontSize:  16,
+		Icon:      charts.IconRect,
+		FontColor: drawing.ColorBlack,
+	}).Render()
+
+	top += 30
+	charts.NewLegendPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   1,
+		Right:  p.Width() - 1,
+		Bottom: top + 100,
+	})), charts.LegendPainterOption{
+		Data: []string{
+			"Email",
+			"Union Ads",
+			"Video Ads",
+			"Direct",
+		},
+		Orient:    charts.OrientVertical,
+		FontSize:  12,
+		FontColor: drawing.ColorBlack,
 	}).Render()
 
 	buf, err := p.Bytes()

@@ -22,7 +22,7 @@
 
 package charts
 
-type GridPainter struct {
+type gridPainter struct {
 	p   *Painter
 	opt *GridPainterOption
 }
@@ -38,14 +38,14 @@ type GridPainterOption struct {
 	IgnoreLastColumn  bool
 }
 
-func NewGridPainter(p *Painter, opt GridPainterOption) *GridPainter {
-	return &GridPainter{
+func NewGridPainter(p *Painter, opt GridPainterOption) *gridPainter {
+	return &gridPainter{
 		p:   p,
 		opt: &opt,
 	}
 }
 
-func (g *GridPainter) Render() (Box, error) {
+func (g *gridPainter) Render() (Box, error) {
 	opt := g.opt
 	ignoreColumnLines := make([]int, 0)
 	if opt.IgnoreFirstColumn {

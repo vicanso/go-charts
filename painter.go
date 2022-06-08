@@ -417,6 +417,21 @@ func (p *Painter) MeasureText(text string) Box {
 	return p.render.MeasureText(text)
 }
 
+func (p *Painter) MeasureTextMaxWidthHeight(textList []string) (int, int) {
+	maxWidth := 0
+	maxHeight := 0
+	for _, text := range textList {
+		box := p.MeasureText(text)
+		if maxWidth < box.Width() {
+			maxWidth = box.Width()
+		}
+		if maxHeight < box.Height() {
+			maxHeight = box.Height()
+		}
+	}
+	return maxWidth, maxHeight
+}
+
 func (p *Painter) LineStroke(points []Point) *Painter {
 	for index, point := range points {
 		x := point.X

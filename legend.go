@@ -22,7 +22,12 @@
 
 package charts
 
-type LegendPainter struct {
+import (
+	"strconv"
+	"strings"
+)
+
+type legendPainter struct {
 	p   *Painter
 	opt *LegendPainterOption
 }
@@ -53,14 +58,14 @@ type LegendPainterOption struct {
 	FontColor Color
 }
 
-func NewLegendPainter(p *Painter, opt LegendPainterOption) *LegendPainter {
-	return &LegendPainter{
+func NewLegendPainter(p *Painter, opt LegendPainterOption) *legendPainter {
+	return &legendPainter{
 		p:   p,
 		opt: &opt,
 	}
 }
 
-func (l *LegendPainter) Render() (Box, error) {
+func (l *legendPainter) Render() (Box, error) {
 	opt := l.opt
 	theme := opt.Theme
 	if theme == nil {
@@ -80,12 +85,54 @@ func (l *LegendPainter) Render() (Box, error) {
 		}
 		measureList[index] = b
 	}
-	x := 0
-	y := 0
+
+	// 计算展示的宽高
+	width := 0
+	height := 0
 	offset := 20
 	textOffset := 2
 	legendWidth := 30
 	legendHeight := 20
+	for _, item := range measureList {
+		if opt.Orient == OrientVertical {
+			height += item.Height()
+		} else {
+			width += item.Width()
+		}
+	}
+	if opt.Orient == OrientVertical {
+		width = maxTextWidth + textOffset + legendWidth
+		height = offset * len(opt.Data)
+	} else {
+		height = legendHeight
+		offsetValue := (len(opt.Data) - 1) * (offset + textOffset)
+		allLegendWidth := len(opt.Data) * legendWidth
+		width += (offsetValue + allLegendWidth)
+	}
+
+	// 计算开始的位置
+	left := 0
+	switch opt.Left {
+	case PositionRight:
+		left = p.Width() - width
+	case PositionCenter:
+		left = (p.Width() - width) >> 1
+	default:
+		if strings.HasSuffix(opt.Left, "%") {
+			value, _ := strconv.Atoi(strings.ReplaceAll(opt.Left, "%", ""))
+			left = p.Width() * value / 100
+		} else {
+			value, _ := strconv.Atoi(opt.Left)
+			left = value
+		}
+	}
+	top, _ := strconv.Atoi(opt.Top)
+
+	x := int(left)
+	y := int(top)
+	x0 := x
+	y0 := y
+
 	drawIcon := func(top, left int) int {
 		if opt.Icon == IconRect {
 			p.Rect(Box{
@@ -111,40 +158,22 @@ func (l *LegendPainter) Render() (Box, error) {
 			StrokeColor: color,
 		})
 		if opt.Align != AlignRight {
-			x = drawIcon(y, x)
-			x += textOffset
+			x0 = drawIcon(y0, x0)
+			x0 += textOffset
 		}
-		p.Text(text, x, y)
-		x += measureList[index].Width()
+		p.Text(text, x0, y0)
+		x0 += measureList[index].Width()
 		if opt.Align == AlignRight {
-			x += textOffset
-			x = drawIcon(0, x)
+			x0 += textOffset
+			x0 = drawIcon(0, x0)
 		}
 		if opt.Orient == OrientVertical {
-			y += offset
-			x = 0
+			y0 += offset
+			x0 = x
 		} else {
-			x += offset
-			y = 0
+			x0 += offset
+			y0 = y
 		}
-	}
-	width := 0
-	height := 0
-	for _, item := range measureList {
-		if opt.Orient == OrientVertical {
-			height += item.Height()
-		} else {
-			width += item.Width()
-		}
-	}
-	if opt.Orient == OrientVertical {
-		width = maxTextWidth + textOffset + legendWidth
-		height = offset * len(opt.Data)
-	} else {
-		height = legendHeight
-		offsetValue := (len(opt.Data) - 1) * (offset + textOffset)
-		allLegendWidth := len(opt.Data) * legendWidth
-		width += (offsetValue + allLegendWidth)
 	}
 
 	return Box{

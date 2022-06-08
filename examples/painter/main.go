@@ -27,7 +27,7 @@ func writeFile(buf []byte) error {
 func main() {
 	p, err := charts.NewPainter(charts.PainterOptions{
 		Width:  600,
-		Height: 1200,
+		Height: 2000,
 		Type:   charts.ChartOutputPNG,
 	})
 	if err != nil {
@@ -429,6 +429,7 @@ func main() {
 		Right:  p.Width() - 1,
 		Bottom: top + 30,
 	})), charts.LegendPainterOption{
+		Left: "10",
 		Data: []string{
 			"Email",
 			"Union Ads",
@@ -446,6 +447,7 @@ func main() {
 		Right:  p.Width() - 1,
 		Bottom: top + 30,
 	})), charts.LegendPainterOption{
+		Left: charts.PositionRight,
 		Data: []string{
 			"Email",
 			"Union Ads",
@@ -465,6 +467,7 @@ func main() {
 		Right:  p.Width() - 1,
 		Bottom: top + 100,
 	})), charts.LegendPainterOption{
+		Top: "10",
 		Data: []string{
 			"Email",
 			"Union Ads",
@@ -474,6 +477,72 @@ func main() {
 		Orient:    charts.OrientVertical,
 		FontSize:  12,
 		FontColor: drawing.ColorBlack,
+	}).Render()
+
+	top += 100
+	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   1,
+		Right:  p.Width() - 1,
+		Bottom: top + 50,
+	})), charts.AxisPainterOption{
+		Data: []string{
+			"Mon",
+			"Tue",
+			"Wed",
+			"Thu",
+			"Fri",
+			"Sat",
+			"Sun",
+		},
+		StrokeColor: drawing.ColorBlack,
+		FontSize:    12,
+		FontColor:   drawing.ColorBlack,
+	}).Render()
+
+	top += 50
+	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   1,
+		Right:  p.Width() - 1,
+		Bottom: top + 50,
+	})), charts.AxisPainterOption{
+		Position:    charts.PositionTop,
+		BoundaryGap: charts.FalseFlag(),
+		Data: []string{
+			"Mon",
+			"Tue",
+			"Wed",
+			"Thu",
+			"Fri",
+			"Sat",
+			"Sun",
+		},
+		StrokeColor: drawing.ColorBlack,
+		FontSize:    12,
+		FontColor:   drawing.ColorBlack,
+	}).Render()
+
+	top += 50
+	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   10,
+		Right:  p.Width() - 1,
+		Bottom: top + 200,
+	})), charts.AxisPainterOption{
+		Position: charts.PositionLeft,
+		Data: []string{
+			"Mon",
+			"Tue",
+			"Wed",
+			"Thu",
+			"Fri",
+			"Sat",
+			"Sun",
+		},
+		StrokeColor: drawing.ColorBlack,
+		FontSize:    12,
+		FontColor:   drawing.ColorBlack,
 	}).Render()
 
 	buf, err := p.Bytes()

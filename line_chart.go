@@ -50,53 +50,28 @@ type LineChartOption struct {
 	// The padding of line chart
 	Padding Box
 	// The y axis option
-	YAxis YAxisOption
+	YAxisOptions []YAxisOption
 }
 
 func (l *lineChart) Render() (Box, error) {
 	p := l.p
 	opt := l.opt
-	p = defaultRender(p, defaultRenderOption{
-		Theme:   opt.Theme,
-		Padding: opt.Padding,
-	})
-
 	seriesList := opt.SeriesList
 	seriesList.init()
-	// 过滤前先计算最大最小值
-	max, min := seriesList.GetMaxMin()
-
-	seriesList = seriesList.Filter(ChartTypeLine)
-
-	// Y轴
-	yr := NewRange(AxisRangeOption{
-		Min: min,
-		Max: max,
-		// 高度需要减去x轴的高度
-		Size:        p.Height() - defaultXAxisHeight,
-		DivideCount: defaultAxisDivideCount,
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:        opt.Theme,
+		Padding:      opt.Padding,
+		SeriesList:   seriesList,
+		XAxis:        opt.XAxis,
+		YAxisOptions: opt.YAxisOptions,
 	})
-	if opt.YAxis.Theme == nil {
-		opt.YAxis.Theme = opt.Theme
-	}
-	opt.YAxis.Data = yr.Values()
-	reverseStringSlice(opt.YAxis.Data)
-	yAxis := NewLeftYAxis(p, opt.YAxis)
-	yAxisBox, err := yAxis.Render()
 	if err != nil {
 		return chart.BoxZero, err
 	}
-	seriesPainter := p.Child(PainterPaddingOption(Box{
-		Bottom: defaultXAxisHeight,
-		Left:   yAxisBox.Width(),
-	}))
 
-	if opt.XAxis.Theme == nil {
-		opt.XAxis.Theme = opt.Theme
-	}
-	xAxis := NewBottomXAxis(p.Child(PainterPaddingOption(Box{
-		Left: yAxisBox.Width(),
-	})), opt.XAxis)
+	seriesList = seriesList.Filter(ChartTypeLine)
+
+	seriesPainter := renderResult.p
 
 	xDivideValues := autoDivide(seriesPainter.Width(), len(opt.XAxis.Data))
 	xValues := make([]int, len(xDivideValues)-1)
@@ -110,6 +85,7 @@ func (l *lineChart) Render() (Box, error) {
 			StrokeWidth: 2,
 			FillColor:   seriesColor,
 		})
+		yr := renderResult.axisRanges[series.AxisIndex]
 		points := make([]Point, 0)
 		for i, item := range series.Data {
 			h := yr.getRestHeight(item.Value)
@@ -121,13 +97,6 @@ func (l *lineChart) Render() (Box, error) {
 		}
 		seriesPainter.LineStroke(points)
 		seriesPainter.Dots(points)
-	}
-
-	err = doRender(
-		xAxis,
-	)
-	if err != nil {
-		return chart.BoxZero, err
 	}
 
 	return p.box, nil

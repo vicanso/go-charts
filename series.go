@@ -99,8 +99,8 @@ type Series struct {
 	// The data list of series
 	Data []SeriesData
 	// The Y axis index, it should be 0 or 1.
-	// Default value is 1
-	YAxisIndex int
+	// Default value is 0
+	AxisIndex int
 	// The style for series
 	Style chart.Style
 	// The label for series
@@ -143,10 +143,13 @@ func (sl SeriesList) Filter(chartType string) SeriesList {
 }
 
 // GetMaxMin get max and min value of series list
-func (sl SeriesList) GetMaxMin() (float64, float64) {
+func (sl SeriesList) GetMaxMin(axisIndex int) (float64, float64) {
 	min := math.MaxFloat64
 	max := -math.MaxFloat64
 	for _, series := range sl {
+		if series.AxisIndex != axisIndex {
+			continue
+		}
 		for _, item := range series.Data {
 			if item.Value > max {
 				max = item.Value

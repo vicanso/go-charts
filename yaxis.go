@@ -22,29 +22,45 @@
 
 package charts
 
-type Renderer interface {
-	Render() (Box, error)
+import "github.com/golang/freetype/truetype"
+
+type YAxisOption struct {
+	// The font of y axis
+	Font *truetype.Font
+	// The data value of x axis
+	Data []string
+	// The theme of chart
+	Theme ColorPalette
+	// The font size of x axis label
+	FontSize float64
+	// The position of axis, it can be 'left' or 'right'
+	Position string
+	// The color of label
+	FontColor Color
 }
 
-type defaultRenderOption struct {
-	Theme   ColorPalette
-	Padding Box
-}
-
-func defaultRender(p *Painter, opt defaultRenderOption) *Painter {
-	p.SetBackground(p.Width(), p.Height(), opt.Theme.GetBackgroundColor())
-	if !opt.Padding.IsZero() {
-		p = p.Child(PainterPaddingOption(opt.Padding))
+func (opt *YAxisOption) ToAxisPainterOption() AxisPainterOption {
+	position := PositionLeft
+	if opt.Position == PositionRight {
+		position = PositionRight
 	}
-	return p
+	return AxisPainterOption{
+		Theme:          opt.Theme,
+		Data:           opt.Data,
+		Position:       position,
+		FontSize:       opt.FontSize,
+		StrokeWidth:    -1,
+		Font:           opt.Font,
+		FontColor:      opt.FontColor,
+		BoundaryGap:    FalseFlag(),
+		SplitLineShow:  true,
+		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
+	}
 }
 
-func doRender(renderers ...Renderer) error {
-	for _, r := range renderers {
-		_, err := r.Render()
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {
+	p = p.Child(PainterPaddingOption(Box{
+		Bottom: defaultXAxisHeight,
+	}))
+	return NewAxisPainter(p, opt.ToAxisPainterOption())
 }

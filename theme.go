@@ -22,7 +22,11 @@
 
 package charts
 
-import "github.com/wcharczuk/go-chart/v2/drawing"
+import (
+	"github.com/golang/freetype/truetype"
+	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
+)
 
 const ThemeDark = "dark"
 const ThemeLight = "light"
@@ -36,6 +40,8 @@ type ColorPalette interface {
 	GetSeriesColor(int) Color
 	GetBackgroundColor() Color
 	GetTextColor() Color
+	GetFontSize() float64
+	GetFont() *truetype.Font
 }
 
 type themeColorPalette struct {
@@ -45,9 +51,13 @@ type themeColorPalette struct {
 	backgroundColor    Color
 	textColor          Color
 	seriesColors       []Color
+	fontSize           float64
+	font               *truetype.Font
 }
 
 var palettes = map[string]ColorPalette{}
+
+const defaultFontSize = 12.0
 
 func init() {
 	echartSeriesColors := []Color{
@@ -232,4 +242,19 @@ func (t *themeColorPalette) GetBackgroundColor() Color {
 
 func (t *themeColorPalette) GetTextColor() Color {
 	return t.textColor
+}
+
+func (t *themeColorPalette) GetFontSize() float64 {
+	if t.fontSize != 0 {
+		return t.fontSize
+	}
+	return defaultFontSize
+}
+
+func (t *themeColorPalette) GetFont() *truetype.Font {
+	if t.font != nil {
+		return t.font
+	}
+	f, _ := chart.GetDefaultFont()
+	return f
 }

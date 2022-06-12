@@ -636,7 +636,7 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 		x := 0
 		y := 0
 		if isVertical {
-			y = start - box.Height()>>1
+			y = start + box.Height()>>1
 			switch opt.Align {
 			case AlignRight:
 				x = width - box.Width()
@@ -700,7 +700,7 @@ func (p *Painter) Grid(opt GridOption) *Painter {
 
 func (p *Painter) Dots(points []Point) *Painter {
 	for _, item := range points {
-		p.Circle(5, item.X, item.Y)
+		p.Circle(3, item.X, item.Y)
 	}
 	p.FillStroke()
 	return p

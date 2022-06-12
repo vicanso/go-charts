@@ -39,6 +39,8 @@ func NewAxisPainter(p *Painter, opt AxisPainterOption) *axisPainter {
 }
 
 type AxisPainterOption struct {
+	// The theme of chart
+	Theme ColorPalette
 	// The label of axis
 	Data []string
 	// The boundary gap on both sides of a coordinate axis.
@@ -70,11 +72,29 @@ type AxisPainterOption struct {
 
 func (a *axisPainter) Render() (Box, error) {
 	opt := a.opt
-	p := a.p
+	top := a.p
+	theme := opt.Theme
 
 	strokeWidth := opt.StrokeWidth
 	if strokeWidth == 0 {
 		strokeWidth = 1
+	}
+
+	font := opt.Font
+	if font == nil {
+		font = theme.GetFont()
+	}
+	fontColor := opt.FontColor
+	if fontColor.IsZero() {
+		fontColor = theme.GetTextColor()
+	}
+	fontSize := opt.FontSize
+	if fontSize == 0 {
+		fontSize = theme.GetFontSize()
+	}
+	strokeColor := opt.StrokeColor
+	if strokeColor.IsZero() {
+		strokeColor = theme.GetAxisStrokeColor()
 	}
 
 	tickCount := opt.SplitNumber
@@ -86,11 +106,16 @@ func (a *axisPainter) Render() (Box, error) {
 	if opt.BoundaryGap != nil && !*opt.BoundaryGap {
 		boundaryGap = false
 	}
+	isVertical := opt.Position == PositionLeft ||
+		opt.Position == PositionRight
 
 	labelPosition := ""
 	if !boundaryGap {
 		tickCount--
 		labelPosition = PositionLeft
+	}
+	if isVertical && boundaryGap {
+		labelPosition = PositionCenter
 	}
 
 	// TODO 计算unit
@@ -99,84 +124,104 @@ func (a *axisPainter) Render() (Box, error) {
 	tickLength := getDefaultInt(opt.TickLength, 5)
 	labelMargin := getDefaultInt(opt.LabelMargin, 5)
 
-	textMaxWidth, textMaxHeight := p.MeasureTextMaxWidthHeight(opt.Data)
+	style := Style{
+		StrokeColor: strokeColor,
+		StrokeWidth: strokeWidth,
+		Font:        font,
+		FontColor:   fontColor,
+		FontSize:    fontSize,
+	}
+	top.SetDrawingStyle(style).OverrideTextStyle(style)
+
+	textMaxWidth, textMaxHeight := top.MeasureTextMaxWidthHeight(opt.Data)
 
 	width := 0
 	height := 0
 	// 垂直
-	if opt.Position == PositionLeft ||
-		opt.Position == PositionRight {
+	if isVertical {
 		width = textMaxWidth + tickLength<<1
-		height = p.Height()
+		height = top.Height()
 	} else {
-		width = p.Width()
+		width = top.Width()
 		height = tickLength<<1 + textMaxHeight
 	}
 	padding := Box{}
 	switch opt.Position {
 	case PositionTop:
-		padding.Top = p.Height() - height
+		padding.Top = top.Height() - height
 	case PositionLeft:
-		padding.Right = p.Width() - width
+		padding.Right = top.Width() - width
+	case PositionRight:
+		padding.Left = top.Width() - width
 	}
-	p = p.Child(PainterPaddingOption(padding))
-	p.SetDrawingStyle(Style{
-		StrokeColor: opt.StrokeColor,
-		StrokeWidth: strokeWidth,
-	}).OverrideTextStyle(Style{
-		Font:      opt.Font,
-		FontColor: opt.FontColor,
-		FontSize:  opt.FontSize,
-	})
+
+	p := top.Child(PainterPaddingOption(padding))
 
 	x0 := 0
 	y0 := 0
 	x1 := 0
 	y1 := 0
-	ticksPadding := 0
-	labelPadding := 0
+	ticksPaddingTop := 0
+	ticksPaddingLeft := 0
+	labelPaddingTop := 0
+	labelPaddingLeft := 0
+	labelPaddingRight := 0
 	orient := ""
 	textAlign := ""
 
 	switch opt.Position {
 	case PositionTop:
-		labelPadding = labelMargin
+		labelPaddingTop = labelMargin
 		x1 = p.Width()
 		y0 = labelMargin + int(opt.FontSize)
-		ticksPadding = int(opt.FontSize)
+		ticksPaddingTop = int(opt.FontSize)
 		y1 = y0
 		orient = OrientHorizontal
 	case PositionLeft:
+		x0 = p.Width()
+		y0 = 0
+		x1 = p.Width()
+		y1 = p.Height()
 		orient = OrientVertical
 		textAlign = AlignRight
+		ticksPaddingLeft = textMaxWidth + tickLength
+		labelPaddingRight = width - textMaxWidth
+	case PositionRight:
+		orient = OrientVertical
+		y1 = p.Height()
+		labelPaddingLeft = width - textMaxWidth
 	default:
-		labelPadding = height
+		labelPaddingTop = height
 		x1 = p.Width()
 		orient = OrientHorizontal
 	}
 
-	p.Child(PainterPaddingOption(Box{
-		Top: ticksPadding,
-	})).Ticks(TicksOption{
-		Count:  tickCount,
-		Length: tickLength,
-		Unit:   unit,
-		Orient: orient,
-	})
+	if strokeWidth > 0 {
+		p.Child(PainterPaddingOption(Box{
+			Top:  ticksPaddingTop,
+			Left: ticksPaddingLeft,
+		})).Ticks(TicksOption{
+			Count:  tickCount,
+			Length: tickLength,
+			Unit:   unit,
+			Orient: orient,
+		})
+		p.LineStroke([]Point{
+			{
+				X: x0,
+				Y: y0,
+			},
+			{
+				X: x1,
+				Y: y1,
+			},
+		})
+	}
 
-	p.LineStroke([]Point{
-		{
-			X: x0,
-			Y: y0,
-		},
-		{
-			X: x1,
-			Y: y1,
-		},
-	})
-
 	p.Child(PainterPaddingOption(Box{
-		Top: labelPadding,
+		Left:  labelPaddingLeft,
+		Top:   labelPaddingTop,
+		Right: labelPaddingRight,
 	})).MultiText(MultiTextOption{
 		Align:    textAlign,
 		TextList: opt.Data,
@@ -184,6 +229,31 @@ func (a *axisPainter) Render() (Box, error) {
 		Unit:     unit,
 		Position: labelPosition,
 	})
+	// 显示辅助线
+	if opt.SplitLineShow {
+		style.StrokeColor = opt.SplitLineColor
+		top.OverrideDrawingStyle(style)
+		if isVertical {
+			x0 := p.Width()
+			x1 := top.Width()
+			if opt.Position == PositionRight {
+				x0 = 0
+				x1 = top.Width() - p.Width()
+			}
+			for _, y := range autoDivide(height, tickCount) {
+				top.LineStroke([]Point{
+					{
+						X: x0,
+						Y: y,
+					},
+					{
+						X: x1,
+						Y: y,
+					},
+				})
+			}
+		}
+	}
 
 	return Box{
 		Bottom: height,

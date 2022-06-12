@@ -409,6 +409,7 @@ func main() {
 		Bottom: 20,
 	})
 
+	// grid
 	top += 50
 	charts.NewGridPainter(p.Child(charts.PainterBoxOption(charts.Box{
 		Top:    top,
@@ -422,6 +423,7 @@ func main() {
 		StrokeColor:    drawing.ColorBlue,
 	}).Render()
 
+	// legend
 	top += 100
 	charts.NewLegendPainter(p.Child(charts.PainterBoxOption(charts.Box{
 		Top:    top,
@@ -440,6 +442,7 @@ func main() {
 		FontColor: drawing.ColorBlack,
 	}).Render()
 
+	// legend
 	top += 30
 	charts.NewLegendPainter(p.Child(charts.PainterBoxOption(charts.Box{
 		Top:    top,
@@ -460,6 +463,7 @@ func main() {
 		FontColor: drawing.ColorBlack,
 	}).Render()
 
+	// legend
 	top += 30
 	charts.NewLegendPainter(p.Child(charts.PainterBoxOption(charts.Box{
 		Top:    top,
@@ -479,6 +483,7 @@ func main() {
 		FontColor: drawing.ColorBlack,
 	}).Render()
 
+	// axis bottom
 	top += 100
 	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
 		Top:    top,
@@ -500,6 +505,7 @@ func main() {
 		FontColor:   drawing.ColorBlack,
 	}).Render()
 
+	// axis top
 	top += 50
 	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
 		Top:    top,
@@ -523,11 +529,12 @@ func main() {
 		FontColor:   drawing.ColorBlack,
 	}).Render()
 
+	// axis left
 	top += 50
 	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
 		Top:    top,
 		Left:   10,
-		Right:  p.Width() - 1,
+		Right:  60,
 		Bottom: top + 200,
 	})), charts.AxisPainterOption{
 		Position: charts.PositionLeft,
@@ -543,6 +550,51 @@ func main() {
 		StrokeColor: drawing.ColorBlack,
 		FontSize:    12,
 		FontColor:   drawing.ColorBlack,
+	}).Render()
+	// axis right
+	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   100,
+		Right:  150,
+		Bottom: top + 200,
+	})), charts.AxisPainterOption{
+		Position: charts.PositionRight,
+		Data: []string{
+			"Mon",
+			"Tue",
+			"Wed",
+			"Thu",
+			"Fri",
+			"Sat",
+			"Sun",
+		},
+		StrokeColor: drawing.ColorBlack,
+		FontSize:    12,
+		FontColor:   drawing.ColorBlack,
+	}).Render()
+
+	// axis left no tick
+	charts.NewAxisPainter(p.Child(charts.PainterBoxOption(charts.Box{
+		Top:    top,
+		Left:   150,
+		Right:  300,
+		Bottom: top + 200,
+	})), charts.AxisPainterOption{
+		BoundaryGap: charts.FalseFlag(),
+		Position:    charts.PositionLeft,
+		Data: []string{
+			"Mon",
+			"Tue",
+			"Wed",
+			"Thu",
+			"Fri",
+			"Sat",
+			"Sun",
+		},
+		FontSize:       12,
+		FontColor:      drawing.ColorBlack,
+		SplitLineShow:  true,
+		SplitLineColor: drawing.ColorBlack.WithAlpha(100),
 	}).Render()
 
 	buf, err := p.Bytes()

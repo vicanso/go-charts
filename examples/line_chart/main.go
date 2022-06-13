@@ -39,6 +39,19 @@ func main() {
 			Right:  10,
 			Bottom: 10,
 		},
+		TitleOption: charts.TitleOption{
+			Text: "Line",
+		},
+		LegendOption: charts.LegendOption{
+			Data: []string{
+				"Email",
+				"Union Ads",
+				"Video Ads",
+				"Direct",
+				"Search Engine",
+			},
+			Left: charts.PositionCenter,
+		},
 		XAxis: charts.NewXAxisOption([]string{
 			"Mon",
 			"Tue",

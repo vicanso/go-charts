@@ -700,7 +700,7 @@ func (p *Painter) Grid(opt GridOption) *Painter {
 
 func (p *Painter) Dots(points []Point) *Painter {
 	for _, item := range points {
-		p.Circle(3, item.X, item.Y)
+		p.Circle(2, item.X, item.Y)
 	}
 	p.FillStroke()
 	return p

@@ -22,6 +22,24 @@
 
 package charts
 
+const labelFontSize = 10
+const defaultDotWidth = 2.0
+const defaultStrokeWidth = 2.0
+
+var defaultChartWidth = 600
+var defaultChartHeight = 400
+
+func SetDefaultWidth(width int) {
+	if width > 0 {
+		defaultChartWidth = width
+	}
+}
+func SetDefaultHeight(height int) {
+	if height > 0 {
+		defaultChartHeight = height
+	}
+}
+
 type Renderer interface {
 	Render() (Box, error)
 }
@@ -34,6 +52,10 @@ type defaultRenderOption struct {
 	YAxisOptions []YAxisOption
 	// The x axis option
 	XAxis XAxisOption
+	// The title option
+	TitleOption TitleOption
+	// The legend option
+	LegendOption LegendOption
 }
 
 type defaultRenderResult struct {
@@ -42,10 +64,37 @@ type defaultRenderResult struct {
 }
 
 func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, error) {
-	p.SetBackground(p.Width(), p.Height(), opt.Theme.GetBackgroundColor())
 	if !opt.Padding.IsZero() {
 		p = p.Child(PainterPaddingOption(opt.Padding))
 	}
+
+	if len(opt.LegendOption.Data) != 0 {
+		if opt.LegendOption.Theme == nil {
+			opt.LegendOption.Theme = opt.Theme
+		}
+		_, err := NewLegendPainter(p, opt.LegendOption).Render()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 如果有标题
+	if opt.TitleOption.Text != "" {
+		if opt.TitleOption.Theme == nil {
+			opt.TitleOption.Theme = opt.Theme
+		}
+		titlePainter := NewTitlePainter(p, opt.TitleOption)
+
+		titleBox, err := titlePainter.Render()
+		if err != nil {
+			return nil, err
+		}
+		p = p.Child(PainterPaddingOption(Box{
+			// 标题下留白
+			Top: titleBox.Height() + 20,
+		}))
+	}
+
 	result := defaultRenderResult{
 		axisRanges: make(map[int]axisRange),
 	}
@@ -60,7 +109,8 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 	}
 	// 高度需要减去x轴的高度
 	rangeHeight := p.Height() - defaultXAxisHeight
-	rangeWidth := 0
+	rangeWidthLeft := 0
+	rangeWidthRight := 0
 
 	// 计算对应的axis range
 	for _, index := range axisIndexList {
@@ -89,28 +139,28 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		if err != nil {
 			return nil, err
 		}
-		rangeWidth += yAxisBox.Width()
+		if index == 0 {
+			rangeWidthLeft += yAxisBox.Width()
+		} else {
+			rangeWidthRight += yAxisBox.Width()
+		}
 	}
 
 	if opt.XAxis.Theme == nil {
 		opt.XAxis.Theme = opt.Theme
 	}
 	xAxis := NewBottomXAxis(p.Child(PainterPaddingOption(Box{
-		Left: rangeWidth,
+		Left: rangeWidthLeft,
 	})), opt.XAxis)
 	_, err := xAxis.Render()
 	if err != nil {
 		return nil, err
 	}
 
-	// // 生成Y轴
-	// for _, yAxisOption := range opt.YAxisOptions {
-
-	// }
-
 	result.p = p.Child(PainterPaddingOption(Box{
 		Bottom: rangeHeight,
-		Left:   rangeWidth,
+		Left:   rangeWidthLeft,
+		Right:  rangeWidthRight,
 	}))
 	return &result, nil
 }
@@ -123,4 +173,51 @@ func doRender(renderers ...Renderer) error {
 		}
 	}
 	return nil
+}
+
+func Render(opt ChartOption) (*Painter, error) {
+	opt.fillDefault()
+
+	if opt.Parent == nil {
+		p, err := NewPainter(PainterOptions{
+			Type:   opt.Type,
+			Width:  opt.Width,
+			Height: opt.Height,
+		})
+		if err != nil {
+			return nil, err
+		}
+		opt.Parent = p
+	}
+	p := opt.Parent
+	p.SetBackground(p.Width(), p.Height(), opt.BackgroundColor)
+	seriesList := opt.SeriesList
+	seriesList.init()
+
+	rendererList := make([]Renderer, 0)
+
+	// line chart
+	lineChartSeriesList := seriesList.Filter(ChartTypeLine)
+	if len(lineChartSeriesList) != 0 {
+		renderer := NewLineChart(p, LineChartOption{
+			Theme:        opt.theme,
+			Font:         opt.font,
+			SeriesList:   lineChartSeriesList,
+			XAxis:        opt.XAxis,
+			Padding:      opt.Padding,
+			YAxisOptions: opt.YAxisOptions,
+			TitleOption:  opt.Title,
+			LegendOption: opt.Legend,
+		})
+		rendererList = append(rendererList, renderer)
+	}
+
+	for _, renderer := range rendererList {
+		_, err := renderer.Render()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return p, nil
 }

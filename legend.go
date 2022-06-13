@@ -29,13 +29,13 @@ import (
 
 type legendPainter struct {
 	p   *Painter
-	opt *LegendPainterOption
+	opt *LegendOption
 }
 
 const IconRect = "rect"
 const IconLineDot = "lineDot"
 
-type LegendPainterOption struct {
+type LegendOption struct {
 	Theme ColorPalette
 	// Text array of legend
 	Data []string
@@ -58,7 +58,17 @@ type LegendPainterOption struct {
 	FontColor Color
 }
 
-func NewLegendPainter(p *Painter, opt LegendPainterOption) *legendPainter {
+func NewLegendOption(labels []string, left ...string) LegendOption {
+	opt := LegendOption{
+		Data: labels,
+	}
+	if len(left) != 0 {
+		opt.Left = left[0]
+	}
+	return opt
+}
+
+func NewLegendPainter(p *Painter, opt LegendOption) *legendPainter {
 	return &legendPainter{
 		p:   p,
 		opt: &opt,
@@ -70,6 +80,12 @@ func (l *legendPainter) Render() (Box, error) {
 	theme := opt.Theme
 	if theme == nil {
 		theme = l.p.theme
+	}
+	if opt.FontSize == 0 {
+		opt.FontSize = theme.GetFontSize()
+	}
+	if opt.FontColor.IsZero() {
+		opt.FontColor = theme.GetTextColor()
 	}
 	p := l.p
 	p.SetTextStyle(Style{
@@ -129,7 +145,7 @@ func (l *legendPainter) Render() (Box, error) {
 	top, _ := strconv.Atoi(opt.Top)
 
 	x := int(left)
-	y := int(top)
+	y := int(top) + 10
 	x0 := x
 	y0 := y
 

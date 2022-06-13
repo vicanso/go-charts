@@ -23,7 +23,9 @@
 package charts
 
 import (
+	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 type lineChart struct {
@@ -43,6 +45,8 @@ func NewLineChart(p *Painter, opt LineChartOption) *lineChart {
 
 type LineChartOption struct {
 	Theme ColorPalette
+	// The font size
+	Font *truetype.Font
 	// The data series list
 	SeriesList SeriesList
 	// The x axis option
@@ -51,6 +55,10 @@ type LineChartOption struct {
 	Padding Box
 	// The y axis option
 	YAxisOptions []YAxisOption
+	// The option of title
+	TitleOption TitleOption
+	// The legend option
+	LegendOption LegendOption
 }
 
 func (l *lineChart) Render() (Box, error) {
@@ -64,6 +72,8 @@ func (l *lineChart) Render() (Box, error) {
 		SeriesList:   seriesList,
 		XAxis:        opt.XAxis,
 		YAxisOptions: opt.YAxisOptions,
+		TitleOption:  opt.TitleOption,
+		LegendOption: opt.LegendOption,
 	})
 	if err != nil {
 		return chart.BoxZero, err
@@ -78,13 +88,20 @@ func (l *lineChart) Render() (Box, error) {
 	for i := 0; i < len(xDivideValues)-1; i++ {
 		xValues[i] = (xDivideValues[i] + xDivideValues[i+1]) >> 1
 	}
+	markPointPainter := NewMarkPointPainter(seriesPainter)
+	markLinePainter := NewMarkLinePainter(seriesPainter)
+	rendererList := []Renderer{
+		markPointPainter,
+		markLinePainter,
+	}
 	for index, series := range seriesList {
 		seriesColor := opt.Theme.GetSeriesColor(index)
-		seriesPainter.SetDrawingStyle(Style{
+		drawingStyle := Style{
 			StrokeColor: seriesColor,
-			StrokeWidth: 2,
-			FillColor:   seriesColor,
-		})
+			StrokeWidth: defaultStrokeWidth,
+		}
+
+		seriesPainter.SetDrawingStyle(drawingStyle)
 		yr := renderResult.axisRanges[series.AxisIndex]
 		points := make([]Point, 0)
 		for i, item := range series.Data {
@@ -95,8 +112,39 @@ func (l *lineChart) Render() (Box, error) {
 			}
 			points = append(points, p)
 		}
+		// 画线
 		seriesPainter.LineStroke(points)
+
+		// 画点
+		if opt.Theme.IsDark() {
+			drawingStyle.FillColor = drawingStyle.StrokeColor
+		} else {
+			drawingStyle.FillColor = drawing.ColorWhite
+		}
+		drawingStyle.StrokeWidth = 1
+		seriesPainter.SetDrawingStyle(drawingStyle)
 		seriesPainter.Dots(points)
+		markPointPainter.Add(markPointRenderOption{
+			FillColor: seriesColor,
+			Font:      opt.Font,
+			Points:    points,
+			Series:    series,
+		})
+		markLinePainter.Add(markLineRenderOption{
+			FillColor:   seriesColor,
+			FontColor:   opt.Theme.GetTextColor(),
+			StrokeColor: seriesColor,
+			Font:        opt.Font,
+			Series:      series,
+			Range:       yr,
+		})
+	}
+	// 最大、最小的mark point
+	for _, renderer := range rendererList {
+		_, err = renderer.Render()
+		if err != nil {
+			return chart.BoxZero, err
+		}
 	}
 
 	return p.box, nil

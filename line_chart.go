@@ -56,9 +56,11 @@ type LineChartOption struct {
 	// The y axis option
 	YAxisOptions []YAxisOption
 	// The option of title
-	TitleOption TitleOption
+	Title TitleOption
 	// The legend option
-	LegendOption LegendOption
+	Legend LegendOption
+	// background is filled
+	backgroundIsFilled bool
 }
 
 func (l *lineChart) Render() (Box, error) {
@@ -67,26 +69,39 @@ func (l *lineChart) Render() (Box, error) {
 	seriesList := opt.SeriesList
 	seriesList.init()
 	renderResult, err := defaultRender(p, defaultRenderOption{
-		Theme:        opt.Theme,
-		Padding:      opt.Padding,
-		SeriesList:   seriesList,
-		XAxis:        opt.XAxis,
-		YAxisOptions: opt.YAxisOptions,
-		TitleOption:  opt.TitleOption,
-		LegendOption: opt.LegendOption,
+		Theme:              opt.Theme,
+		Padding:            opt.Padding,
+		SeriesList:         seriesList,
+		XAxis:              opt.XAxis,
+		YAxisOptions:       opt.YAxisOptions,
+		TitleOption:        opt.Title,
+		LegendOption:       opt.Legend,
+		backgroundIsFilled: opt.backgroundIsFilled,
 	})
 	if err != nil {
 		return chart.BoxZero, err
 	}
+	boundaryGap := true
+	if opt.XAxis.BoundaryGap != nil && !*opt.XAxis.BoundaryGap {
+		boundaryGap = false
+	}
 
 	seriesList = seriesList.Filter(ChartTypeLine)
 
-	seriesPainter := renderResult.p
+	seriesPainter := renderResult.seriesPainter
 
-	xDivideValues := autoDivide(seriesPainter.Width(), len(opt.XAxis.Data))
+	xDivideCount := len(opt.XAxis.Data)
+	if !boundaryGap {
+		xDivideCount--
+	}
+	xDivideValues := autoDivide(seriesPainter.Width(), xDivideCount)
 	xValues := make([]int, len(xDivideValues)-1)
-	for i := 0; i < len(xDivideValues)-1; i++ {
-		xValues[i] = (xDivideValues[i] + xDivideValues[i+1]) >> 1
+	if boundaryGap {
+		for i := 0; i < len(xDivideValues)-1; i++ {
+			xValues[i] = (xDivideValues[i] + xDivideValues[i+1]) >> 1
+		}
+	} else {
+		xValues = xDivideValues
 	}
 	markPointPainter := NewMarkPointPainter(seriesPainter)
 	markLinePainter := NewMarkLinePainter(seriesPainter)
@@ -94,7 +109,8 @@ func (l *lineChart) Render() (Box, error) {
 		markPointPainter,
 		markLinePainter,
 	}
-	for index, series := range seriesList {
+	for index := range seriesList {
+		series := seriesList[index]
 		seriesColor := opt.Theme.GetSeriesColor(index)
 		drawingStyle := Style{
 			StrokeColor: seriesColor,
@@ -102,10 +118,10 @@ func (l *lineChart) Render() (Box, error) {
 		}
 
 		seriesPainter.SetDrawingStyle(drawingStyle)
-		yr := renderResult.axisRanges[series.AxisIndex]
+		yRange := renderResult.axisRanges[series.AxisIndex]
 		points := make([]Point, 0)
 		for i, item := range series.Data {
-			h := yr.getRestHeight(item.Value)
+			h := yRange.getRestHeight(item.Value)
 			p := Point{
 				X: xValues[i],
 				Y: h,
@@ -136,15 +152,13 @@ func (l *lineChart) Render() (Box, error) {
 			StrokeColor: seriesColor,
 			Font:        opt.Font,
 			Series:      series,
-			Range:       yr,
+			Range:       yRange,
 		})
 	}
 	// 最大、最小的mark point
-	for _, renderer := range rendererList {
-		_, err = renderer.Render()
-		if err != nil {
-			return chart.BoxZero, err
-		}
+	err = doRender(rendererList...)
+	if err != nil {
+		return chart.BoxZero, err
 	}
 
 	return p.box, nil

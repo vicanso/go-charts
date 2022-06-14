@@ -56,14 +56,21 @@ type defaultRenderOption struct {
 	TitleOption TitleOption
 	// The legend option
 	LegendOption LegendOption
+	// background is filled
+	backgroundIsFilled bool
 }
 
 type defaultRenderResult struct {
 	axisRanges map[int]axisRange
-	p          *Painter
+	// 图例区域
+	seriesPainter *Painter
 }
 
 func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, error) {
+	if !opt.backgroundIsFilled {
+		p.SetBackground(p.Width(), p.Height(), opt.Theme.GetBackgroundColor())
+	}
+
 	if !opt.Padding.IsZero() {
 		p = p.Child(PainterPaddingOption(opt.Padding))
 	}
@@ -157,8 +164,8 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		return nil, err
 	}
 
-	result.p = p.Child(PainterPaddingOption(Box{
-		Bottom: rangeHeight,
+	result.seriesPainter = p.Child(PainterPaddingOption(Box{
+		Bottom: defaultXAxisHeight,
 		Left:   rangeWidthLeft,
 		Right:  rangeWidthRight,
 	}))
@@ -200,14 +207,15 @@ func Render(opt ChartOption) (*Painter, error) {
 	lineChartSeriesList := seriesList.Filter(ChartTypeLine)
 	if len(lineChartSeriesList) != 0 {
 		renderer := NewLineChart(p, LineChartOption{
-			Theme:        opt.theme,
-			Font:         opt.font,
-			SeriesList:   lineChartSeriesList,
-			XAxis:        opt.XAxis,
-			Padding:      opt.Padding,
-			YAxisOptions: opt.YAxisOptions,
-			TitleOption:  opt.Title,
-			LegendOption: opt.Legend,
+			Theme:              opt.theme,
+			Font:               opt.font,
+			SeriesList:         lineChartSeriesList,
+			XAxis:              opt.XAxis,
+			Padding:            opt.Padding,
+			YAxisOptions:       opt.YAxisOptions,
+			Title:              opt.Title,
+			Legend:             opt.Legend,
+			backgroundIsFilled: true,
 		})
 		rendererList = append(rendererList, renderer)
 	}

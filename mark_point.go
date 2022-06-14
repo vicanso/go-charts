@@ -64,6 +64,7 @@ func NewMarkPointPainter(p *Painter) *markPointPainter {
 
 func (m *markPointPainter) Render() (Box, error) {
 	painter := m.p
+	theme := m.p.theme
 	for _, opt := range m.options {
 		s := opt.Series
 		if len(s.MarkPoint.Data) == 0 {
@@ -78,7 +79,7 @@ func (m *markPointPainter) Render() (Box, error) {
 		painter.OverrideDrawingStyle(Style{
 			FillColor: opt.FillColor,
 		}).OverrideTextStyle(Style{
-			FontColor:   NewTheme(ThemeDark).GetTextColor(),
+			FontColor:   theme.GetTextColor(),
 			FontSize:    labelFontSize,
 			StrokeWidth: 1,
 			Font:        opt.Font,

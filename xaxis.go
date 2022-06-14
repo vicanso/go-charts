@@ -62,12 +62,12 @@ func NewXAxisOption(data []string, boundaryGap ...*bool) XAxisOption {
 	return opt
 }
 
-func (opt *XAxisOption) ToAxisPainterOption() AxisPainterOption {
+func (opt *XAxisOption) ToAxisOption() AxisOption {
 	position := PositionBottom
 	if opt.Position == PositionTop {
 		position = PositionTop
 	}
-	return AxisPainterOption{
+	return AxisOption{
 		Theme:       opt.Theme,
 		Data:        opt.Data,
 		BoundaryGap: opt.BoundaryGap,
@@ -84,5 +84,5 @@ func NewBottomXAxis(p *Painter, opt XAxisOption) *axisPainter {
 	p = p.Child(PainterPaddingOption(Box{
 		Top: p.Height() - defaultXAxisHeight,
 	}))
-	return NewAxisPainter(p, opt.ToAxisPainterOption())
+	return NewAxisPainter(p, opt.ToAxisOption())
 }

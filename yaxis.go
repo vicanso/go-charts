@@ -39,12 +39,12 @@ type YAxisOption struct {
 	FontColor Color
 }
 
-func (opt *YAxisOption) ToAxisPainterOption() AxisPainterOption {
+func (opt *YAxisOption) ToAxisOption() AxisOption {
 	position := PositionLeft
 	if opt.Position == PositionRight {
 		position = PositionRight
 	}
-	return AxisPainterOption{
+	return AxisOption{
 		Theme:          opt.Theme,
 		Data:           opt.Data,
 		Position:       position,
@@ -62,5 +62,5 @@ func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {
 	p = p.Child(PainterPaddingOption(Box{
 		Bottom: defaultXAxisHeight,
 	}))
-	return NewAxisPainter(p, opt.ToAxisPainterOption())
+	return NewAxisPainter(p, opt.ToAxisOption())
 }

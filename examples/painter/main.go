@@ -490,7 +490,7 @@ func main() {
 		Left:   1,
 		Right:  p.Width() - 1,
 		Bottom: top + 50,
-	})), charts.AxisPainterOption{
+	})), charts.AxisOption{
 		Data: []string{
 			"Mon",
 			"Tue",
@@ -512,7 +512,7 @@ func main() {
 		Left:   1,
 		Right:  p.Width() - 1,
 		Bottom: top + 50,
-	})), charts.AxisPainterOption{
+	})), charts.AxisOption{
 		Position:    charts.PositionTop,
 		BoundaryGap: charts.FalseFlag(),
 		Data: []string{
@@ -536,7 +536,7 @@ func main() {
 		Left:   10,
 		Right:  60,
 		Bottom: top + 200,
-	})), charts.AxisPainterOption{
+	})), charts.AxisOption{
 		Position: charts.PositionLeft,
 		Data: []string{
 			"Mon",
@@ -557,7 +557,7 @@ func main() {
 		Left:   100,
 		Right:  150,
 		Bottom: top + 200,
-	})), charts.AxisPainterOption{
+	})), charts.AxisOption{
 		Position: charts.PositionRight,
 		Data: []string{
 			"Mon",
@@ -579,7 +579,7 @@ func main() {
 		Left:   150,
 		Right:  300,
 		Bottom: top + 200,
-	})), charts.AxisPainterOption{
+	})), charts.AxisOption{
 		BoundaryGap: charts.FalseFlag(),
 		Position:    charts.PositionLeft,
 		Data: []string{

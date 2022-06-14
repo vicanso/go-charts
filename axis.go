@@ -28,17 +28,17 @@ import (
 
 type axisPainter struct {
 	p   *Painter
-	opt *AxisPainterOption
+	opt *AxisOption
 }
 
-func NewAxisPainter(p *Painter, opt AxisPainterOption) *axisPainter {
+func NewAxisPainter(p *Painter, opt AxisOption) *axisPainter {
 	return &axisPainter{
 		p:   p,
 		opt: &opt,
 	}
 }
 
-type AxisPainterOption struct {
+type AxisOption struct {
 	// The theme of chart
 	Theme ColorPalette
 	// The label of axis

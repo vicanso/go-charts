@@ -87,6 +87,9 @@ func (l *legendPainter) Render() (Box, error) {
 	if opt.FontColor.IsZero() {
 		opt.FontColor = theme.GetTextColor()
 	}
+	if opt.Left == "" {
+		opt.Left = PositionCenter
+	}
 	p := l.p
 	p.SetTextStyle(Style{
 		FontSize:  opt.FontSize,

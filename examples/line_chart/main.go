@@ -39,10 +39,10 @@ func main() {
 			Right:  10,
 			Bottom: 10,
 		},
-		TitleOption: charts.TitleOption{
+		Title: charts.TitleOption{
 			Text: "Line",
 		},
-		LegendOption: charts.LegendOption{
+		Legend: charts.LegendOption{
 			Data: []string{
 				"Email",
 				"Union Ads",

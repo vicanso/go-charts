@@ -47,7 +47,8 @@ type XAxisOption struct {
 	// The line color of axis
 	StrokeColor Color
 	// The color of label
-	FontColor Color
+	FontColor   Color
+	isValueAxis bool
 }
 
 const defaultXAxisHeight = 30
@@ -67,22 +68,26 @@ func (opt *XAxisOption) ToAxisOption() AxisOption {
 	if opt.Position == PositionTop {
 		position = PositionTop
 	}
-	return AxisOption{
-		Theme:       opt.Theme,
-		Data:        opt.Data,
-		BoundaryGap: opt.BoundaryGap,
-		Position:    position,
-		SplitNumber: opt.SplitNumber,
-		StrokeColor: opt.StrokeColor,
-		FontSize:    opt.FontSize,
-		Font:        opt.Font,
-		FontColor:   opt.FontColor,
+	axisOpt := AxisOption{
+		Theme:          opt.Theme,
+		Data:           opt.Data,
+		BoundaryGap:    opt.BoundaryGap,
+		Position:       position,
+		SplitNumber:    opt.SplitNumber,
+		StrokeColor:    opt.StrokeColor,
+		FontSize:       opt.FontSize,
+		Font:           opt.Font,
+		FontColor:      opt.FontColor,
+		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
 	}
+	if opt.isValueAxis {
+		axisOpt.SplitLineShow = true
+		axisOpt.StrokeWidth = -1
+		axisOpt.BoundaryGap = FalseFlag()
+	}
+	return axisOpt
 }
 
 func NewBottomXAxis(p *Painter, opt XAxisOption) *axisPainter {
-	p = p.Child(PainterPaddingOption(Box{
-		Top: p.Height() - defaultXAxisHeight,
-	}))
 	return NewAxisPainter(p, opt.ToAxisOption())
 }

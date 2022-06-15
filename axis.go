@@ -153,6 +153,8 @@ func (a *axisPainter) Render() (Box, error) {
 		padding.Right = top.Width() - width
 	case PositionRight:
 		padding.Left = top.Width() - width
+	default:
+		padding.Top = top.Height() - defaultXAxisHeight
 	}
 
 	p := top.Child(PainterPaddingOption(padding))
@@ -240,7 +242,10 @@ func (a *axisPainter) Render() (Box, error) {
 				x0 = 0
 				x1 = top.Width() - p.Width()
 			}
-			for _, y := range autoDivide(height, tickCount) {
+			for index, y := range autoDivide(height, tickCount) {
+				if index == 0 {
+					continue
+				}
 				top.LineStroke([]Point{
 					{
 						X: x0,
@@ -249,6 +254,24 @@ func (a *axisPainter) Render() (Box, error) {
 					{
 						X: x1,
 						Y: y,
+					},
+				})
+			}
+		} else {
+			y0 := p.Height() - defaultXAxisHeight
+			y1 := top.Height() - defaultXAxisHeight
+			for index, x := range autoDivide(width, tickCount) {
+				if index == 0 {
+					continue
+				}
+				top.LineStroke([]Point{
+					{
+						X: x,
+						Y: y0,
+					},
+					{
+						X: x,
+						Y: y1,
 					},
 				})
 			}

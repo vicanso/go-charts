@@ -155,17 +155,17 @@ func (l *legendPainter) Render() (Box, error) {
 	drawIcon := func(top, left int) int {
 		if opt.Icon == IconRect {
 			p.Rect(Box{
-				Top:    top - legendHeight + 4,
+				Top:    top - legendHeight + 8,
 				Left:   left,
 				Right:  left + legendWidth,
-				Bottom: top - 2,
+				Bottom: top + 1,
 			})
 		} else {
 			p.LegendLineDot(Box{
-				Top:    top,
+				Top:    top + 1,
 				Left:   left,
 				Right:  left + legendWidth,
-				Bottom: top + legendHeight,
+				Bottom: top + legendHeight + 1,
 			})
 		}
 		return left + legendWidth

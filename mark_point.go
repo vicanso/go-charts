@@ -24,7 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
 func NewMarkPoint(markPointTypes ...string) SeriesMarkPoint {
@@ -99,5 +98,5 @@ func (m *markPointPainter) Render() (Box, error) {
 			painter.Text(text, p.X-textBox.Width()>>1, p.Y-symbolSize>>1-2)
 		}
 	}
-	return chart.BoxZero, nil
+	return BoxZero, nil
 }

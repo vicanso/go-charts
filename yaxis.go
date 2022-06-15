@@ -36,7 +36,22 @@ type YAxisOption struct {
 	// The position of axis, it can be 'left' or 'right'
 	Position string
 	// The color of label
-	FontColor Color
+	FontColor      Color
+	isCategoryAxis bool
+}
+
+func NewYAxisOptions(data []string, others ...[]string) []YAxisOption {
+	arr := [][]string{
+		data,
+	}
+	arr = append(arr, others...)
+	opts := make([]YAxisOption, 0)
+	for _, data := range arr {
+		opts = append(opts, YAxisOption{
+			Data: data,
+		})
+	}
+	return opts
 }
 
 func (opt *YAxisOption) ToAxisOption() AxisOption {
@@ -44,7 +59,7 @@ func (opt *YAxisOption) ToAxisOption() AxisOption {
 	if opt.Position == PositionRight {
 		position = PositionRight
 	}
-	return AxisOption{
+	axisOpt := AxisOption{
 		Theme:          opt.Theme,
 		Data:           opt.Data,
 		Position:       position,
@@ -56,6 +71,12 @@ func (opt *YAxisOption) ToAxisOption() AxisOption {
 		SplitLineShow:  true,
 		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
 	}
+	if opt.isCategoryAxis {
+		axisOpt.BoundaryGap = TrueFlag()
+		axisOpt.StrokeWidth = 1
+		axisOpt.SplitLineShow = false
+	}
+	return axisOpt
 }
 
 func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {

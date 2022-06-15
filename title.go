@@ -95,6 +95,11 @@ func (t *titlePainter) Render() (Box, error) {
 	opt := t.opt
 	p := t.p
 	theme := opt.Theme
+
+	if opt.Text == "" && opt.Subtext == "" {
+		return BoxZero, nil
+	}
+
 	measureOptions := make([]titleMeasureOption, 0)
 
 	if opt.Font == nil {

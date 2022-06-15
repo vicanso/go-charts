@@ -60,25 +60,10 @@ type BarChartOption struct {
 	Legend LegendOption
 }
 
-func (b *barChart) Render() (Box, error) {
+func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
 	p := b.p
 	opt := b.opt
-	seriesList := opt.SeriesList
-	seriesList.init()
-	renderResult, err := defaultRender(p, defaultRenderOption{
-		Theme:        opt.Theme,
-		Padding:      opt.Padding,
-		SeriesList:   seriesList,
-		XAxis:        opt.XAxis,
-		YAxisOptions: opt.YAxisOptions,
-		TitleOption:  opt.Title,
-		LegendOption: opt.Legend,
-	})
-	if err != nil {
-		return chart.BoxZero, err
-	}
-	seriesPainter := renderResult.seriesPainter
-	seriesList = seriesList.Filter(ChartTypeBar)
+	seriesPainter := result.seriesPainter
 
 	xRange := NewRange(AxisRangeOption{
 		DivideCount: len(opt.XAxis.Data),
@@ -112,7 +97,7 @@ func (b *barChart) Render() (Box, error) {
 	}
 	for i := range seriesList {
 		series := seriesList[i]
-		yRange := renderResult.axisRanges[series.AxisIndex]
+		yRange := result.axisRanges[series.AxisIndex]
 		index := series.index
 		if index == 0 {
 			index = i
@@ -196,10 +181,29 @@ func (b *barChart) Render() (Box, error) {
 		})
 	}
 	// 最大、最小的mark point
-	err = doRender(rendererList...)
+	err := doRender(rendererList...)
 	if err != nil {
-		return chart.BoxZero, err
+		return BoxZero, err
 	}
 
-	return chart.BoxZero, nil
+	return p.box, nil
+}
+
+func (b *barChart) Render() (Box, error) {
+	p := b.p
+	opt := b.opt
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:        opt.Theme,
+		Padding:      opt.Padding,
+		SeriesList:   opt.SeriesList,
+		XAxis:        opt.XAxis,
+		YAxisOptions: opt.YAxisOptions,
+		TitleOption:  opt.Title,
+		LegendOption: opt.Legend,
+	})
+	if err != nil {
+		return BoxZero, err
+	}
+	seriesList := opt.SeriesList.Filter(ChartTypeLine)
+	return b.render(renderResult, seriesList)
 }

@@ -24,7 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
@@ -63,32 +62,15 @@ type LineChartOption struct {
 	backgroundIsFilled bool
 }
 
-func (l *lineChart) Render() (Box, error) {
+func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
 	p := l.p
 	opt := l.opt
-	seriesList := opt.SeriesList
-	seriesList.init()
-	renderResult, err := defaultRender(p, defaultRenderOption{
-		Theme:              opt.Theme,
-		Padding:            opt.Padding,
-		SeriesList:         seriesList,
-		XAxis:              opt.XAxis,
-		YAxisOptions:       opt.YAxisOptions,
-		TitleOption:        opt.Title,
-		LegendOption:       opt.Legend,
-		backgroundIsFilled: opt.backgroundIsFilled,
-	})
-	if err != nil {
-		return chart.BoxZero, err
-	}
 	boundaryGap := true
 	if opt.XAxis.BoundaryGap != nil && !*opt.XAxis.BoundaryGap {
 		boundaryGap = false
 	}
 
-	seriesList = seriesList.Filter(ChartTypeLine)
-
-	seriesPainter := renderResult.seriesPainter
+	seriesPainter := result.seriesPainter
 
 	xDivideCount := len(opt.XAxis.Data)
 	if !boundaryGap {
@@ -118,7 +100,7 @@ func (l *lineChart) Render() (Box, error) {
 		}
 
 		seriesPainter.SetDrawingStyle(drawingStyle)
-		yRange := renderResult.axisRanges[series.AxisIndex]
+		yRange := result.axisRanges[series.AxisIndex]
 		points := make([]Point, 0)
 		for i, item := range series.Data {
 			h := yRange.getRestHeight(item.Value)
@@ -156,10 +138,32 @@ func (l *lineChart) Render() (Box, error) {
 		})
 	}
 	// 最大、最小的mark point
-	err = doRender(rendererList...)
+	err := doRender(rendererList...)
 	if err != nil {
-		return chart.BoxZero, err
+		return BoxZero, err
 	}
 
 	return p.box, nil
+}
+
+func (l *lineChart) Render() (Box, error) {
+	p := l.p
+	opt := l.opt
+
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:              opt.Theme,
+		Padding:            opt.Padding,
+		SeriesList:         opt.SeriesList,
+		XAxis:              opt.XAxis,
+		YAxisOptions:       opt.YAxisOptions,
+		TitleOption:        opt.Title,
+		LegendOption:       opt.Legend,
+		backgroundIsFilled: opt.backgroundIsFilled,
+	})
+	if err != nil {
+		return BoxZero, err
+	}
+	seriesList := opt.SeriesList.Filter(ChartTypeLine)
+
+	return l.render(renderResult, seriesList)
 }

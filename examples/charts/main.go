@@ -218,6 +218,201 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				},
 			},
 		},
+		// 柱状图
+		{
+			Title: charts.TitleOption{
+				Text: "Bar",
+			},
+			XAxis: charts.NewXAxisOption([]string{
+				"Mon",
+				"Tue",
+				"Wed",
+				"Thu",
+				"Fri",
+				"Sat",
+				"Sun",
+			}),
+			Legend: charts.LegendOption{
+				Data: []string{
+					"Rainfall",
+					"Evaporation",
+				},
+				Icon: charts.IconRect,
+			},
+			SeriesList: []charts.Series{
+				charts.NewSeriesFromValues([]float64{
+					120,
+					200,
+					150,
+					80,
+					70,
+					110,
+					130,
+				}, charts.ChartTypeBar),
+				{
+					Type: charts.ChartTypeBar,
+					Data: []charts.SeriesData{
+						{
+							Value: 100,
+						},
+						{
+							Value: 190,
+							Style: charts.Style{
+								FillColor: charts.Color{
+									R: 169,
+									G: 0,
+									B: 0,
+									A: 255,
+								},
+							},
+						},
+						{
+							Value: 230,
+						},
+						{
+							Value: 140,
+						},
+						{
+							Value: 100,
+						},
+						{
+							Value: 200,
+						},
+						{
+							Value: 180,
+						},
+					},
+				},
+			},
+		},
+		// 水平柱状图
+		{
+			Title: charts.TitleOption{
+				Text: "World Population",
+			},
+			Padding: charts.Box{
+				Top:    20,
+				Right:  40,
+				Bottom: 20,
+				Left:   20,
+			},
+			Legend: charts.NewLegendOption([]string{
+				"2011",
+				"2012",
+			}),
+			YAxisOptions: charts.NewYAxisOptions([]string{
+				"Brazil",
+				"Indonesia",
+				"USA",
+				"India",
+				"China",
+				"World",
+			}),
+			SeriesList: []charts.Series{
+				{
+					Type: charts.ChartTypeHorizontalBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						18203,
+						23489,
+						29034,
+						104970,
+						131744,
+						630230,
+					}),
+				},
+				{
+					Type: charts.ChartTypeHorizontalBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						19325,
+						23438,
+						31000,
+						121594,
+						134141,
+						681807,
+					}),
+				},
+			},
+		},
+		{
+			Title: charts.TitleOption{
+				Text:    "Rainfall vs Evaporation",
+				Subtext: "Fake Data",
+			},
+			Padding: charts.Box{
+				Top:    20,
+				Right:  20,
+				Bottom: 20,
+				Left:   20,
+			},
+			XAxis: charts.NewXAxisOption([]string{
+				"Jan",
+				"Feb",
+				"Mar",
+				"Apr",
+				"May",
+				"Jun",
+				"Jul",
+				"Aug",
+				"Sep",
+				"Oct",
+				"Nov",
+				"Dec",
+			}),
+			Legend: charts.NewLegendOption([]string{
+				"Rainfall",
+				"Evaporation",
+			}, charts.PositionRight),
+			SeriesList: []charts.Series{
+				{
+					Type: charts.ChartTypeBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						2.0,
+						4.9,
+						7.0,
+						23.2,
+						25.6,
+						76.7,
+						135.6,
+						162.2,
+						32.6,
+						20.0,
+						6.4,
+						3.3,
+					}),
+					MarkPoint: charts.NewMarkPoint(
+						charts.SeriesMarkDataTypeMax,
+						charts.SeriesMarkDataTypeMin,
+					),
+					MarkLine: charts.NewMarkLine(
+						charts.SeriesMarkDataTypeAverage,
+					),
+				},
+				{
+					Type: charts.ChartTypeBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						2.6,
+						5.9,
+						9.0,
+						26.4,
+						28.7,
+						70.7,
+						175.6,
+						182.2,
+						48.7,
+						18.8,
+						6.0,
+						2.3,
+					}),
+					MarkPoint: charts.NewMarkPoint(
+						charts.SeriesMarkDataTypeMax,
+						charts.SeriesMarkDataTypeMin,
+					),
+					MarkLine: charts.NewMarkLine(
+						charts.SeriesMarkDataTypeAverage,
+					),
+				},
+			},
+		},
 	}
 	handler(w, req, chartOptions, nil)
 }

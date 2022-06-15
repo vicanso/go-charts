@@ -31,6 +31,8 @@ type Box = chart.Box
 type Style = chart.Style
 type Color = drawing.Color
 
+var BoxZero = chart.BoxZero
+
 type Point struct {
 	X int
 	Y int
@@ -42,6 +44,8 @@ const (
 	ChartTypePie    = "pie"
 	ChartTypeRadar  = "radar"
 	ChartTypeFunnel = "funnel"
+	// horizontal bar
+	ChartTypeHorizontalBar = "horizontalBar"
 )
 
 const (

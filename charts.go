@@ -22,6 +22,8 @@
 
 package charts
 
+import "errors"
+
 const labelFontSize = 10
 const defaultDotWidth = 2.0
 const defaultStrokeWidth = 2.0
@@ -44,6 +46,28 @@ type Renderer interface {
 	Render() (Box, error)
 }
 
+type renderHandler struct {
+	list []func() error
+}
+
+func (rh *renderHandler) Add(fn func() error) {
+	list := rh.list
+	if len(list) == 0 {
+		list = make([]func() error, 0)
+	}
+	rh.list = append(list, fn)
+}
+
+func (rh *renderHandler) Do() error {
+	for _, fn := range rh.list {
+		err := fn()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type defaultRenderOption struct {
 	Theme      ColorPalette
 	Padding    Box
@@ -58,6 +82,8 @@ type defaultRenderOption struct {
 	LegendOption LegendOption
 	// background is filled
 	backgroundIsFilled bool
+	// x y axis is reversed
+	axisReversed bool
 }
 
 type defaultRenderResult struct {
@@ -67,6 +93,8 @@ type defaultRenderResult struct {
 }
 
 func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, error) {
+	seriesList := opt.SeriesList
+	seriesList.init()
 	if !opt.backgroundIsFilled {
 		p.SetBackground(p.Width(), p.Height(), opt.Theme.GetBackgroundColor())
 	}
@@ -138,7 +166,13 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		if yAxisOption.Theme == nil {
 			yAxisOption.Theme = opt.Theme
 		}
-		yAxisOption.Data = r.Values()
+		if !opt.axisReversed {
+			yAxisOption.Data = r.Values()
+		} else {
+			yAxisOption.isCategoryAxis = true
+			opt.XAxis.Data = r.Values()
+			opt.XAxis.isValueAxis = true
+		}
 		reverseStringSlice(yAxisOption.Data)
 		// TODO生成其它位置既yAxis
 		yAxis := NewLeftYAxis(p, yAxisOption)
@@ -201,30 +235,71 @@ func Render(opt ChartOption) (*Painter, error) {
 	seriesList := opt.SeriesList
 	seriesList.init()
 
-	rendererList := make([]Renderer, 0)
-
 	// line chart
-	lineChartSeriesList := seriesList.Filter(ChartTypeLine)
-	if len(lineChartSeriesList) != 0 {
-		renderer := NewLineChart(p, LineChartOption{
-			Theme:              opt.theme,
-			Font:               opt.font,
-			SeriesList:         lineChartSeriesList,
-			XAxis:              opt.XAxis,
-			Padding:            opt.Padding,
-			YAxisOptions:       opt.YAxisOptions,
-			Title:              opt.Title,
-			Legend:             opt.Legend,
-			backgroundIsFilled: true,
-		})
-		rendererList = append(rendererList, renderer)
+	lineSeriesList := seriesList.Filter(ChartTypeLine)
+	barSeriesList := seriesList.Filter(ChartTypeBar)
+	horizontalBarSeriesList := seriesList.Filter(ChartTypeHorizontalBar)
+	if len(horizontalBarSeriesList) != 0 && len(horizontalBarSeriesList) != len(seriesList) {
+		return nil, errors.New("Horizontal bar can not mix other charts")
 	}
 
-	for _, renderer := range rendererList {
-		_, err := renderer.Render()
-		if err != nil {
-			return nil, err
-		}
+	axisReversed := len(horizontalBarSeriesList) != 0
+
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:        opt.theme,
+		Padding:      opt.Padding,
+		SeriesList:   opt.SeriesList,
+		XAxis:        opt.XAxis,
+		YAxisOptions: opt.YAxisOptions,
+		TitleOption:  opt.Title,
+		LegendOption: opt.Legend,
+		axisReversed: axisReversed,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	handler := renderHandler{}
+
+	if len(lineSeriesList) != 0 {
+		handler.Add(func() error {
+			_, err := NewLineChart(p, LineChartOption{
+				Theme: opt.theme,
+				Font:  opt.font,
+				XAxis: opt.XAxis,
+			}).render(renderResult, lineSeriesList)
+			return err
+		})
+	}
+
+	// bar chart
+	if len(barSeriesList) != 0 {
+		handler.Add(func() error {
+			_, err := NewBarChart(p, BarChartOption{
+				Theme: opt.theme,
+				Font:  opt.font,
+				XAxis: opt.XAxis,
+			}).render(renderResult, barSeriesList)
+			return err
+		})
+	}
+
+	// horizontal bar chart
+	if len(horizontalBarSeriesList) != 0 {
+		handler.Add(func() error {
+			_, err := NewHorizontalBarChart(p, HorizontalBarChartOption{
+				Theme:        opt.theme,
+				Font:         opt.font,
+				YAxisOptions: opt.YAxisOptions,
+			}).render(renderResult, horizontalBarSeriesList)
+			return err
+		})
+	}
+
+	err = handler.Do()
+
+	if err != nil {
+		return nil, err
 	}
 
 	return p, nil

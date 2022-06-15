@@ -24,7 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
 func NewMarkLine(markLineTypes ...string) SeriesMarkLine {
@@ -104,7 +103,7 @@ func (m *markLinePainter) Render() (Box, error) {
 			painter.Text(text, width, y+textBox.Height()>>1-2)
 		}
 	}
-	return chart.BoxZero, nil
+	return BoxZero, nil
 }
 
 func markLineRender(opt markLineRenderOption) {

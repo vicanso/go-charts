@@ -132,6 +132,12 @@ func (sl SeriesList) init() {
 	}
 }
 
+func (sl SeriesList) reverse() {
+	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
+		sl[i], sl[j] = sl[j], sl[i]
+	}
+}
+
 func (sl SeriesList) Filter(chartType string) SeriesList {
 	arr := make(SeriesList, 0)
 	for index, item := range sl {

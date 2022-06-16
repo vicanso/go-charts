@@ -22,7 +22,10 @@
 
 package charts
 
-import "errors"
+import (
+	"errors"
+	"sort"
+)
 
 const labelFontSize = 10
 const defaultDotWidth = 2.0
@@ -140,16 +143,29 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		if containsInt(axisIndexList, series.AxisIndex) {
 			continue
 		}
-		axisIndexList = append(axisIndexList, series.index)
+		axisIndexList = append(axisIndexList, series.AxisIndex)
 	}
 	// 高度需要减去x轴的高度
 	rangeHeight := p.Height() - defaultXAxisHeight
 	rangeWidthLeft := 0
 	rangeWidthRight := 0
 
+	// 倒序
+	sort.Sort(sort.Reverse(sort.IntSlice(axisIndexList)))
+
 	// 计算对应的axis range
 	for _, index := range axisIndexList {
+		yAxisOption := YAxisOption{}
+		if len(opt.YAxisOptions) > index {
+			yAxisOption = opt.YAxisOptions[index]
+		}
 		max, min := opt.SeriesList.GetMaxMin(index)
+		if yAxisOption.Min != nil {
+			min = *yAxisOption.Min
+		}
+		if yAxisOption.Max != nil {
+			max = *yAxisOption.Max
+		}
 		r := NewRange(AxisRangeOption{
 			Min: min,
 			Max: max,
@@ -159,10 +175,7 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 			DivideCount: defaultAxisDivideCount,
 		})
 		result.axisRanges[index] = r
-		yAxisOption := YAxisOption{}
-		if len(opt.YAxisOptions) > index {
-			yAxisOption = opt.YAxisOptions[index]
-		}
+
 		if yAxisOption.Theme == nil {
 			yAxisOption.Theme = opt.Theme
 		}
@@ -175,7 +188,16 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		}
 		reverseStringSlice(yAxisOption.Data)
 		// TODO生成其它位置既yAxis
-		yAxis := NewLeftYAxis(p, yAxisOption)
+		var yAxis *axisPainter
+		child := p.Child(PainterPaddingOption(Box{
+			Left:  rangeWidthLeft,
+			Right: rangeWidthRight,
+		}))
+		if index == 0 {
+			yAxis = NewLeftYAxis(child, yAxisOption)
+		} else {
+			yAxis = NewRightYAxis(child, yAxisOption)
+		}
 		yAxisBox, err := yAxis.Render()
 		if err != nil {
 			return nil, err
@@ -191,7 +213,8 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		opt.XAxis.Theme = opt.Theme
 	}
 	xAxis := NewBottomXAxis(p.Child(PainterPaddingOption(Box{
-		Left: rangeWidthLeft,
+		Left:  rangeWidthLeft,
+		Right: rangeWidthRight,
 	})), opt.XAxis)
 	_, err := xAxis.Render()
 	if err != nil {
@@ -219,7 +242,9 @@ func doRender(renderers ...Renderer) error {
 func Render(opt ChartOption) (*Painter, error) {
 	opt.fillDefault()
 
+	isChild := true
 	if opt.Parent == nil {
+		isChild = false
 		p, err := NewPainter(PainterOptions{
 			Type:   opt.Type,
 			Width:  opt.Width,
@@ -231,21 +256,40 @@ func Render(opt ChartOption) (*Painter, error) {
 		opt.Parent = p
 	}
 	p := opt.Parent
-	p.SetBackground(p.Width(), p.Height(), opt.BackgroundColor)
+	if !opt.Box.IsZero() {
+		p = p.Child(PainterBoxOption(opt.Box))
+	}
+	if !isChild {
+		p.SetBackground(p.Width(), p.Height(), opt.BackgroundColor)
+	}
 	seriesList := opt.SeriesList
 	seriesList.init()
+
+	seriesCount := len(seriesList)
 
 	// line chart
 	lineSeriesList := seriesList.Filter(ChartTypeLine)
 	barSeriesList := seriesList.Filter(ChartTypeBar)
 	horizontalBarSeriesList := seriesList.Filter(ChartTypeHorizontalBar)
-	if len(horizontalBarSeriesList) != 0 && len(horizontalBarSeriesList) != len(seriesList) {
+	pieSeriesList := seriesList.Filter(ChartTypePie)
+	radarSeriesList := seriesList.Filter(ChartTypeRadar)
+	funnelSeriesList := seriesList.Filter(ChartTypeFunnel)
+
+	if len(horizontalBarSeriesList) != 0 && len(horizontalBarSeriesList) != seriesCount {
 		return nil, errors.New("Horizontal bar can not mix other charts")
+	}
+	if len(pieSeriesList) != 0 && len(pieSeriesList) != seriesCount {
+		return nil, errors.New("Pie can not mix other charts")
+	}
+	if len(radarSeriesList) != 0 && len(radarSeriesList) != seriesCount {
+		return nil, errors.New("Radar can not mix other charts")
+	}
+	if len(funnelSeriesList) != 0 && len(funnelSeriesList) != seriesCount {
+		return nil, errors.New("Funnel can not mix other charts")
 	}
 
 	axisReversed := len(horizontalBarSeriesList) != 0
-
-	renderResult, err := defaultRender(p, defaultRenderOption{
+	renderOpt := defaultRenderOption{
 		Theme:        opt.theme,
 		Padding:      opt.Padding,
 		SeriesList:   opt.SeriesList,
@@ -254,23 +298,27 @@ func Render(opt ChartOption) (*Painter, error) {
 		TitleOption:  opt.Title,
 		LegendOption: opt.Legend,
 		axisReversed: axisReversed,
-	})
+	}
+	if isChild {
+		renderOpt.backgroundIsFilled = true
+	}
+	if len(pieSeriesList) != 0 ||
+		len(radarSeriesList) != 0 ||
+		len(funnelSeriesList) != 0 {
+		renderOpt.XAxis.Show = FalseFlag()
+		renderOpt.YAxisOptions = []YAxisOption{
+			{
+				Show: FalseFlag(),
+			},
+		}
+	}
+
+	renderResult, err := defaultRender(p, renderOpt)
 	if err != nil {
 		return nil, err
 	}
 
 	handler := renderHandler{}
-
-	if len(lineSeriesList) != 0 {
-		handler.Add(func() error {
-			_, err := NewLineChart(p, LineChartOption{
-				Theme: opt.theme,
-				Font:  opt.font,
-				XAxis: opt.XAxis,
-			}).render(renderResult, lineSeriesList)
-			return err
-		})
-	}
 
 	// bar chart
 	if len(barSeriesList) != 0 {
@@ -296,10 +344,64 @@ func Render(opt ChartOption) (*Painter, error) {
 		})
 	}
 
+	// pie chart
+	if len(pieSeriesList) != 0 {
+		handler.Add(func() error {
+			_, err := NewPieChart(p, PieChartOption{
+				Theme: opt.theme,
+				Font:  opt.font,
+			}).render(renderResult, pieSeriesList)
+			return err
+		})
+	}
+
+	// line chart
+	if len(lineSeriesList) != 0 {
+		handler.Add(func() error {
+			_, err := NewLineChart(p, LineChartOption{
+				Theme: opt.theme,
+				Font:  opt.font,
+				XAxis: opt.XAxis,
+			}).render(renderResult, lineSeriesList)
+			return err
+		})
+	}
+
+	// radar chart
+	if len(radarSeriesList) != 0 {
+		handler.Add(func() error {
+			_, err := NewRadarChart(p, RadarChartOption{
+				Theme: opt.theme,
+				Font:  opt.font,
+				// 相应值
+				RadarIndicators: opt.RadarIndicators,
+			}).render(renderResult, radarSeriesList)
+			return err
+		})
+	}
+
+	// funnel chart
+	if len(funnelSeriesList) != 0 {
+		handler.Add(func() error {
+			_, err := NewFunnelChart(p, FunnelChartOption{
+				Theme: opt.theme,
+				Font:  opt.font,
+			}).render(renderResult, funnelSeriesList)
+			return err
+		})
+	}
+
 	err = handler.Do()
 
 	if err != nil {
 		return nil, err
+	}
+	for _, item := range opt.Children {
+		item.Parent = p
+		_, err = Render(item)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return p, nil

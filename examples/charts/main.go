@@ -83,13 +83,13 @@ func handler(w http.ResponseWriter, req *http.Request, chartOptions []charts.Cha
 		}
 		bytesList = append(bytesList, buf)
 	}
-	// for _, opt := range echartsOptions {
-	// 	buf, err := charts.RenderEChartsToSVG(opt)
-	// 	if err != nil {
-	// 		panic(err)
-	// 	}
-	// 	bytesList = append(bytesList, buf)
-	// }
+	for _, opt := range echartsOptions {
+		buf, err := charts.RenderEChartsToSVG(opt)
+		if err != nil {
+			panic(err)
+		}
+		bytesList = append(bytesList, buf)
+	}
 
 	data := bytes.ReplaceAll([]byte(html), []byte("{{body}}"), bytes.Join(bytesList, []byte("")))
 	w.Header().Set("Content-Type", "text/html")
@@ -333,6 +333,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				},
 			},
 		},
+		// 柱状图+标记
 		{
 			Title: charts.TitleOption{
 				Text:    "Rainfall vs Evaporation",
@@ -410,6 +411,342 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 					MarkLine: charts.NewMarkLine(
 						charts.SeriesMarkDataTypeAverage,
 					),
+				},
+			},
+		},
+		// 双Y轴示例
+		{
+			Title: charts.TitleOption{
+				Text: "Temperature",
+			},
+			XAxis: charts.NewXAxisOption([]string{
+				"Jan",
+				"Feb",
+				"Mar",
+				"Apr",
+				"May",
+				"Jun",
+				"Jul",
+				"Aug",
+				"Sep",
+				"Oct",
+				"Nov",
+				"Dec",
+			}),
+			Legend: charts.NewLegendOption([]string{
+				"Evaporation",
+				"Precipitation",
+				"Temperature",
+			}),
+			YAxisOptions: []charts.YAxisOption{
+				{
+					Formatter: "{value}ml",
+					Color: charts.Color{
+						R: 84,
+						G: 112,
+						B: 198,
+						A: 255,
+					},
+				},
+				{
+					Formatter: "{value}°C",
+					Color: charts.Color{
+						R: 250,
+						G: 200,
+						B: 88,
+						A: 255,
+					},
+				},
+			},
+			SeriesList: []charts.Series{
+				{
+					Type: charts.ChartTypeBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						2.0,
+						4.9,
+						7.0,
+						23.2,
+						25.6,
+						76.7,
+						135.6,
+						162.2,
+						32.6,
+						20.0,
+						6.4,
+						3.3,
+					}),
+				},
+				{
+					Type: charts.ChartTypeBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						2.6,
+						5.9,
+						9.0,
+						26.4,
+						28.7,
+						70.7,
+						175.6,
+						182.2,
+						48.7,
+						18.8,
+						6.0,
+						2.3,
+					}),
+				},
+				{
+					Data: charts.NewSeriesDataFromValues([]float64{
+						2.0,
+						2.2,
+						3.3,
+						4.5,
+						6.3,
+						10.2,
+						20.3,
+						23.4,
+						23.0,
+						16.5,
+						12.0,
+						6.2,
+					}),
+					AxisIndex: 1,
+				},
+			},
+		},
+		// 饼图
+		{
+			Title: charts.TitleOption{
+				Text:    "Referer of a Website",
+				Subtext: "Fake Data",
+				Left:    charts.PositionCenter,
+			},
+			Legend: charts.LegendOption{
+				Orient: charts.OrientVertical,
+				Data: []string{
+					"Search Engine",
+					"Direct",
+					"Email",
+					"Union Ads",
+					"Video Ads",
+				},
+				Left: charts.PositionLeft,
+			},
+			SeriesList: charts.NewPieSeriesList([]float64{
+				1048,
+				735,
+				580,
+				484,
+				300,
+			}, charts.PieSeriesOption{
+				Label: charts.SeriesLabel{
+					Show: true,
+				},
+				Radius: "35%",
+			}),
+		},
+		// 雷达图
+		{
+			Title: charts.TitleOption{
+				Text: "Basic Radar Chart",
+			},
+			Legend: charts.NewLegendOption([]string{
+				"Allocated Budget",
+				"Actual Spending",
+			}),
+			RadarIndicators: []charts.RadarIndicator{
+				{
+					Name: "Sales",
+					Max:  6500,
+				},
+				{
+					Name: "Administration",
+					Max:  16000,
+				},
+				{
+					Name: "Information Technology",
+					Max:  30000,
+				},
+				{
+					Name: "Customer Support",
+					Max:  38000,
+				},
+				{
+					Name: "Development",
+					Max:  52000,
+				},
+				{
+					Name: "Marketing",
+					Max:  25000,
+				},
+			},
+			SeriesList: charts.SeriesList{
+				{
+					Type: charts.ChartTypeRadar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						4200,
+						3000,
+						20000,
+						35000,
+						50000,
+						18000,
+					}),
+				},
+				{
+					Type: charts.ChartTypeRadar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						5000,
+						14000,
+						28000,
+						26000,
+						42000,
+						21000,
+					}),
+				},
+			},
+		},
+		// 漏斗图
+		{
+			Title: charts.TitleOption{
+				Text: "Funnel",
+			},
+			Legend: charts.NewLegendOption([]string{
+				"Show",
+				"Click",
+				"Visit",
+				"Inquiry",
+				"Order",
+			}),
+			SeriesList: []charts.Series{
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Show",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						100,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Click",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						80,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Visit",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						60,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Inquiry",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						40,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Order",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						20,
+					}),
+				},
+			},
+		},
+		// 多图展示
+		{
+			Legend: charts.LegendOption{
+				Top: "-90",
+				Data: []string{
+					"Milk Tea",
+					"Matcha Latte",
+					"Cheese Cocoa",
+					"Walnut Brownie",
+				},
+			},
+			Padding: charts.Box{
+				Top:    100,
+				Right:  10,
+				Bottom: 10,
+				Left:   10,
+			},
+			XAxis: charts.NewXAxisOption([]string{
+				"2012",
+				"2013",
+				"2014",
+				"2015",
+				"2016",
+				"2017",
+			}),
+			YAxisOptions: []charts.YAxisOption{
+				{
+
+					Min: charts.NewFloatPoint(0),
+					Max: charts.NewFloatPoint(90),
+				},
+			},
+			SeriesList: []charts.Series{
+				charts.NewSeriesFromValues([]float64{
+					56.5,
+					82.1,
+					88.7,
+					70.1,
+					53.4,
+					85.1,
+				}),
+				charts.NewSeriesFromValues([]float64{
+					51.1,
+					51.4,
+					55.1,
+					53.3,
+					73.8,
+					68.7,
+				}),
+				charts.NewSeriesFromValues([]float64{
+					40.1,
+					62.2,
+					69.5,
+					36.4,
+					45.2,
+					32.5,
+				}, charts.ChartTypeBar),
+				charts.NewSeriesFromValues([]float64{
+					25.2,
+					37.1,
+					41.2,
+					18,
+					33.9,
+					49.1,
+				}, charts.ChartTypeBar),
+			},
+			Children: []charts.ChartOption{
+				{
+					Legend: charts.LegendOption{
+						Show: charts.FalseFlag(),
+						Data: []string{
+							"Milk Tea",
+							"Matcha Latte",
+							"Cheese Cocoa",
+							"Walnut Brownie",
+						},
+					},
+					Box: charts.Box{
+						Top:    20,
+						Left:   400,
+						Right:  500,
+						Bottom: 120,
+					},
+					SeriesList: charts.NewPieSeriesList([]float64{
+						435.9,
+						354.3,
+						285.9,
+						204.5,
+					}, charts.PieSeriesOption{
+						Label: charts.SeriesLabel{
+							Show: true,
+						},
+						Radius: "35%",
+					}),
 				},
 			},
 		},
@@ -879,12 +1216,7 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 						23.2,
 						25.6,
 						76.7,
-						135.6,
-						162.2,
-						32.6,
-						20,
-						6.4,
-						3.3
+						135.6
 					]
 				},
 				{
@@ -898,12 +1230,7 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 						26.4,
 						28.7,
 						70.7,
-						175.6,
-						182.2,
-						48.7,
-						18.8,
-						6,
-						2.3
+						175.6
 					]
 				},
 				{
@@ -918,12 +1245,7 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 						4.5,
 						6.3,
 						10.2,
-						20.3,
-						23.4,
-						23,
-						16.5,
-						12,
-						6.2
+						20.3
 					]
 				}
 			]

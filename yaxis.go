@@ -25,6 +25,10 @@ package charts
 import "github.com/golang/freetype/truetype"
 
 type YAxisOption struct {
+	// The minimun value of axis.
+	Min *float64
+	// The maximum value of axis.
+	Max *float64
 	// The font of y axis
 	Font *truetype.Font
 	// The data value of x axis
@@ -36,7 +40,13 @@ type YAxisOption struct {
 	// The position of axis, it can be 'left' or 'right'
 	Position string
 	// The color of label
-	FontColor      Color
+	FontColor Color
+	// Formatter for y axis text value
+	Formatter string
+	// Color for y axis
+	Color Color
+	// The flag for show axis, set this to *false will hide axis
+	Show           *bool
 	isCategoryAxis bool
 }
 
@@ -60,6 +70,7 @@ func (opt *YAxisOption) ToAxisOption() AxisOption {
 		position = PositionRight
 	}
 	axisOpt := AxisOption{
+		Formatter:      opt.Formatter,
 		Theme:          opt.Theme,
 		Data:           opt.Data,
 		Position:       position,
@@ -70,6 +81,11 @@ func (opt *YAxisOption) ToAxisOption() AxisOption {
 		BoundaryGap:    FalseFlag(),
 		SplitLineShow:  true,
 		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
+		Show:           opt.Show,
+	}
+	if !opt.Color.IsZero() {
+		axisOpt.FontColor = opt.Color
+		axisOpt.StrokeColor = opt.Color
 	}
 	if opt.isCategoryAxis {
 		axisOpt.BoundaryGap = TrueFlag()
@@ -84,4 +100,14 @@ func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {
 		Bottom: defaultXAxisHeight,
 	}))
 	return NewAxisPainter(p, opt.ToAxisOption())
+}
+
+func NewRightYAxis(p *Painter, opt YAxisOption) *axisPainter {
+	p = p.Child(PainterPaddingOption(Box{
+		Bottom: defaultXAxisHeight,
+	}))
+	axisOpt := opt.ToAxisOption()
+	axisOpt.Position = PositionRight
+	axisOpt.SplitLineShow = false
+	return NewAxisPainter(p, axisOpt)
 }

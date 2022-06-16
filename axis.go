@@ -23,7 +23,10 @@
 package charts
 
 import (
+	"strings"
+
 	"github.com/golang/freetype/truetype"
+	"github.com/wcharczuk/go-chart/v2"
 )
 
 type axisPainter struct {
@@ -41,11 +44,15 @@ func NewAxisPainter(p *Painter, opt AxisOption) *axisPainter {
 type AxisOption struct {
 	// The theme of chart
 	Theme ColorPalette
+	// Formatter for y axis text value
+	Formatter string
 	// The label of axis
 	Data []string
 	// The boundary gap on both sides of a coordinate axis.
 	// Nil or *true means the center part of two axis ticks
 	BoundaryGap *bool
+	// The flag for show axis, set this to *false will hide axis
+	Show *bool
 	// The position of axis, it can be 'left', 'top', 'right' or 'bottom'
 	Position string
 	// Number of segments that the axis is split into. Note that this number serves only as a recommendation.
@@ -74,6 +81,9 @@ func (a *axisPainter) Render() (Box, error) {
 	opt := a.opt
 	top := a.p
 	theme := opt.Theme
+	if opt.Show != nil && !*opt.Show {
+		return BoxZero, nil
+	}
 
 	strokeWidth := opt.StrokeWidth
 	if strokeWidth == 0 {
@@ -97,10 +107,15 @@ func (a *axisPainter) Render() (Box, error) {
 		strokeColor = theme.GetAxisStrokeColor()
 	}
 
-	tickCount := opt.SplitNumber
-	if tickCount == 0 {
-		tickCount = len(opt.Data)
+	data := opt.Data
+	formatter := opt.Formatter
+	if len(formatter) != 0 {
+		for index, text := range data {
+			data[index] = strings.ReplaceAll(formatter, "{value}", text)
+		}
 	}
+	dataCount := len(data)
+	tickCount := dataCount
 
 	boundaryGap := true
 	if opt.BoundaryGap != nil && !*opt.BoundaryGap {
@@ -118,8 +133,6 @@ func (a *axisPainter) Render() (Box, error) {
 		labelPosition = PositionCenter
 	}
 
-	// TODO 计算unit
-	unit := 1
 	// 如果小于0，则表示不处理
 	tickLength := getDefaultInt(opt.TickLength, 5)
 	labelMargin := getDefaultInt(opt.LabelMargin, 5)
@@ -133,7 +146,9 @@ func (a *axisPainter) Render() (Box, error) {
 	}
 	top.SetDrawingStyle(style).OverrideTextStyle(style)
 
-	textMaxWidth, textMaxHeight := top.MeasureTextMaxWidthHeight(opt.Data)
+	textMaxWidth, textMaxHeight := top.MeasureTextMaxWidthHeight(data)
+	textCount := ceilFloatToInt(float64(top.Width()) / float64(textMaxWidth))
+	unit := ceilFloatToInt(float64(dataCount) / float64(chart.MaxInt(textCount, opt.SplitNumber)))
 
 	width := 0
 	height := 0
@@ -226,7 +241,7 @@ func (a *axisPainter) Render() (Box, error) {
 		Right: labelPaddingRight,
 	})).MultiText(MultiTextOption{
 		Align:    textAlign,
-		TextList: opt.Data,
+		TextList: data,
 		Orient:   orient,
 		Unit:     unit,
 		Position: labelPosition,
@@ -242,10 +257,7 @@ func (a *axisPainter) Render() (Box, error) {
 				x0 = 0
 				x1 = top.Width() - p.Width()
 			}
-			for index, y := range autoDivide(height, tickCount) {
-				if index == 0 {
-					continue
-				}
+			for _, y := range autoDivide(height, tickCount) {
 				top.LineStroke([]Point{
 					{
 						X: x0,

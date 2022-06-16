@@ -93,7 +93,7 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 	}
 	for index := range seriesList {
 		series := seriesList[index]
-		seriesColor := opt.Theme.GetSeriesColor(index)
+		seriesColor := opt.Theme.GetSeriesColor(series.index)
 		drawingStyle := Style{
 			StrokeColor: seriesColor,
 			StrokeWidth: defaultStrokeWidth,

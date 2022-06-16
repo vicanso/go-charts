@@ -95,14 +95,10 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 		markPointPainter,
 		markLinePainter,
 	}
-	for i := range seriesList {
-		series := seriesList[i]
+	for index := range seriesList {
+		series := seriesList[index]
 		yRange := result.axisRanges[series.AxisIndex]
-		index := series.index
-		if index == 0 {
-			index = i
-		}
-		seriesColor := theme.GetSeriesColor(index)
+		seriesColor := theme.GetSeriesColor(series.index)
 
 		divideValues := xRange.AutoDivide()
 		points := make([]Point, len(series.Data))
@@ -112,8 +108,8 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			}
 			x := divideValues[j]
 			x += margin
-			if i != 0 {
-				x += i * (barWidth + barMargin)
+			if index != 0 {
+				x += index * (barWidth + barMargin)
 			}
 
 			h := int(yRange.getHeight(item.Value))
@@ -151,7 +147,7 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			if distance == 0 {
 				distance = 5
 			}
-			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(i, item.Value, -1)
+			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(index, item.Value, -1)
 			labelStyle := Style{
 				FontColor: theme.GetTextColor(),
 				FontSize:  labelFontSize,

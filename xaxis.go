@@ -38,8 +38,8 @@ type XAxisOption struct {
 	Theme ColorPalette
 	// The font size of x axis label
 	FontSize float64
-	// Hidden x axis
-	Hidden bool
+	// The flag for show axis, set this to *false will hide axis
+	Show *bool
 	// Number of segments that the axis is split into. Note that this number serves only as a recommendation.
 	SplitNumber int
 	// The position of axis, it can be 'top' or 'bottom'
@@ -78,6 +78,7 @@ func (opt *XAxisOption) ToAxisOption() AxisOption {
 		FontSize:       opt.FontSize,
 		Font:           opt.Font,
 		FontColor:      opt.FontColor,
+		Show:           opt.Show,
 		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
 	}
 	if opt.isValueAxis {

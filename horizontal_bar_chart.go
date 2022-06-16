@@ -92,13 +92,9 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 		Size:        seriesPainter.Width(),
 	})
 
-	for i := range seriesList {
-		series := seriesList[i]
-		index := series.index
-		if index == 0 {
-			index = i
-		}
-		seriesColor := theme.GetSeriesColor(index)
+	for index := range seriesList {
+		series := seriesList[index]
+		seriesColor := theme.GetSeriesColor(series.index)
 		divideValues := yRange.AutoDivide()
 		for j, item := range series.Data {
 			if j >= yRange.divideCount {
@@ -108,8 +104,8 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 			j = yRange.divideCount - j - 1
 			y := divideValues[j]
 			y += margin
-			if i != 0 {
-				y += i * (barHeight + barMargin)
+			if index != 0 {
+				y += index * (barHeight + barMargin)
 			}
 
 			w := int(xRange.getHeight(item.Value))

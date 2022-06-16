@@ -56,6 +56,8 @@ type LegendOption struct {
 	FontSize float64
 	// FontColor color of legend text
 	FontColor Color
+	// The flag for show legend, set this to *false will hide legend
+	Show *bool
 }
 
 func NewLegendOption(labels []string, left ...string) LegendOption {
@@ -68,6 +70,17 @@ func NewLegendOption(labels []string, left ...string) LegendOption {
 	return opt
 }
 
+func (opt *LegendOption) IsEmpty() bool {
+	isEmpty := true
+	for _, v := range opt.Data {
+		if v != "" {
+			isEmpty = false
+			break
+		}
+	}
+	return isEmpty
+}
+
 func NewLegendPainter(p *Painter, opt LegendOption) *legendPainter {
 	return &legendPainter{
 		p:   p,
@@ -78,6 +91,10 @@ func NewLegendPainter(p *Painter, opt LegendOption) *legendPainter {
 func (l *legendPainter) Render() (Box, error) {
 	opt := l.opt
 	theme := opt.Theme
+	if opt.IsEmpty() ||
+		(opt.Show != nil && !*opt.Show) {
+		return BoxZero, nil
+	}
 	if theme == nil {
 		theme = l.p.theme
 	}
@@ -90,7 +107,9 @@ func (l *legendPainter) Render() (Box, error) {
 	if opt.Left == "" {
 		opt.Left = PositionCenter
 	}
-	p := l.p
+	p := l.p.Child(PainterPaddingOption(Box{
+		Top: 5,
+	}))
 	p.SetTextStyle(Style{
 		FontSize:  opt.FontSize,
 		FontColor: opt.FontColor,

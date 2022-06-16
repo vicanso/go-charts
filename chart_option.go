@@ -59,7 +59,7 @@ type ChartOption struct {
 	// The series list
 	SeriesList SeriesList
 	// The radar indicator list
-	// RadarIndicators []RadarIndicator
+	RadarIndicators []RadarIndicator
 	// The background color of chart
 	BackgroundColor Color
 	// The child charts

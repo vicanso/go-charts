@@ -36,6 +36,14 @@ type SeriesData struct {
 	Style Style
 }
 
+func NewSeriesListDataFromValues(values [][]float64, chartType ...string) SeriesList {
+	seriesList := make(SeriesList, len(values))
+	for index, value := range values {
+		seriesList[index] = NewSeriesFromValues(value, chartType...)
+	}
+	return seriesList
+}
+
 func NewSeriesFromValues(values []float64, chartType ...string) Series {
 	s := Series{
 		Data: NewSeriesDataFromValues(values),

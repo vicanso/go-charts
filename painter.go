@@ -149,9 +149,9 @@ func NewPainter(opts PainterOptions, opt ...PainterOption) (*Painter, error) {
 		}
 		font = f
 	}
-	fn := chart.SVG
-	if opts.Type == ChartOutputPNG {
-		fn = chart.PNG
+	fn := chart.PNG
+	if opts.Type == ChartOutputSVG {
+		fn = chart.SVG
 	}
 	width := opts.Width
 	height := opts.Height

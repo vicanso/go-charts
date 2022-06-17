@@ -55,9 +55,20 @@ type themeColorPalette struct {
 	font               *truetype.Font
 }
 
+type ThemeOption struct {
+	IsDarkMode         bool
+	AxisStrokeColor    Color
+	AxisSplitLineColor Color
+	BackgroundColor    Color
+	TextColor          Color
+	SeriesColors       []Color
+}
+
 var palettes = map[string]ColorPalette{}
 
 const defaultFontSize = 12.0
+
+var defaultTheme ColorPalette
 
 func init() {
 	echartSeriesColors := []Color{
@@ -93,121 +104,134 @@ func init() {
 	}
 	AddTheme(
 		ThemeDark,
-		true,
-		Color{
-			R: 185,
-			G: 184,
-			B: 206,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: true,
+			AxisStrokeColor: Color{
+				R: 185,
+				G: 184,
+				B: 206,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 72,
+				G: 71,
+				B: 83,
+				A: 255,
+			},
+			BackgroundColor: Color{
+				R: 16,
+				G: 12,
+				B: 42,
+				A: 255,
+			},
+			TextColor: Color{
+				R: 238,
+				G: 238,
+				B: 238,
+				A: 255,
+			},
+			SeriesColors: echartSeriesColors,
 		},
-		Color{
-			R: 72,
-			G: 71,
-			B: 83,
-			A: 255,
-		},
-		Color{
-			R: 16,
-			G: 12,
-			B: 42,
-			A: 255,
-		},
-		Color{
-			R: 238,
-			G: 238,
-			B: 238,
-			A: 255,
-		},
-		echartSeriesColors,
 	)
 
 	AddTheme(
 		ThemeLight,
-		false,
-		Color{
-			R: 110,
-			G: 112,
-			B: 121,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: false,
+			AxisStrokeColor: Color{
+				R: 110,
+				G: 112,
+				B: 121,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 224,
+				G: 230,
+				B: 242,
+				A: 255,
+			},
+			BackgroundColor: drawing.ColorWhite,
+			TextColor: Color{
+				R: 70,
+				G: 70,
+				B: 70,
+				A: 255,
+			},
+			SeriesColors: echartSeriesColors,
 		},
-		Color{
-			R: 224,
-			G: 230,
-			B: 242,
-			A: 255,
-		},
-		drawing.ColorWhite,
-		drawing.Color{
-			R: 70,
-			G: 70,
-			B: 70,
-			A: 255,
-		},
-		echartSeriesColors,
 	)
 	AddTheme(
 		ThemeAnt,
-		false,
-		Color{
-			R: 110,
-			G: 112,
-			B: 121,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: false,
+			AxisStrokeColor: Color{
+				R: 110,
+				G: 112,
+				B: 121,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 224,
+				G: 230,
+				B: 242,
+				A: 255,
+			},
+			BackgroundColor: drawing.ColorWhite,
+			TextColor: drawing.Color{
+				R: 70,
+				G: 70,
+				B: 70,
+				A: 255,
+			},
+			SeriesColors: antSeriesColors,
 		},
-		Color{
-			R: 224,
-			G: 230,
-			B: 242,
-			A: 255,
-		},
-		drawing.ColorWhite,
-		drawing.Color{
-			R: 70,
-			G: 70,
-			B: 70,
-			A: 255,
-		},
-		antSeriesColors,
 	)
 	AddTheme(
 		ThemeGrafana,
-		true,
-		drawing.Color{
-			R: 185,
-			G: 184,
-			B: 206,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: true,
+			AxisStrokeColor: Color{
+				R: 185,
+				G: 184,
+				B: 206,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 68,
+				G: 67,
+				B: 67,
+				A: 255,
+			},
+			BackgroundColor: drawing.Color{
+				R: 31,
+				G: 29,
+				B: 29,
+				A: 255,
+			},
+			TextColor: Color{
+				R: 216,
+				G: 217,
+				B: 218,
+				A: 255,
+			},
+			SeriesColors: grafanaSeriesColors,
 		},
-		drawing.Color{
-			R: 68,
-			G: 67,
-			B: 67,
-			A: 255,
-		},
-		drawing.Color{
-			R: 31,
-			G: 29,
-			B: 29,
-			A: 255,
-		},
-		drawing.Color{
-			R: 216,
-			G: 217,
-			B: 218,
-			A: 255,
-		},
-		grafanaSeriesColors,
 	)
+	SetDefaultTheme(ThemeLight)
 }
 
-func AddTheme(name string, isDarkMode bool, axisStrokeColor, axisSplitLineColor, backgroundColor, textColor drawing.Color, seriesColors []drawing.Color) {
+func SetDefaultTheme(name string) {
+	defaultTheme = NewTheme(name)
+}
+
+func AddTheme(name string, opt ThemeOption) {
 	palettes[name] = &themeColorPalette{
-		isDarkMode:         isDarkMode,
-		axisStrokeColor:    axisStrokeColor,
-		axisSplitLineColor: axisSplitLineColor,
-		backgroundColor:    backgroundColor,
-		textColor:          textColor,
-		seriesColors:       seriesColors,
+		isDarkMode:         opt.IsDarkMode,
+		axisStrokeColor:    opt.AxisStrokeColor,
+		axisSplitLineColor: opt.AxisSplitLineColor,
+		backgroundColor:    opt.BackgroundColor,
+		textColor:          opt.TextColor,
+		seriesColors:       opt.SeriesColors,
 	}
 }
 

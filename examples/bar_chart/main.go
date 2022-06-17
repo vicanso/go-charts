@@ -24,26 +24,39 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
-	p, err := charts.NewPainter(charts.PainterOptions{
-		Width:  800,
-		Height: 600,
-		Type:   charts.ChartOutputPNG,
-	})
-	if err != nil {
-		panic(err)
+	values := [][]float64{
+		{
+			2.0,
+			4.9,
+			7.0,
+			23.2,
+			25.6,
+			76.7,
+			135.6,
+			162.2,
+			32.6,
+			20.0,
+			6.4,
+			3.3,
+		},
+		{
+			2.6,
+			5.9,
+			9.0,
+			26.4,
+			28.7,
+			70.7,
+			175.6,
+			182.2,
+			48.7,
+			18.8,
+			6.0,
+			2.3,
+		},
 	}
-	_, err = charts.NewBarChart(p, charts.BarChartOption{
-		Title: charts.TitleOption{
-			Text:    "Rainfall vs Evaporation",
-			Subtext: "Fake Data",
-		},
-		Padding: charts.Box{
-			Top:    20,
-			Right:  20,
-			Bottom: 20,
-			Left:   20,
-		},
-		XAxis: charts.NewXAxisOption([]string{
+	p, err := charts.BarRender(
+		values,
+		charts.XAxisDataOptionFunc([]string{
 			"Jan",
 			"Feb",
 			"Mar",
@@ -57,61 +70,24 @@ func main() {
 			"Nov",
 			"Dec",
 		}),
-		Legend: charts.NewLegendOption([]string{
+		charts.LegendLabelsOptionFunc([]string{
 			"Rainfall",
 			"Evaporation",
 		}, charts.PositionRight),
-		SeriesList: []charts.Series{
-			{
-				Type: charts.ChartTypeBar,
-				Data: charts.NewSeriesDataFromValues([]float64{
-					2.0,
-					4.9,
-					7.0,
-					23.2,
-					25.6,
-					76.7,
-					135.6,
-					162.2,
-					32.6,
-					20.0,
-					6.4,
-					3.3,
-				}),
-				MarkPoint: charts.NewMarkPoint(
-					charts.SeriesMarkDataTypeMax,
-					charts.SeriesMarkDataTypeMin,
-				),
-				MarkLine: charts.NewMarkLine(
-					charts.SeriesMarkDataTypeAverage,
-				),
-			},
-			{
-				Type: charts.ChartTypeBar,
-				Data: charts.NewSeriesDataFromValues([]float64{
-					2.6,
-					5.9,
-					9.0,
-					26.4,
-					28.7,
-					70.7,
-					175.6,
-					182.2,
-					48.7,
-					18.8,
-					6.0,
-					2.3,
-				}),
-				MarkPoint: charts.NewMarkPoint(
-					charts.SeriesMarkDataTypeMax,
-					charts.SeriesMarkDataTypeMin,
-				),
-				MarkLine: charts.NewMarkLine(
-					charts.SeriesMarkDataTypeAverage,
-				),
-			},
+		charts.MarkLineOptionFunc(0, charts.SeriesMarkDataTypeAverage),
+		charts.MarkPointOptionFunc(0, charts.SeriesMarkDataTypeMax,
+			charts.SeriesMarkDataTypeMin),
+		// custom option func
+		func(opt *charts.ChartOption) {
+			opt.SeriesList[1].MarkPoint = charts.NewMarkPoint(
+				charts.SeriesMarkDataTypeMax,
+				charts.SeriesMarkDataTypeMin,
+			)
+			opt.SeriesList[1].MarkLine = charts.NewMarkLine(
+				charts.SeriesMarkDataTypeAverage,
+			)
 		},
-	}).Render()
+	)
 	if err != nil {
 		panic(err)
 	}

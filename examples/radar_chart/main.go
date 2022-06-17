@@ -24,79 +24,47 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
-	p, err := charts.NewPainter(charts.PainterOptions{
-		Width:  800,
-		Height: 600,
-		Type:   charts.ChartOutputPNG,
-	})
-	if err != nil {
-		panic(err)
+	values := [][]float64{
+		{
+			4200,
+			3000,
+			20000,
+			35000,
+			50000,
+			18000,
+		},
+		{
+			5000,
+			14000,
+			28000,
+			26000,
+			42000,
+			21000,
+		},
 	}
-	_, err = charts.NewRadarChart(p, charts.RadarChartOption{
-		Padding: charts.Box{
-			Left:   10,
-			Top:    10,
-			Right:  10,
-			Bottom: 10,
-		},
-		Title: charts.TitleOption{
-			Text: "Basic Radar Chart",
-		},
-		Legend: charts.NewLegendOption([]string{
+	p, err := charts.RadarRender(
+		values,
+		charts.TitleTextOptionFunc("Basic Radar Chart"),
+		charts.LegendLabelsOptionFunc([]string{
 			"Allocated Budget",
 			"Actual Spending",
 		}),
-		RadarIndicators: []charts.RadarIndicator{
-			{
-				Name: "Sales",
-				Max:  6500,
-			},
-			{
-				Name: "Administration",
-				Max:  16000,
-			},
-			{
-				Name: "Information Technology",
-				Max:  30000,
-			},
-			{
-				Name: "Customer Support",
-				Max:  38000,
-			},
-			{
-				Name: "Development",
-				Max:  52000,
-			},
-			{
-				Name: "Marketing",
-				Max:  25000,
-			},
-		},
-		SeriesList: charts.SeriesList{
-			{
-				Type: charts.ChartTypeRadar,
-				Data: charts.NewSeriesDataFromValues([]float64{
-					4200,
-					3000,
-					20000,
-					35000,
-					50000,
-					18000,
-				}),
-			},
-			{
-				Type: charts.ChartTypeRadar,
-				Data: charts.NewSeriesDataFromValues([]float64{
-					5000,
-					14000,
-					28000,
-					26000,
-					42000,
-					21000,
-				}),
-			},
-		},
-	}).Render()
+		charts.RadarIndicatorOptionFunc([]string{
+			"Sales",
+			"Administration",
+			"Information Technology",
+			"Customer Support",
+			"Development",
+			"Marketing",
+		}, []float64{
+			6500,
+			16000,
+			30000,
+			38000,
+			52000,
+			25000,
+		}),
+	)
 	if err != nil {
 		panic(err)
 	}

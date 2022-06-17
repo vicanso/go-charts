@@ -24,64 +24,24 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
-	p, err := charts.NewPainter(charts.PainterOptions{
-		Width:  800,
-		Height: 600,
-		Type:   charts.ChartOutputPNG,
-	})
-	if err != nil {
-		panic(err)
+	values := []float64{
+		100,
+		80,
+		60,
+		40,
+		20,
 	}
-	_, err = charts.NewFunnelChart(p, charts.FunnelChartOption{
-		Title: charts.TitleOption{
-			Text: "Funnel",
-		},
-		Legend: charts.NewLegendOption([]string{
+	p, err := charts.FunnelRender(
+		values,
+		charts.TitleTextOptionFunc("Funnel"),
+		charts.LegendLabelsOptionFunc([]string{
 			"Show",
 			"Click",
 			"Visit",
 			"Inquiry",
 			"Order",
 		}),
-		SeriesList: []charts.Series{
-
-			{
-				Type: charts.ChartTypeFunnel,
-				Name: "Show",
-				Data: charts.NewSeriesDataFromValues([]float64{
-					100,
-				}),
-			},
-			{
-				Type: charts.ChartTypeFunnel,
-				Name: "Click",
-				Data: charts.NewSeriesDataFromValues([]float64{
-					80,
-				}),
-			},
-			{
-				Type: charts.ChartTypeFunnel,
-				Name: "Visit",
-				Data: charts.NewSeriesDataFromValues([]float64{
-					60,
-				}),
-			},
-			{
-				Type: charts.ChartTypeFunnel,
-				Name: "Inquiry",
-				Data: charts.NewSeriesDataFromValues([]float64{
-					40,
-				}),
-			},
-			{
-				Type: charts.ChartTypeFunnel,
-				Name: "Order",
-				Data: charts.NewSeriesDataFromValues([]float64{
-					20,
-				}),
-			},
-		},
-	}).Render()
+	)
 	if err != nil {
 		panic(err)
 	}

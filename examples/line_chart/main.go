@@ -24,35 +24,57 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
-	p, err := charts.NewPainter(charts.PainterOptions{
-		Width:  800,
-		Height: 600,
-		Type:   charts.ChartOutputPNG,
-	})
-	if err != nil {
-		panic(err)
+	values := [][]float64{
+		{
+			120,
+			132,
+			101,
+			134,
+			90,
+			230,
+			210,
+		},
+		{
+			220,
+			182,
+			191,
+			234,
+			290,
+			330,
+			310,
+		},
+		{
+			150,
+			232,
+			201,
+			154,
+			190,
+			330,
+			410,
+		},
+		{
+			320,
+			332,
+			301,
+			334,
+			390,
+			330,
+			320,
+		},
+		{
+			820,
+			932,
+			901,
+			934,
+			1290,
+			1330,
+			1320,
+		},
 	}
-	_, err = charts.NewLineChart(p, charts.LineChartOption{
-		Padding: charts.Box{
-			Left:   10,
-			Top:    10,
-			Right:  10,
-			Bottom: 10,
-		},
-		Title: charts.TitleOption{
-			Text: "Line",
-		},
-		Legend: charts.LegendOption{
-			Data: []string{
-				"Email",
-				"Union Ads",
-				"Video Ads",
-				"Direct",
-				"Search Engine",
-			},
-			Left: charts.PositionCenter,
-		},
-		XAxis: charts.NewXAxisOption([]string{
+	p, err := charts.LineRender(
+		values,
+		charts.TitleTextOptionFunc("Line"),
+		charts.XAxisDataOptionFunc([]string{
 			"Mon",
 			"Tue",
 			"Wed",
@@ -61,54 +83,15 @@ func main() {
 			"Sat",
 			"Sun",
 		}),
-		SeriesList: charts.SeriesList{
-			charts.NewSeriesFromValues([]float64{
-				120,
-				132,
-				101,
-				134,
-				90,
-				230,
-				210,
-			}),
-			charts.NewSeriesFromValues([]float64{
-				220,
-				182,
-				191,
-				234,
-				290,
-				330,
-				310,
-			}),
-			charts.NewSeriesFromValues([]float64{
-				150,
-				232,
-				201,
-				154,
-				190,
-				330,
-				410,
-			}),
-			charts.NewSeriesFromValues([]float64{
-				320,
-				332,
-				301,
-				334,
-				390,
-				330,
-				320,
-			}),
-			charts.NewSeriesFromValues([]float64{
-				820,
-				932,
-				901,
-				934,
-				1290,
-				1330,
-				1320,
-			}),
-		},
-	}).Render()
+		charts.LegendLabelsOptionFunc([]string{
+			"Email",
+			"Union Ads",
+			"Video Ads",
+			"Direct",
+			"Search Engine",
+		}, charts.PositionCenter),
+	)
+
 	if err != nil {
 		panic(err)
 	}

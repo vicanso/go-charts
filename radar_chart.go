@@ -64,7 +64,7 @@ type RadarChartOption struct {
 
 func NewRadarChart(p *Painter, opt RadarChartOption) *radarChart {
 	if opt.Theme == nil {
-		opt.Theme = NewTheme("")
+		opt.Theme = defaultTheme
 	}
 	return &radarChart{
 		p:   p,

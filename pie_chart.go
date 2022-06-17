@@ -53,7 +53,7 @@ type PieChartOption struct {
 
 func NewPieChart(p *Painter, opt PieChartOption) *pieChart {
 	if opt.Theme == nil {
-		opt.Theme = NewTheme("")
+		opt.Theme = defaultTheme
 	}
 	return &pieChart{
 		p:   p,

@@ -24,29 +24,38 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
-	p, err := charts.NewPainter(charts.PainterOptions{
-		Width:  800,
-		Height: 600,
-		Type:   charts.ChartOutputPNG,
-	})
-	if err != nil {
-		panic(err)
-	}
-	_, err = charts.NewHorizontalBarChart(p, charts.HorizontalBarChartOption{
-		Title: charts.TitleOption{
-			Text: "World Population",
+	values := [][]float64{
+		{
+			18203,
+			23489,
+			29034,
+			104970,
+			131744,
+			630230,
 		},
-		Padding: charts.Box{
+		{
+			19325,
+			23438,
+			31000,
+			121594,
+			134141,
+			681807,
+		},
+	}
+	p, err := charts.HorizontalBarRender(
+		values,
+		charts.TitleTextOptionFunc("World Population"),
+		charts.PaddingOptionFunc(charts.Box{
 			Top:    20,
 			Right:  40,
 			Bottom: 20,
 			Left:   20,
-		},
-		Legend: charts.NewLegendOption([]string{
+		}),
+		charts.LegendLabelsOptionFunc([]string{
 			"2011",
 			"2012",
 		}),
-		YAxisOptions: charts.NewYAxisOptions([]string{
+		charts.YAxisDataOptionFunc([]string{
 			"Brazil",
 			"Indonesia",
 			"USA",
@@ -54,31 +63,7 @@ func main() {
 			"China",
 			"World",
 		}),
-		SeriesList: []charts.Series{
-			{
-				Type: charts.ChartTypeHorizontalBar,
-				Data: charts.NewSeriesDataFromValues([]float64{
-					18203,
-					23489,
-					29034,
-					104970,
-					131744,
-					630230,
-				}),
-			},
-			{
-				Type: charts.ChartTypeHorizontalBar,
-				Data: charts.NewSeriesDataFromValues([]float64{
-					19325,
-					23438,
-					31000,
-					121594,
-					134141,
-					681807,
-				}),
-			},
-		},
-	}).Render()
+	)
 	if err != nil {
 		panic(err)
 	}

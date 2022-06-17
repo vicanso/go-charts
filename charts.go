@@ -239,7 +239,10 @@ func doRender(renderers ...Renderer) error {
 	return nil
 }
 
-func Render(opt ChartOption) (*Painter, error) {
+func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
+	for _, fn := range opts {
+		fn(&opt)
+	}
 	opt.fillDefault()
 
 	isChild := true
@@ -398,6 +401,12 @@ func Render(opt ChartOption) (*Painter, error) {
 	}
 	for _, item := range opt.Children {
 		item.Parent = p
+		if item.Theme == "" {
+			item.Theme = opt.Theme
+		}
+		if item.FontFamily == "" {
+			item.FontFamily = opt.FontFamily
+		}
 		_, err = Render(item)
 		if err != nil {
 			return nil, err

@@ -34,7 +34,7 @@ type lineChart struct {
 
 func NewLineChart(p *Painter, opt LineChartOption) *lineChart {
 	if opt.Theme == nil {
-		opt.Theme = NewTheme("")
+		opt.Theme = defaultTheme
 	}
 	return &lineChart{
 		p:   p,

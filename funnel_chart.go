@@ -36,7 +36,7 @@ type funnelChart struct {
 
 func NewFunnelChart(p *Painter, opt FunnelChartOption) *funnelChart {
 	if opt.Theme == nil {
-		opt.Theme = NewTheme("")
+		opt.Theme = defaultTheme
 	}
 	return &funnelChart{
 		p:   p,

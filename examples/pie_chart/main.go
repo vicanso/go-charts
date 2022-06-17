@@ -24,27 +24,27 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
-	p, err := charts.NewPainter(charts.PainterOptions{
-		Width:  800,
-		Height: 600,
-		Type:   charts.ChartOutputPNG,
-	})
-	if err != nil {
-		panic(err)
+	values := []float64{
+		1048,
+		735,
+		580,
+		484,
+		300,
 	}
-	_, err = charts.NewPieChart(p, charts.PieChartOption{
-		Title: charts.TitleOption{
+	p, err := charts.PieRender(
+		values,
+		charts.TitleOptionFunc(charts.TitleOption{
 			Text:    "Rainfall vs Evaporation",
 			Subtext: "Fake Data",
 			Left:    charts.PositionCenter,
-		},
-		Padding: charts.Box{
+		}),
+		charts.PaddingOptionFunc(charts.Box{
 			Top:    20,
 			Right:  20,
 			Bottom: 20,
 			Left:   20,
-		},
-		Legend: charts.LegendOption{
+		}),
+		charts.LegendOptionFunc(charts.LegendOption{
 			Orient: charts.OrientVertical,
 			Data: []string{
 				"Search Engine",
@@ -54,20 +54,9 @@ func main() {
 				"Video Ads",
 			},
 			Left: charts.PositionLeft,
-		},
-		SeriesList: charts.NewPieSeriesList([]float64{
-			1048,
-			735,
-			580,
-			484,
-			300,
-		}, charts.PieSeriesOption{
-			Label: charts.SeriesLabel{
-				Show: true,
-			},
-			Radius: "35%",
 		}),
-	}).Render()
+		charts.PieSeriesShowLabel(),
+	)
 	if err != nil {
 		panic(err)
 	}

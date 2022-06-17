@@ -130,6 +130,7 @@ type EChartsXAxisData struct {
 	BoundaryGap *bool    `json:"boundaryGap"`
 	SplitNumber int      `json:"splitNumber"`
 	Data        []string `json:"data"`
+	Type        string   `json:"type"`
 }
 type EChartsXAxis struct {
 	Data []EChartsXAxisData
@@ -155,6 +156,7 @@ type EChartsYAxisData struct {
 			Color string `json:"color"`
 		} `json:"lineStyle"`
 	} `json:"axisLine"`
+	Data []string `json:"data"`
 }
 type EChartsYAxis struct {
 	Data []EChartsYAxisData `json:"data"`
@@ -453,6 +455,21 @@ func (eo *EChartsOption) ToOption() ChartOption {
 		Box:             eo.Box,
 		SeriesList:      eo.Series.ToSeriesList(),
 	}
+	isHorizontalChart := false
+	for _, item := range eo.XAxis.Data {
+		if item.Type == "value" {
+			isHorizontalChart = true
+		}
+	}
+	if isHorizontalChart {
+		for index := range o.SeriesList {
+			series := o.SeriesList[index]
+			if series.Type == ChartTypeBar {
+				o.SeriesList[index].Type = ChartTypeHorizontalBar
+			}
+		}
+	}
+
 	if len(eo.XAxis.Data) != 0 {
 		xAxisData := eo.XAxis.Data[0]
 		o.XAxis = XAxisOption{
@@ -468,6 +485,7 @@ func (eo *EChartsOption) ToOption() ChartOption {
 			Max:       item.Max,
 			Formatter: item.AxisLabel.Formatter,
 			Color:     parseColor(item.AxisLine.LineStyle.Color),
+			Data:      item.Data,
 		}
 	}
 	o.YAxisOptions = yAxisOptions

@@ -34,7 +34,7 @@ type barChart struct {
 
 func NewBarChart(p *Painter, opt BarChartOption) *barChart {
 	if opt.Theme == nil {
-		opt.Theme = NewTheme("")
+		opt.Theme = defaultTheme
 	}
 	return &barChart{
 		p:   p,

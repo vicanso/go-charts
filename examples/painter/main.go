@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	charts "github.com/vicanso/go-charts"
+	charts "github.com/vicanso/go-charts/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 

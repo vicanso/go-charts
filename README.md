@@ -21,35 +21,19 @@ These chart types are supported: `line`, `bar`, `pie`, `radar` or `funnel`.
 
 ## Example
 
-The example is for `golang option` and `echarts option`, more examples can be found in the `./examples/` directory.
+More examples can be found in the [./examples/](./examples/) directory.
 
+
+### Line Chart
 ```go
 package main
 
 import (
-	"os"
-	"path/filepath"
-
-	charts "github.com/vicanso/go-charts"
+	charts "github.com/vicanso/go-charts/v2"
 )
 
-func writeFile(file string, buf []byte) error {
-	tmpPath := "./tmp"
-	err := os.MkdirAll(tmpPath, 0700)
-	if err != nil {
-		return err
-	}
-
-	file = filepath.Join(tmpPath, file)
-	err = os.WriteFile(file, buf, 0600)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func chartsRender() ([]byte, error) {
-	values := [][]float64{
+func main() {
+values := [][]float64{
 		{
 			120,
 			132,
@@ -58,6 +42,18 @@ func chartsRender() ([]byte, error) {
 			90,
 			230,
 			210,
+		},
+		{
+			// snip...
+		},
+		{
+			// snip...
+		},
+		{
+			// snip...
+		},
+		{
+			// snip...
 		},
 	}
 	p, err := charts.LineRender(
@@ -72,15 +68,323 @@ func chartsRender() ([]byte, error) {
 			"Sat",
 			"Sun",
 		}),
+		charts.LegendLabelsOptionFunc([]string{
+			"Email",
+			"Union Ads",
+			"Video Ads",
+			"Direct",
+			"Search Engine",
+		}, charts.PositionCenter),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Bar Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := [][]float64{
+		{
+			2.0,
+			4.9,
+			7.0,
+			23.2,
+			25.6,
+			76.7,
+			135.6,
+			162.2,
+			32.6,
+			20.0,
+			6.4,
+			3.3,
+		},
+		{
+			// snip...	
+		},
+	}
+	p, err := charts.BarRender(
+		values,
+		charts.XAxisDataOptionFunc([]string{
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep",
+			"Oct",
+			"Nov",
+			"Dec",
+		}),
+		charts.LegendLabelsOptionFunc([]string{
+			"Rainfall",
+			"Evaporation",
+		}, charts.PositionRight),
+		charts.MarkLineOptionFunc(0, charts.SeriesMarkDataTypeAverage),
+		charts.MarkPointOptionFunc(0, charts.SeriesMarkDataTypeMax,
+			charts.SeriesMarkDataTypeMin),
+		// custom option func
+		func(opt *charts.ChartOption) {
+			opt.SeriesList[1].MarkPoint = charts.NewMarkPoint(
+				charts.SeriesMarkDataTypeMax,
+				charts.SeriesMarkDataTypeMin,
+			)
+			opt.SeriesList[1].MarkLine = charts.NewMarkLine(
+				charts.SeriesMarkDataTypeAverage,
+			)
+		},
 	)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return p.Bytes()
-}
 
-func echartsRender() ([]byte, error) {
-	return charts.RenderEChartsToPNG(`{
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Horizontal Bar Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := [][]float64{
+		{
+			18203,
+			23489,
+			29034,
+			104970,
+			131744,
+			630230,
+		},
+		{
+			// snip...	
+		},
+	}
+	p, err := charts.HorizontalBarRender(
+		values,
+		charts.TitleTextOptionFunc("World Population"),
+		charts.PaddingOptionFunc(charts.Box{
+			Top:    20,
+			Right:  40,
+			Bottom: 20,
+			Left:   20,
+		}),
+		charts.LegendLabelsOptionFunc([]string{
+			"2011",
+			"2012",
+		}),
+		charts.YAxisDataOptionFunc([]string{
+			"Brazil",
+			"Indonesia",
+			"USA",
+			"India",
+			"China",
+			"World",
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Pie Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := []float64{
+		1048,
+		735,
+		580,
+		484,
+		300,
+	}
+	p, err := charts.PieRender(
+		values,
+		charts.TitleOptionFunc(charts.TitleOption{
+			Text:    "Rainfall vs Evaporation",
+			Subtext: "Fake Data",
+			Left:    charts.PositionCenter,
+		}),
+		charts.PaddingOptionFunc(charts.Box{
+			Top:    20,
+			Right:  20,
+			Bottom: 20,
+			Left:   20,
+		}),
+		charts.LegendOptionFunc(charts.LegendOption{
+			Orient: charts.OrientVertical,
+			Data: []string{
+				"Search Engine",
+				"Direct",
+				"Email",
+				"Union Ads",
+				"Video Ads",
+			},
+			Left: charts.PositionLeft,
+		}),
+		charts.PieSeriesShowLabel(),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...	
+}
+```
+
+### Radar Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := [][]float64{
+		{
+			4200,
+			3000,
+			20000,
+			35000,
+			50000,
+			18000,
+		},
+		{
+			// snip...
+		},
+	}
+	p, err := charts.RadarRender(
+		values,
+		charts.TitleTextOptionFunc("Basic Radar Chart"),
+		charts.LegendLabelsOptionFunc([]string{
+			"Allocated Budget",
+			"Actual Spending",
+		}),
+		charts.RadarIndicatorOptionFunc([]string{
+			"Sales",
+			"Administration",
+			"Information Technology",
+			"Customer Support",
+			"Development",
+			"Marketing",
+		}, []float64{
+			6500,
+			16000,
+			30000,
+			38000,
+			52000,
+			25000,
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Funnel Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := []float64{
+		100,
+		80,
+		60,
+		40,
+		20,
+	}
+	p, err := charts.FunnelRender(
+		values,
+		charts.TitleTextOptionFunc("Funnel"),
+		charts.LegendLabelsOptionFunc([]string{
+			"Show",
+			"Click",
+			"Visit",
+			"Inquiry",
+			"Order",
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### ECharts Render
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	buf, err := charts.RenderEChartsToPNG(`{
 		"title": {
 			"text": "Line"
 		},
@@ -93,25 +397,7 @@ func echartsRender() ([]byte, error) {
 			}
 		]
 	}`)
-}
-
-type Render func() ([]byte, error)
-
-func main() {
-	m := map[string]Render{
-		"charts-line.png":  chartsRender,
-		"echarts-line.png": echartsRender,
-	}
-	for name, fn := range m {
-		buf, err := fn()
-		if err != nil {
-			panic(err)
-		}
-		err = writeFile(name, buf)
-		if err != nil {
-			panic(err)
-		}
-	}
+	// snip...
 }
 ```
 

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/vicanso/go-charts"
+	"github.com/vicanso/go-charts/v2"
 )
 
 func writeFile(buf []byte) error {

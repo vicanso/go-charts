@@ -24,8 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func NewMarkLine(markLineTypes ...string) SeriesMarkLine {
@@ -40,53 +38,80 @@ func NewMarkLine(markLineTypes ...string) SeriesMarkLine {
 	}
 }
 
+type markLinePainter struct {
+	p       *Painter
+	options []markLineRenderOption
+}
+
+func (m *markLinePainter) Add(opt markLineRenderOption) {
+	m.options = append(m.options, opt)
+}
+
+func NewMarkLinePainter(p *Painter) *markLinePainter {
+	return &markLinePainter{
+		p:       p,
+		options: make([]markLineRenderOption, 0),
+	}
+}
+
 type markLineRenderOption struct {
-	Draw        *Draw
-	FillColor   drawing.Color
-	FontColor   drawing.Color
-	StrokeColor drawing.Color
+	FillColor   Color
+	FontColor   Color
+	StrokeColor Color
 	Font        *truetype.Font
-	Series      *Series
-	Range       *Range
+	Series      Series
+	Range       axisRange
+}
+
+func (m *markLinePainter) Render() (Box, error) {
+	painter := m.p
+	for _, opt := range m.options {
+		s := opt.Series
+		if len(s.MarkLine.Data) == 0 {
+			continue
+		}
+		summary := s.Summary()
+		for _, markLine := range s.MarkLine.Data {
+			// 由于mark line会修改style，因此每次重新设置
+			painter.OverrideDrawingStyle(Style{
+				FillColor:   opt.FillColor,
+				StrokeColor: opt.StrokeColor,
+				StrokeWidth: 1,
+				StrokeDashArray: []float64{
+					4,
+					2,
+				},
+			}).OverrideTextStyle(Style{
+				Font:      opt.Font,
+				FontColor: opt.FontColor,
+				FontSize:  labelFontSize,
+			})
+			value := float64(0)
+			switch markLine.Type {
+			case SeriesMarkDataTypeMax:
+				value = summary.MaxValue
+			case SeriesMarkDataTypeMin:
+				value = summary.MinValue
+			default:
+				value = summary.AverageValue
+			}
+			y := opt.Range.getRestHeight(value)
+			width := painter.Width()
+			text := commafWithDigits(value)
+			textBox := painter.MeasureText(text)
+			painter.MarkLine(0, y, width-2)
+			painter.Text(text, width, y+textBox.Height()>>1-2)
+		}
+	}
+	return BoxZero, nil
 }
 
 func markLineRender(opt markLineRenderOption) {
-	d := opt.Draw
-	s := opt.Series
-	if len(s.MarkLine.Data) == 0 {
-		return
-	}
-	r := d.Render
-	summary := s.Summary()
-	for _, markLine := range s.MarkLine.Data {
-		// 由于mark line会修改style，因此每次重新设置
-		chart.Style{
-			FillColor:   opt.FillColor,
-			FontColor:   opt.FontColor,
-			FontSize:    labelFontSize,
-			StrokeColor: opt.StrokeColor,
-			StrokeWidth: 1,
-			Font:        opt.Font,
-			StrokeDashArray: []float64{
-				4,
-				2,
-			},
-		}.WriteToRenderer(r)
-		value := float64(0)
-		switch markLine.Type {
-		case SeriesMarkDataTypeMax:
-			value = summary.MaxValue
-		case SeriesMarkDataTypeMin:
-			value = summary.MinValue
-		default:
-			value = summary.AverageValue
-		}
-		y := opt.Range.getRestHeight(value)
-		width := d.Box.Width()
-		text := commafWithDigits(value)
-		textBox := r.MeasureText(text)
-		d.makeLine(0, y, width-2)
-		d.text(text, width, y+textBox.Height()>>1-2)
-	}
+	// d := opt.Draw
+	// s := opt.Series
+	// if len(s.MarkLine.Data) == 0 {
+	// 	return
+	// }
+	// r := d.Render
 
 }

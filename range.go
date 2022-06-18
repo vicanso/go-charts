@@ -26,15 +26,31 @@ import (
 	"math"
 )
 
-type Range struct {
+const defaultAxisDivideCount = 6
+
+type axisRange struct {
 	divideCount int
+	min         float64
+	max         float64
+	size        int
+	boundary    bool
+}
+
+type AxisRangeOption struct {
 	Min         float64
 	Max         float64
 	Size        int
 	Boundary    bool
+	DivideCount int
 }
 
-func NewRange(min, max float64, divideCount int) Range {
+func NewRange(opt AxisRangeOption) axisRange {
+	max := opt.Max
+	min := opt.Min
+
+	max += math.Abs(max * 0.1)
+	min -= math.Abs(min * 0.1)
+	divideCount := opt.DivideCount
 	r := math.Abs(max - min)
 
 	// 最小单位计算
@@ -63,47 +79,49 @@ func NewRange(min, max float64, divideCount int) Range {
 		}
 	}
 	max = min + float64(unit*divideCount)
-	return Range{
-		Min:         min,
-		Max:         max,
+	return axisRange{
 		divideCount: divideCount,
+		min:         min,
+		max:         max,
+		size:        opt.Size,
+		boundary:    opt.Boundary,
 	}
 }
 
-func (r Range) Values() []string {
-	offset := (r.Max - r.Min) / float64(r.divideCount)
+func (r axisRange) Values() []string {
+	offset := (r.max - r.min) / float64(r.divideCount)
 	values := make([]string, 0)
 	for i := 0; i <= r.divideCount; i++ {
-		v := r.Min + float64(i)*offset
+		v := r.min + float64(i)*offset
 		value := commafWithDigits(v)
 		values = append(values, value)
 	}
 	return values
 }
 
-func (r *Range) getHeight(value float64) int {
-	v := (value - r.Min) / (r.Max - r.Min)
-	return int(v * float64(r.Size))
+func (r *axisRange) getHeight(value float64) int {
+	v := (value - r.min) / (r.max - r.min)
+	return int(v * float64(r.size))
 }
 
-func (r *Range) getRestHeight(value float64) int {
-	return r.Size - r.getHeight(value)
+func (r *axisRange) getRestHeight(value float64) int {
+	return r.size - r.getHeight(value)
 }
 
-func (r *Range) GetRange(index int) (float64, float64) {
-	unit := float64(r.Size) / float64(r.divideCount)
+func (r *axisRange) GetRange(index int) (float64, float64) {
+	unit := float64(r.size) / float64(r.divideCount)
 	return unit * float64(index), unit * float64(index+1)
 }
-func (r *Range) AutoDivide() []int {
-	return autoDivide(r.Size, r.divideCount)
+func (r *axisRange) AutoDivide() []int {
+	return autoDivide(r.size, r.divideCount)
 }
 
-func (r *Range) getWidth(value float64) int {
-	v := value / (r.Max - r.Min)
+func (r *axisRange) getWidth(value float64) int {
+	v := value / (r.max - r.min)
 	// 移至居中
-	if r.Boundary &&
+	if r.boundary &&
 		r.divideCount != 0 {
 		v += 1 / float64(r.divideCount*2)
 	}
-	return int(v * float64(r.Size))
+	return int(v * float64(r.size))
 }

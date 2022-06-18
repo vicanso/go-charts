@@ -25,16 +25,18 @@ package charts
 import (
 	"strconv"
 	"strings"
-
-	"github.com/wcharczuk/go-chart/v2"
 )
 
+type legendPainter struct {
+	p   *Painter
+	opt *LegendOption
+}
+
+const IconRect = "rect"
+const IconLineDot = "lineDot"
+
 type LegendOption struct {
-	theme string
-	// Legend show flag, if nil or true, the legend will be shown
-	Show *bool
-	// Legend text style
-	Style chart.Style
+	Theme ColorPalette
 	// Text array of legend
 	Data []string
 	// Distance between legend component and the left side of the container.
@@ -50,177 +52,170 @@ type LegendOption struct {
 	Orient string
 	// Icon of the legend.
 	Icon string
+	// Font size of legend text
+	FontSize float64
+	// FontColor color of legend text
+	FontColor Color
+	// The flag for show legend, set this to *false will hide legend
+	Show *bool
 }
 
-const (
-	LegendIconRect = "rect"
-)
-
-// NewLegendOption creates a new legend option by legend text list
-func NewLegendOption(data []string, position ...string) LegendOption {
+func NewLegendOption(labels []string, left ...string) LegendOption {
 	opt := LegendOption{
-		Data: data,
+		Data: labels,
 	}
-	if len(position) != 0 {
-		opt.Left = position[0]
+	if len(left) != 0 {
+		opt.Left = left[0]
 	}
 	return opt
 }
 
-type legend struct {
-	d   *Draw
-	opt *LegendOption
+func (opt *LegendOption) IsEmpty() bool {
+	isEmpty := true
+	for _, v := range opt.Data {
+		if v != "" {
+			isEmpty = false
+			break
+		}
+	}
+	return isEmpty
 }
 
-func NewLegend(d *Draw, opt LegendOption) *legend {
-	return &legend{
-		d:   d,
+func NewLegendPainter(p *Painter, opt LegendOption) *legendPainter {
+	return &legendPainter{
+		p:   p,
 		opt: &opt,
 	}
 }
 
-func (l *legend) Render() (chart.Box, error) {
-	d := l.d
+func (l *legendPainter) Render() (Box, error) {
 	opt := l.opt
-	if len(opt.Data) == 0 || isFalse(opt.Show) {
-		return chart.BoxZero, nil
+	theme := opt.Theme
+	if opt.IsEmpty() ||
+		(opt.Show != nil && !*opt.Show) {
+		return BoxZero, nil
 	}
-	theme := NewTheme(opt.theme)
-	padding := opt.Style.Padding
-	legendDraw, err := NewDraw(DrawOption{
-		Parent: d,
-	}, PaddingOption(padding))
-	if err != nil {
-		return chart.BoxZero, err
+	if theme == nil {
+		theme = l.p.theme
 	}
-	r := legendDraw.Render
-	opt.Style.GetTextOptions().WriteToRenderer(r)
-
-	x := 0
-	y := 0
-	top := 0
-	// TODO TOP 暂只支持数值
-	if opt.Top != "" {
-		top, _ = strconv.Atoi(opt.Top)
-		y += top
+	if opt.FontSize == 0 {
+		opt.FontSize = theme.GetFontSize()
 	}
-	legendWidth := 30
-	legendDotHeight := 5
-	textPadding := 5
-	legendMargin := 10
-	// 往下移2倍dot的高度
-	y += 2 * legendDotHeight
-
-	widthCount := 0
+	if opt.FontColor.IsZero() {
+		opt.FontColor = theme.GetTextColor()
+	}
+	if opt.Left == "" {
+		opt.Left = PositionCenter
+	}
+	p := l.p.Child(PainterPaddingOption(Box{
+		Top: 5,
+	}))
+	p.SetTextStyle(Style{
+		FontSize:  opt.FontSize,
+		FontColor: opt.FontColor,
+	})
+	measureList := make([]Box, len(opt.Data))
 	maxTextWidth := 0
-	// 文本宽度
-	for _, text := range opt.Data {
-		b := r.MeasureText(text)
+	for index, text := range opt.Data {
+		b := p.MeasureText(text)
 		if b.Width() > maxTextWidth {
 			maxTextWidth = b.Width()
 		}
-		widthCount += b.Width()
-	}
-	if opt.Orient == OrientVertical {
-		widthCount = maxTextWidth + legendWidth + textPadding
-	} else {
-		// 加上标记
-		widthCount += legendWidth * len(opt.Data)
-		// 文本的padding
-		widthCount += 2 * textPadding * len(opt.Data)
-		// margin的宽度
-		widthCount += legendMargin * (len(opt.Data) - 1)
+		measureList[index] = b
 	}
 
+	// 计算展示的宽高
+	width := 0
+	height := 0
+	offset := 20
+	textOffset := 2
+	legendWidth := 30
+	legendHeight := 20
+	for _, item := range measureList {
+		if opt.Orient == OrientVertical {
+			height += item.Height()
+		} else {
+			width += item.Width()
+		}
+	}
+	if opt.Orient == OrientVertical {
+		width = maxTextWidth + textOffset + legendWidth
+		height = offset * len(opt.Data)
+	} else {
+		height = legendHeight
+		offsetValue := (len(opt.Data) - 1) * (offset + textOffset)
+		allLegendWidth := len(opt.Data) * legendWidth
+		width += (offsetValue + allLegendWidth)
+	}
+
+	// 计算开始的位置
 	left := 0
 	switch opt.Left {
 	case PositionRight:
-		left = legendDraw.Box.Width() - widthCount
+		left = p.Width() - width
 	case PositionCenter:
-		left = (legendDraw.Box.Width() - widthCount) >> 1
+		left = (p.Width() - width) >> 1
 	default:
 		if strings.HasSuffix(opt.Left, "%") {
 			value, _ := strconv.Atoi(strings.ReplaceAll(opt.Left, "%", ""))
-			left = legendDraw.Box.Width() * value / 100
+			left = p.Width() * value / 100
 		} else {
 			value, _ := strconv.Atoi(opt.Left)
 			left = value
 		}
 	}
-	x = left
+	top, _ := strconv.Atoi(opt.Top)
+
+	x := int(left)
+	y := int(top) + 10
+	x0 := x
+	y0 := y
+
+	drawIcon := func(top, left int) int {
+		if opt.Icon == IconRect {
+			p.Rect(Box{
+				Top:    top - legendHeight + 8,
+				Left:   left,
+				Right:  left + legendWidth,
+				Bottom: top + 1,
+			})
+		} else {
+			p.LegendLineDot(Box{
+				Top:    top + 1,
+				Left:   left,
+				Right:  left + legendWidth,
+				Bottom: top + legendHeight + 1,
+			})
+		}
+		return left + legendWidth
+	}
 	for index, text := range opt.Data {
-		textBox := r.MeasureText(text)
-		var renderText func()
+		color := theme.GetSeriesColor(index)
+		p.SetDrawingStyle(Style{
+			FillColor:   color,
+			StrokeColor: color,
+		})
+		if opt.Align != AlignRight {
+			x0 = drawIcon(y0, x0)
+			x0 += textOffset
+		}
+		p.Text(text, x0, y0)
+		x0 += measureList[index].Width()
+		if opt.Align == AlignRight {
+			x0 += textOffset
+			x0 = drawIcon(0, x0)
+		}
 		if opt.Orient == OrientVertical {
-			// 垂直
-			// 重置x的位置
-			x = left
-			renderText = func() {
-				x += textPadding
-				legendDraw.text(text, x, y+legendDotHeight)
-				x += textBox.Width()
-				y += (2*legendDotHeight + legendMargin)
-			}
-
+			y0 += offset
+			x0 = x
 		} else {
-			// 水平
-			if index != 0 {
-				x += legendMargin
-			}
-			renderText = func() {
-				x += textPadding
-				legendDraw.text(text, x, y+legendDotHeight)
-				x += textBox.Width()
-				x += textPadding
-			}
-		}
-		if opt.Align == PositionRight {
-			renderText()
-		}
-		seriesColor := theme.GetSeriesColor(index)
-		fillColor := seriesColor
-		if !theme.IsDark() {
-			fillColor = theme.GetBackgroundColor()
-		}
-		style := chart.Style{
-			StrokeColor: seriesColor,
-			FillColor:   fillColor,
-			StrokeWidth: 3,
-		}
-		if opt.Icon == LegendIconRect {
-			style.FillColor = seriesColor
-			style.StrokeWidth = 1
-		}
-		style.GetFillAndStrokeOptions().WriteDrawingOptionsToRenderer(r)
-
-		if opt.Icon == LegendIconRect {
-			legendDraw.moveTo(x, y-legendDotHeight)
-			legendDraw.lineTo(x+legendWidth, y-legendDotHeight)
-			legendDraw.lineTo(x+legendWidth, y+legendDotHeight)
-			legendDraw.lineTo(x, y+legendDotHeight)
-			legendDraw.lineTo(x, y-legendDotHeight)
-			r.FillStroke()
-		} else {
-			legendDraw.moveTo(x, y)
-			legendDraw.lineTo(x+legendWidth, y)
-			r.Stroke()
-			legendDraw.circle(float64(legendDotHeight), x+legendWidth>>1, y)
-			r.FillStroke()
-		}
-		x += legendWidth
-
-		if opt.Align != PositionRight {
-			renderText()
+			x0 += offset
+			y0 = y
 		}
 	}
-	legendBox := padding.Clone()
-	// 计算展示区域
-	if opt.Orient == OrientVertical {
-		legendBox.Right = legendBox.Left + left + maxTextWidth + legendWidth + textPadding
-		legendBox.Bottom = legendBox.Top + y
-	} else {
-		legendBox.Right = legendBox.Left + x
-		legendBox.Bottom = legendBox.Top + 2*legendDotHeight + top + textPadding
-	}
-	return legendBox, nil
+
+	return Box{
+		Right:  width,
+		Bottom: height,
+	}, nil
 }

@@ -130,6 +130,7 @@ type EChartsXAxisData struct {
 	BoundaryGap *bool    `json:"boundaryGap"`
 	SplitNumber int      `json:"splitNumber"`
 	Data        []string `json:"data"`
+	Type        string   `json:"type"`
 }
 type EChartsXAxis struct {
 	Data []EChartsXAxisData
@@ -155,6 +156,7 @@ type EChartsYAxisData struct {
 			Color string `json:"color"`
 		} `json:"lineStyle"`
 	} `json:"axisLine"`
+	Data []string `json:"data"`
 }
 type EChartsYAxis struct {
 	Data []EChartsYAxisData `json:"data"`
@@ -354,10 +356,10 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 			}
 		}
 		seriesList = append(seriesList, Series{
-			Type:       item.Type,
-			Data:       data,
-			YAxisIndex: item.YAxisIndex,
-			Style:      item.ItemStyle.ToStyle(),
+			Type:      item.Type,
+			Data:      data,
+			AxisIndex: item.YAxisIndex,
+			Style:     item.ItemStyle.ToStyle(),
 			Label: SeriesLabel{
 				Color:    parseColor(item.Label.Color),
 				Show:     item.Label.Show,
@@ -419,26 +421,32 @@ func (eo *EChartsOption) ToOption() ChartOption {
 	if len(fontFamily) == 0 {
 		fontFamily = eo.Title.TextStyle.FontFamily
 	}
+	titleTextStyle := eo.Title.TextStyle.ToStyle()
+	titleSubtextStyle := eo.Title.SubtextStyle.ToStyle()
+	legendTextStyle := eo.Legend.TextStyle.ToStyle()
 	o := ChartOption{
 		Type:       eo.Type,
 		FontFamily: fontFamily,
 		Theme:      eo.Theme,
 		Title: TitleOption{
-			Text:         eo.Title.Text,
-			Subtext:      eo.Title.Subtext,
-			Style:        eo.Title.TextStyle.ToStyle(),
-			SubtextStyle: eo.Title.SubtextStyle.ToStyle(),
-			Left:         string(eo.Title.Left),
-			Top:          string(eo.Title.Top),
+			Text:             eo.Title.Text,
+			Subtext:          eo.Title.Subtext,
+			FontColor:        titleTextStyle.FontColor,
+			FontSize:         titleTextStyle.FontSize,
+			SubtextFontSize:  titleSubtextStyle.FontSize,
+			SubtextFontColor: titleSubtextStyle.FontColor,
+			Left:             string(eo.Title.Left),
+			Top:              string(eo.Title.Top),
 		},
 		Legend: LegendOption{
-			Show:   eo.Legend.Show,
-			Style:  eo.Legend.TextStyle.ToStyle(),
-			Data:   eo.Legend.Data,
-			Left:   string(eo.Legend.Left),
-			Top:    string(eo.Legend.Top),
-			Align:  eo.Legend.Align,
-			Orient: eo.Legend.Orient,
+			Show:      eo.Legend.Show,
+			FontSize:  legendTextStyle.FontSize,
+			FontColor: legendTextStyle.FontColor,
+			Data:      eo.Legend.Data,
+			Left:      string(eo.Legend.Left),
+			Top:       string(eo.Legend.Top),
+			Align:     eo.Legend.Align,
+			Orient:    eo.Legend.Orient,
 		},
 		RadarIndicators: eo.Radar.Indicator,
 		Width:           eo.Width,
@@ -447,6 +455,21 @@ func (eo *EChartsOption) ToOption() ChartOption {
 		Box:             eo.Box,
 		SeriesList:      eo.Series.ToSeriesList(),
 	}
+	isHorizontalChart := false
+	for _, item := range eo.XAxis.Data {
+		if item.Type == "value" {
+			isHorizontalChart = true
+		}
+	}
+	if isHorizontalChart {
+		for index := range o.SeriesList {
+			series := o.SeriesList[index]
+			if series.Type == ChartTypeBar {
+				o.SeriesList[index].Type = ChartTypeHorizontalBar
+			}
+		}
+	}
+
 	if len(eo.XAxis.Data) != 0 {
 		xAxisData := eo.XAxis.Data[0]
 		o.XAxis = XAxisOption{
@@ -462,9 +485,10 @@ func (eo *EChartsOption) ToOption() ChartOption {
 			Max:       item.Max,
 			Formatter: item.AxisLabel.Formatter,
 			Color:     parseColor(item.AxisLine.LineStyle.Color),
+			Data:      item.Data,
 		}
 	}
-	o.YAxisList = yAxisOptions
+	o.YAxisOptions = yAxisOptions
 
 	if len(eo.Children) != 0 {
 		o.Children = make([]ChartOption, len(eo.Children))

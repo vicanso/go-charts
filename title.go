@@ -26,18 +26,20 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/wcharczuk/go-chart/v2"
+	"github.com/golang/freetype/truetype"
 )
 
 type TitleOption struct {
+	// The theme of chart
+	Theme ColorPalette
 	// Title text, support \n for new line
 	Text string
 	// Subtitle text, support \n for new line
 	Subtext string
-	// Title style
-	Style chart.Style
-	// Subtitle style
-	SubtextStyle chart.Style
+	// // Title style
+	// Style Style
+	// // Subtitle style
+	// SubtextStyle Style
 	// Distance between title component and the left side of the container.
 	// It can be pixel value: 20, percentage value: 20%,
 	// or position value: right, center.
@@ -45,12 +47,23 @@ type TitleOption struct {
 	// Distance between title component and the top side of the container.
 	// It can be pixel value: 20.
 	Top string
+	// The font of label
+	Font *truetype.Font
+	// The font size of label
+	FontSize float64
+	// The color of label
+	FontColor Color
+	// The subtext font size of label
+	SubtextFontSize float64
+	// The subtext font color of label
+	SubtextFontColor Color
 }
+
 type titleMeasureOption struct {
 	width  int
 	height int
 	text   string
-	style  chart.Style
+	style  Style
 }
 
 func splitTitleText(text string) []string {
@@ -66,44 +79,74 @@ func splitTitleText(text string) []string {
 	return result
 }
 
-func drawTitle(p *Draw, opt *TitleOption) (chart.Box, error) {
-	if len(opt.Text) == 0 {
-		return chart.BoxZero, nil
-	}
+type titlePainter struct {
+	p   *Painter
+	opt *TitleOption
+}
 
-	padding := opt.Style.Padding
-	d, err := NewDraw(DrawOption{
-		Parent: p,
-	}, PaddingOption(padding))
-	if err != nil {
-		return chart.BoxZero, err
+func NewTitlePainter(p *Painter, opt TitleOption) *titlePainter {
+	return &titlePainter{
+		p:   p,
+		opt: &opt,
 	}
+}
 
-	r := d.Render
+func (t *titlePainter) Render() (Box, error) {
+	opt := t.opt
+	p := t.p
+	theme := opt.Theme
+
+	if opt.Text == "" && opt.Subtext == "" {
+		return BoxZero, nil
+	}
 
 	measureOptions := make([]titleMeasureOption, 0)
 
+	if opt.Font == nil {
+		opt.Font = theme.GetFont()
+	}
+	if opt.FontColor.IsZero() {
+		opt.FontColor = theme.GetTextColor()
+	}
+	if opt.FontSize == 0 {
+		opt.FontSize = theme.GetFontSize()
+	}
+	if opt.SubtextFontColor.IsZero() {
+		opt.SubtextFontColor = opt.FontColor
+	}
+	if opt.SubtextFontSize == 0 {
+		opt.SubtextFontSize = opt.FontSize
+	}
+
+	titleTextStyle := Style{
+		Font:      opt.Font,
+		FontSize:  opt.FontSize,
+		FontColor: opt.FontColor,
+	}
 	// 主标题
 	for _, v := range splitTitleText(opt.Text) {
 		measureOptions = append(measureOptions, titleMeasureOption{
 			text:  v,
-			style: opt.Style.GetTextOptions(),
+			style: titleTextStyle,
 		})
+	}
+	subtextStyle := Style{
+		Font:      opt.Font,
+		FontSize:  opt.SubtextFontSize,
+		FontColor: opt.SubtextFontColor,
 	}
 	// 副标题
 	for _, v := range splitTitleText(opt.Subtext) {
 		measureOptions = append(measureOptions, titleMeasureOption{
 			text:  v,
-			style: opt.SubtextStyle.GetTextOptions(),
+			style: subtextStyle,
 		})
 	}
-
 	textMaxWidth := 0
 	textMaxHeight := 0
-	width := 0
 	for index, item := range measureOptions {
-		item.style.WriteTextOptionsToRenderer(r)
-		textBox := r.MeasureText(item.text)
+		p.OverrideTextStyle(item.style)
+		textBox := p.MeasureText(item.text)
 
 		w := textBox.Width()
 		h := textBox.Height()
@@ -116,18 +159,18 @@ func drawTitle(p *Draw, opt *TitleOption) (chart.Box, error) {
 		measureOptions[index].height = h
 		measureOptions[index].width = w
 	}
-	width = textMaxWidth
+	width := textMaxWidth
+
 	titleX := 0
-	b := d.Box
 	switch opt.Left {
 	case PositionRight:
-		titleX = b.Width() - textMaxWidth
+		titleX = p.Width() - textMaxWidth
 	case PositionCenter:
-		titleX = b.Width()>>1 - (textMaxWidth >> 1)
+		titleX = p.Width()>>1 - (textMaxWidth >> 1)
 	default:
 		if strings.HasSuffix(opt.Left, "%") {
 			value, _ := strconv.Atoi(strings.ReplaceAll(opt.Left, "%", ""))
-			titleX = b.Width() * value / 100
+			titleX = p.Width() * value / 100
 		} else {
 			value, _ := strconv.Atoi(opt.Left)
 			titleX = value
@@ -140,16 +183,15 @@ func drawTitle(p *Draw, opt *TitleOption) (chart.Box, error) {
 		titleY += value
 	}
 	for _, item := range measureOptions {
-		item.style.WriteTextOptionsToRenderer(r)
+		p.OverrideTextStyle(item.style)
 		x := titleX + (textMaxWidth-item.width)>>1
 		y := titleY + item.height
-		d.text(item.text, x, y)
+		p.Text(item.text, x, y)
 		titleY += item.height
 	}
-	height := titleY + padding.Top + padding.Bottom
-	box := padding.Clone()
-	box.Right = box.Left + titleX + width
-	box.Bottom = box.Top + height
 
-	return box, nil
+	return Box{
+		Bottom: titleY,
+		Right:  titleX + width,
+	}, nil
 }

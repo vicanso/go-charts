@@ -23,56 +23,51 @@
 package charts
 
 import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestBarStyle(t *testing.T) {
-	assert := assert.New(t)
+type Box = chart.Box
+type Style = chart.Style
+type Color = drawing.Color
 
-	bs := BarStyle{
-		ClassName: "test",
-		StrokeDashArray: []float64{
-			1.0,
-		},
-		FillColor: drawing.ColorBlack,
-	}
+var BoxZero = chart.BoxZero
 
-	assert.Equal(chart.Style{
-		ClassName: "test",
-		StrokeDashArray: []float64{
-			1.0,
-		},
-		StrokeWidth: 1,
-		FillColor:   drawing.ColorBlack,
-		StrokeColor: drawing.ColorBlack,
-	}, bs.Style())
+type Point struct {
+	X int
+	Y int
 }
 
-func TestDrawBar(t *testing.T) {
-	assert := assert.New(t)
-	d, err := NewDraw(DrawOption{
-		Width:  400,
-		Height: 300,
-	}, PaddingOption(chart.Box{
-		Left:   10,
-		Top:    20,
-		Right:  30,
-		Bottom: 40,
-	}))
-	assert.Nil(err)
-	d.Bar(chart.Box{
-		Left:   0,
-		Top:    0,
-		Right:  20,
-		Bottom: 200,
-	}, BarStyle{
-		FillColor: drawing.ColorBlack,
-	})
-	data, err := d.Bytes()
-	assert.Nil(err)
-	assert.Equal("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 10 20\nL 30 20\nL 30 220\nL 10 220\nL 10 20\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:rgba(0,0,0,1.0)\"/></svg>", string(data))
-}
+const (
+	ChartTypeLine   = "line"
+	ChartTypeBar    = "bar"
+	ChartTypePie    = "pie"
+	ChartTypeRadar  = "radar"
+	ChartTypeFunnel = "funnel"
+	// horizontal bar
+	ChartTypeHorizontalBar = "horizontalBar"
+)
+
+const (
+	ChartOutputSVG = "svg"
+	ChartOutputPNG = "png"
+)
+
+const (
+	PositionLeft   = "left"
+	PositionRight  = "right"
+	PositionCenter = "center"
+	PositionTop    = "top"
+	PositionBottom = "bottom"
+)
+
+const (
+	AlignLeft   = "left"
+	AlignRight  = "right"
+	AlignCenter = "center"
+)
+
+const (
+	OrientHorizontal = "horizontal"
+	OrientVertical   = "vertical"
+)

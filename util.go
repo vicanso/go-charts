@@ -43,6 +43,24 @@ func FalseFlag() *bool {
 	return &f
 }
 
+func containsInt(values []int, value int) bool {
+	for _, v := range values {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
+func containsString(values []string, value string) bool {
+	for _, v := range values {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
 func ceilFloatToInt(value float64) int {
 	i := int(value)
 	if value == float64(i) {
@@ -59,28 +77,25 @@ func getDefaultInt(value, defaultValue int) int {
 }
 
 func autoDivide(max, size int) []int {
-	unit := max / size
+	unit := float64(max) / float64(size)
 
-	rest := max - unit*size
 	values := make([]int, size+1)
-	value := 0
-	for i := 0; i < size; i++ {
-		values[i] = value
-		if i < rest {
-			value++
+	for i := 0; i < size+1; i++ {
+		if i == size {
+			values[i] = max
+		} else {
+			values[i] = int(float64(i) * unit)
 		}
-		value += unit
 	}
-	values[size] = max
 	return values
 }
 
 // measureTextMaxWidthHeight returns maxWidth and maxHeight of text list
-func measureTextMaxWidthHeight(textList []string, r chart.Renderer) (int, int) {
+func measureTextMaxWidthHeight(textList []string, p *Painter) (int, int) {
 	maxWidth := 0
 	maxHeight := 0
 	for _, text := range textList {
-		box := r.MeasureText(text)
+		box := p.MeasureText(text)
 		maxWidth = chart.MaxInt(maxWidth, box.Width())
 		maxHeight = chart.MaxInt(maxHeight, box.Height())
 	}
@@ -134,8 +149,8 @@ func commafWithDigits(value float64) string {
 	return humanize.CommafWithDigits(value, decimals)
 }
 
-func parseColor(color string) drawing.Color {
-	c := drawing.Color{}
+func parseColor(color string) Color {
+	c := Color{}
 	if color == "" {
 		return c
 	}

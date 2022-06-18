@@ -27,27 +27,48 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-type barChartOption struct {
-	// The series list fo bar chart
-	SeriesList SeriesList
-	// The theme
-	Theme string
-	// The font
-	Font *truetype.Font
+type barChart struct {
+	p   *Painter
+	opt *BarChartOption
 }
 
-func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointRenderOption, error) {
-	d, err := NewDraw(DrawOption{
-		Parent: result.d,
-	}, PaddingOption(chart.Box{
-		Top: result.titleBox.Height(),
-		// TODO 后续考虑是否需要根据左侧是否展示y轴再生成对应的left
-		Left: YAxisWidth,
-	}))
-	if err != nil {
-		return nil, err
+func NewBarChart(p *Painter, opt BarChartOption) *barChart {
+	if opt.Theme == nil {
+		opt.Theme = defaultTheme
 	}
-	xRange := result.xRange
+	return &barChart{
+		p:   p,
+		opt: &opt,
+	}
+}
+
+type BarChartOption struct {
+	Theme ColorPalette
+	// The font size
+	Font *truetype.Font
+	// The data series list
+	SeriesList SeriesList
+	// The x axis option
+	XAxis XAxisOption
+	// The padding of line chart
+	Padding Box
+	// The y axis option
+	YAxisOptions []YAxisOption
+	// The option of title
+	Title TitleOption
+	// The legend option
+	Legend LegendOption
+}
+
+func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
+	p := b.p
+	opt := b.opt
+	seriesPainter := result.seriesPainter
+
+	xRange := NewRange(AxisRangeOption{
+		DivideCount: len(opt.XAxis.Data),
+		Size:        seriesPainter.Width(),
+	})
 	x0, x1 := xRange.GetRange(0)
 	width := int(x1 - x0)
 	// 每一块之间的margin
@@ -61,50 +82,34 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 		margin = 5
 		barMargin = 3
 	}
-
-	seriesCount := len(opt.SeriesList)
+	seriesCount := len(seriesList)
 	// 总的宽度-两个margin-(总数-1)的barMargin
-	barWidth := (width - 2*margin - barMargin*(seriesCount-1)) / len(opt.SeriesList)
+	barWidth := (width - 2*margin - barMargin*(seriesCount-1)) / len(seriesList)
+	barMaxHeight := seriesPainter.Height()
+	theme := opt.Theme
+	seriesNames := seriesList.Names()
 
-	barMaxHeight := result.getYRange(0).Size
-	theme := NewTheme(opt.Theme)
+	markPointPainter := NewMarkPointPainter(seriesPainter)
+	markLinePainter := NewMarkLinePainter(seriesPainter)
+	rendererList := []Renderer{
+		markPointPainter,
+		markLinePainter,
+	}
+	for index := range seriesList {
+		series := seriesList[index]
+		yRange := result.axisRanges[series.AxisIndex]
+		seriesColor := theme.GetSeriesColor(series.index)
 
-	seriesNames := opt.SeriesList.Names()
-
-	r := d.Render
-
-	markPointRenderOptions := make([]markPointRenderOption, 0)
-
-	for i, s := range opt.SeriesList {
-		// 由于series是for range，为同一个数据，因此需要clone
-		// 后续需要使用，如mark point
-		series := s
-		yRange := result.getYRange(series.YAxisIndex)
-		points := make([]Point, len(series.Data))
-		index := series.index
-		if index == 0 {
-			index = i
-		}
-		seriesColor := theme.GetSeriesColor(index)
-		// mark line
-		markLineRender(markLineRenderOption{
-			Draw:        d,
-			FillColor:   seriesColor,
-			FontColor:   theme.GetTextColor(),
-			StrokeColor: seriesColor,
-			Font:        opt.Font,
-			Series:      &series,
-			Range:       yRange,
-		})
 		divideValues := xRange.AutoDivide()
+		points := make([]Point, len(series.Data))
 		for j, item := range series.Data {
 			if j >= xRange.divideCount {
 				continue
 			}
 			x := divideValues[j]
 			x += margin
-			if i != 0 {
-				x += i * (barWidth + barMargin)
+			if index != 0 {
+				x += index * (barWidth + barMargin)
 			}
 
 			h := int(yRange.getHeight(item.Value))
@@ -113,14 +118,21 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 				fillColor = item.Style.FillColor
 			}
 			top := barMaxHeight - h
-			d.Bar(chart.Box{
+
+			seriesPainter.OverrideDrawingStyle(Style{
+				FillColor: fillColor,
+			}).Rect(chart.Box{
 				Top:    top,
 				Left:   x,
 				Right:  x + barWidth,
 				Bottom: barMaxHeight - 1,
-			}, BarStyle{
-				FillColor: fillColor,
 			})
+			// 用于生成marker point
+			points[j] = Point{
+				// 居中的位置
+				X: x + barWidth>>1,
+				Y: top,
+			}
 			// 用于生成marker point
 			points[j] = Point{
 				// 居中的位置
@@ -135,8 +147,8 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 			if distance == 0 {
 				distance = 5
 			}
-			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(i, item.Value, -1)
-			labelStyle := chart.Style{
+			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(index, item.Value, -1)
+			labelStyle := Style{
 				FontColor: theme.GetTextColor(),
 				FontSize:  labelFontSize,
 				Font:      opt.Font,
@@ -144,20 +156,50 @@ func barChartRender(opt barChartOption, result *basicRenderResult) ([]markPointR
 			if !series.Label.Color.IsZero() {
 				labelStyle.FontColor = series.Label.Color
 			}
-			labelStyle.GetTextOptions().WriteToRenderer(r)
-			textBox := r.MeasureText(text)
-			d.text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-distance)
+			seriesPainter.OverrideTextStyle(labelStyle)
+			textBox := seriesPainter.MeasureText(text)
+			seriesPainter.Text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-distance)
 		}
 
-		// 生成mark point的参数
-		markPointRenderOptions = append(markPointRenderOptions, markPointRenderOption{
-			Draw:      d,
+		markPointPainter.Add(markPointRenderOption{
 			FillColor: seriesColor,
 			Font:      opt.Font,
+			Series:    series,
 			Points:    points,
-			Series:    &series,
+		})
+		markLinePainter.Add(markLineRenderOption{
+			FillColor:   seriesColor,
+			FontColor:   opt.Theme.GetTextColor(),
+			StrokeColor: seriesColor,
+			Font:        opt.Font,
+			Series:      series,
+			Range:       yRange,
 		})
 	}
+	// 最大、最小的mark point
+	err := doRender(rendererList...)
+	if err != nil {
+		return BoxZero, err
+	}
 
-	return markPointRenderOptions, nil
+	return p.box, nil
+}
+
+func (b *barChart) Render() (Box, error) {
+	p := b.p
+	opt := b.opt
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:        opt.Theme,
+		Padding:      opt.Padding,
+		SeriesList:   opt.SeriesList,
+		XAxis:        opt.XAxis,
+		YAxisOptions: opt.YAxisOptions,
+		TitleOption:  opt.Title,
+		LegendOption: opt.Legend,
+	})
+	if err != nil {
+		return BoxZero, err
+	}
+	seriesList := opt.SeriesList.Filter(ChartTypeLine)
+	return b.render(renderResult, seriesList)
 }

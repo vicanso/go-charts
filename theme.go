@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"github.com/golang/freetype/truetype"
+	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
@@ -31,23 +33,45 @@ const ThemeLight = "light"
 const ThemeGrafana = "grafana"
 const ThemeAnt = "ant"
 
-type Theme struct {
-	palette *themeColorPalette
+type ColorPalette interface {
+	IsDark() bool
+	GetAxisStrokeColor() Color
+	GetAxisSplitLineColor() Color
+	GetSeriesColor(int) Color
+	GetBackgroundColor() Color
+	GetTextColor() Color
+	GetFontSize() float64
+	GetFont() *truetype.Font
 }
 
 type themeColorPalette struct {
 	isDarkMode         bool
-	axisStrokeColor    drawing.Color
-	axisSplitLineColor drawing.Color
-	backgroundColor    drawing.Color
-	textColor          drawing.Color
-	seriesColors       []drawing.Color
+	axisStrokeColor    Color
+	axisSplitLineColor Color
+	backgroundColor    Color
+	textColor          Color
+	seriesColors       []Color
+	fontSize           float64
+	font               *truetype.Font
 }
 
-var palettes = map[string]*themeColorPalette{}
+type ThemeOption struct {
+	IsDarkMode         bool
+	AxisStrokeColor    Color
+	AxisSplitLineColor Color
+	BackgroundColor    Color
+	TextColor          Color
+	SeriesColors       []Color
+}
+
+var palettes = map[string]ColorPalette{}
+
+const defaultFontSize = 12.0
+
+var defaultTheme ColorPalette
 
 func init() {
-	echartSeriesColors := []drawing.Color{
+	echartSeriesColors := []Color{
 		parseColor("#5470c6"),
 		parseColor("#91cc75"),
 		parseColor("#fac858"),
@@ -58,7 +82,7 @@ func init() {
 		parseColor("#9a60b4"),
 		parseColor("#ea7ccc"),
 	}
-	grafanaSeriesColors := []drawing.Color{
+	grafanaSeriesColors := []Color{
 		parseColor("#7EB26D"),
 		parseColor("#EAB839"),
 		parseColor("#6ED0E0"),
@@ -68,7 +92,7 @@ func init() {
 		parseColor("#705DA0"),
 		parseColor("#508642"),
 	}
-	antSeriesColors := []drawing.Color{
+	antSeriesColors := []Color{
 		parseColor("#5b8ff9"),
 		parseColor("#5ad8a6"),
 		parseColor("#5d7092"),
@@ -80,155 +104,181 @@ func init() {
 	}
 	AddTheme(
 		ThemeDark,
-		true,
-		drawing.Color{
-			R: 185,
-			G: 184,
-			B: 206,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: true,
+			AxisStrokeColor: Color{
+				R: 185,
+				G: 184,
+				B: 206,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 72,
+				G: 71,
+				B: 83,
+				A: 255,
+			},
+			BackgroundColor: Color{
+				R: 16,
+				G: 12,
+				B: 42,
+				A: 255,
+			},
+			TextColor: Color{
+				R: 238,
+				G: 238,
+				B: 238,
+				A: 255,
+			},
+			SeriesColors: echartSeriesColors,
 		},
-		drawing.Color{
-			R: 72,
-			G: 71,
-			B: 83,
-			A: 255,
-		},
-		drawing.Color{
-			R: 16,
-			G: 12,
-			B: 42,
-			A: 255,
-		},
-		drawing.Color{
-			R: 238,
-			G: 238,
-			B: 238,
-			A: 255,
-		},
-		echartSeriesColors,
 	)
 
 	AddTheme(
 		ThemeLight,
-		false,
-		drawing.Color{
-			R: 110,
-			G: 112,
-			B: 121,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: false,
+			AxisStrokeColor: Color{
+				R: 110,
+				G: 112,
+				B: 121,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 224,
+				G: 230,
+				B: 242,
+				A: 255,
+			},
+			BackgroundColor: drawing.ColorWhite,
+			TextColor: Color{
+				R: 70,
+				G: 70,
+				B: 70,
+				A: 255,
+			},
+			SeriesColors: echartSeriesColors,
 		},
-		drawing.Color{
-			R: 224,
-			G: 230,
-			B: 242,
-			A: 255,
-		},
-		drawing.ColorWhite,
-		drawing.Color{
-			R: 70,
-			G: 70,
-			B: 70,
-			A: 255,
-		},
-		echartSeriesColors,
 	)
 	AddTheme(
 		ThemeAnt,
-		false,
-		drawing.Color{
-			R: 110,
-			G: 112,
-			B: 121,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: false,
+			AxisStrokeColor: Color{
+				R: 110,
+				G: 112,
+				B: 121,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 224,
+				G: 230,
+				B: 242,
+				A: 255,
+			},
+			BackgroundColor: drawing.ColorWhite,
+			TextColor: drawing.Color{
+				R: 70,
+				G: 70,
+				B: 70,
+				A: 255,
+			},
+			SeriesColors: antSeriesColors,
 		},
-		drawing.Color{
-			R: 224,
-			G: 230,
-			B: 242,
-			A: 255,
-		},
-		drawing.ColorWhite,
-		drawing.Color{
-			R: 70,
-			G: 70,
-			B: 70,
-			A: 255,
-		},
-		antSeriesColors,
 	)
 	AddTheme(
 		ThemeGrafana,
-		true,
-		drawing.Color{
-			R: 185,
-			G: 184,
-			B: 206,
-			A: 255,
+		ThemeOption{
+			IsDarkMode: true,
+			AxisStrokeColor: Color{
+				R: 185,
+				G: 184,
+				B: 206,
+				A: 255,
+			},
+			AxisSplitLineColor: Color{
+				R: 68,
+				G: 67,
+				B: 67,
+				A: 255,
+			},
+			BackgroundColor: drawing.Color{
+				R: 31,
+				G: 29,
+				B: 29,
+				A: 255,
+			},
+			TextColor: Color{
+				R: 216,
+				G: 217,
+				B: 218,
+				A: 255,
+			},
+			SeriesColors: grafanaSeriesColors,
 		},
-		drawing.Color{
-			R: 68,
-			G: 67,
-			B: 67,
-			A: 255,
-		},
-		drawing.Color{
-			R: 31,
-			G: 29,
-			B: 29,
-			A: 255,
-		},
-		drawing.Color{
-			R: 216,
-			G: 217,
-			B: 218,
-			A: 255,
-		},
-		grafanaSeriesColors,
 	)
+	SetDefaultTheme(ThemeLight)
 }
 
-func AddTheme(name string, isDarkMode bool, axisStrokeColor, axisSplitLineColor, backgroundColor, textColor drawing.Color, seriesColors []drawing.Color) {
+func SetDefaultTheme(name string) {
+	defaultTheme = NewTheme(name)
+}
+
+func AddTheme(name string, opt ThemeOption) {
 	palettes[name] = &themeColorPalette{
-		isDarkMode:         isDarkMode,
-		axisStrokeColor:    axisStrokeColor,
-		axisSplitLineColor: axisSplitLineColor,
-		backgroundColor:    backgroundColor,
-		textColor:          textColor,
-		seriesColors:       seriesColors,
+		isDarkMode:         opt.IsDarkMode,
+		axisStrokeColor:    opt.AxisStrokeColor,
+		axisSplitLineColor: opt.AxisSplitLineColor,
+		backgroundColor:    opt.BackgroundColor,
+		textColor:          opt.TextColor,
+		seriesColors:       opt.SeriesColors,
 	}
 }
 
-func NewTheme(name string) *Theme {
+func NewTheme(name string) ColorPalette {
 	p, ok := palettes[name]
 	if !ok {
 		p = palettes[ThemeLight]
 	}
-	return &Theme{
-		palette: p,
-	}
+	return p
 }
 
-func (t *Theme) IsDark() bool {
-	return t.palette.isDarkMode
+func (t *themeColorPalette) IsDark() bool {
+	return t.isDarkMode
 }
 
-func (t *Theme) GetAxisStrokeColor() drawing.Color {
-	return t.palette.axisStrokeColor
+func (t *themeColorPalette) GetAxisStrokeColor() Color {
+	return t.axisStrokeColor
 }
 
-func (t *Theme) GetAxisSplitLineColor() drawing.Color {
-	return t.palette.axisSplitLineColor
+func (t *themeColorPalette) GetAxisSplitLineColor() Color {
+	return t.axisSplitLineColor
 }
 
-func (t *Theme) GetSeriesColor(index int) drawing.Color {
-	colors := t.palette.seriesColors
+func (t *themeColorPalette) GetSeriesColor(index int) Color {
+	colors := t.seriesColors
 	return colors[index%len(colors)]
 }
 
-func (t *Theme) GetBackgroundColor() drawing.Color {
-	return t.palette.backgroundColor
+func (t *themeColorPalette) GetBackgroundColor() Color {
+	return t.backgroundColor
 }
 
-func (t *Theme) GetTextColor() drawing.Color {
-	return t.palette.textColor
+func (t *themeColorPalette) GetTextColor() Color {
+	return t.textColor
+}
+
+func (t *themeColorPalette) GetFontSize() float64 {
+	if t.fontSize != 0 {
+		return t.fontSize
+	}
+	return defaultFontSize
+}
+
+func (t *themeColorPalette) GetFont() *truetype.Font {
+	if t.font != nil {
+		return t.font
+	}
+	f, _ := chart.GetDefaultFont()
+	return f
 }

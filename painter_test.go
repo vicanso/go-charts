@@ -26,217 +26,84 @@ import (
 	"math"
 	"testing"
 
+	"github.com/golang/freetype/truetype"
 	"github.com/stretchr/testify/assert"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func TestParentOption(t *testing.T) {
-	assert := assert.New(t)
-	p, err := NewDraw(DrawOption{
-		Width:  400,
-		Height: 300,
-	})
-	assert.Nil(err)
-
-	d, err := NewDraw(DrawOption{
-		Parent: p,
-	})
-	assert.Nil(err)
-	assert.Equal(p, d.parent)
-}
-
-func TestWidthHeightOption(t *testing.T) {
+func TestPainterOption(t *testing.T) {
 	assert := assert.New(t)
 
-	// no parent
-	width := 300
-	height := 200
-	d, err := NewDraw(DrawOption{
-		Width:  width,
-		Height: height,
-	})
-	assert.Nil(err)
-	assert.Equal(chart.Box{
-		Top:    0,
-		Left:   0,
-		Right:  width,
-		Bottom: height,
-	}, d.Box)
-
-	width = 500
-	height = 600
-	// with parent
-	p, err := NewDraw(
-		DrawOption{
-			Width:  width,
-			Height: height,
-		},
-		PaddingOption(chart.NewBox(5, 5, 5, 5)),
-	)
-	assert.Nil(err)
-	d, err = NewDraw(
-		DrawOption{
-			Parent: p,
-		},
-		PaddingOption(chart.NewBox(1, 2, 3, 4)),
-	)
-	assert.Nil(err)
-	assert.Equal(chart.Box{
-		Top:    6,
-		Left:   7,
-		Right:  492,
-		Bottom: 591,
-	}, d.Box)
-}
-
-func TestBoxOption(t *testing.T) {
-	assert := assert.New(t)
-
-	d, err := NewDraw(DrawOption{
-		Width:  400,
-		Height: 300,
-	})
-	assert.Nil(err)
-
-	err = BoxOption(chart.Box{
-		Left:   10,
-		Top:    20,
-		Right:  50,
-		Bottom: 100,
-	})(d)
-	assert.Nil(err)
-	assert.Equal(chart.Box{
-		Left:   10,
-		Top:    20,
-		Right:  50,
-		Bottom: 100,
-	}, d.Box)
-
-	// zero box will be ignored
-	err = BoxOption(chart.Box{})(d)
-	assert.Nil(err)
-	assert.Equal(chart.Box{
-		Left:   10,
-		Top:    20,
-		Right:  50,
-		Bottom: 100,
-	}, d.Box)
-}
-
-func TestPaddingOption(t *testing.T) {
-	assert := assert.New(t)
-
-	d, err := NewDraw(DrawOption{
-		Width:  400,
-		Height: 300,
-	})
-	assert.Nil(err)
-
-	// 默认的box
-	assert.Equal(chart.Box{
-		Right:  400,
-		Bottom: 300,
-	}, d.Box)
-
-	// 设置padding之后的box
-	d, err = NewDraw(DrawOption{
-		Width:  400,
-		Height: 300,
-	}, PaddingOption(chart.Box{
-		Left:   1,
-		Top:    2,
-		Right:  3,
-		Bottom: 4,
-	}))
-	assert.Nil(err)
-	assert.Equal(chart.Box{
-		Top:    2,
-		Left:   1,
-		Right:  397,
-		Bottom: 296,
-	}, d.Box)
-
-	p := d
-	// 设置父元素之后的box
-	d, err = NewDraw(
-		DrawOption{
-			Parent: p,
-		},
-		PaddingOption(chart.Box{
+	font := &truetype.Font{}
+	d, err := NewPainter(PainterOptions{
+		Width:  800,
+		Height: 600,
+	},
+		PainterBoxOption(Box{
+			Right:  400,
+			Bottom: 300,
+		}),
+		PainterPaddingOption(Box{
 			Left:   1,
 			Top:    2,
 			Right:  3,
 			Bottom: 4,
 		}),
+		PainterFontOption(font),
+		PainterStyleOption(Style{
+			ClassName: "test",
+		}),
 	)
 	assert.Nil(err)
-	assert.Equal(chart.Box{
-		Top:    4,
-		Left:   2,
-		Right:  394,
-		Bottom: 292,
-	}, d.Box)
+	assert.Equal(Box{
+		Left:   1,
+		Top:    2,
+		Right:  397,
+		Bottom: 296,
+	}, d.box)
+	assert.Equal(font, d.font)
+	assert.Equal("test", d.style.ClassName)
 }
 
-func TestParentTop(t *testing.T) {
-	assert := assert.New(t)
-	d1, err := NewDraw(DrawOption{
-		Width:  400,
-		Height: 300,
-	})
-	assert.Nil(err)
-
-	d2, err := NewDraw(DrawOption{
-		Parent: d1,
-	})
-	assert.Nil(err)
-
-	d3, err := NewDraw(DrawOption{
-		Parent: d2,
-	})
-	assert.Nil(err)
-
-	assert.Equal(d2, d3.Parent())
-	assert.Equal(d1, d2.Parent())
-	assert.Equal(d1, d3.Top())
-	assert.Equal(d1, d2.Top())
-}
-
-func TestDraw(t *testing.T) {
+func TestPainter(t *testing.T) {
 	assert := assert.New(t)
 
 	tests := []struct {
-		fn     func(d *Draw)
+		fn     func(*Painter)
 		result string
 	}{
 		// moveTo, lineTo
 		{
-			fn: func(d *Draw) {
-				d.moveTo(1, 1)
-				d.lineTo(2, 2)
-				d.Render.Stroke()
+			fn: func(p *Painter) {
+				p.MoveTo(1, 1)
+				p.LineTo(2, 2)
+				p.Stroke()
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 6 11\nL 7 12\" style=\"stroke-width:0;stroke:none;fill:none\"/></svg>",
 		},
 		// circle
 		{
-			fn: func(d *Draw) {
-				d.circle(5, 2, 3)
+			fn: func(p *Painter) {
+				p.Circle(5, 2, 3)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<circle cx=\"7\" cy=\"13\" r=\"5\" style=\"stroke-width:0;stroke:none;fill:none\"/></svg>",
 		},
 		// text
 		{
-			fn: func(d *Draw) {
-				d.text("hello world!", 3, 6)
+			fn: func(p *Painter) {
+				p.Text("hello world!", 3, 6)
 			},
-			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"8\" y=\"16\" style=\"stroke-width:0;stroke:none;fill:none\">hello world!</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<text x=\"8\" y=\"16\" style=\"stroke-width:0;stroke:none;fill:none;font-family:'Roboto Medium',sans-serif\">hello world!</text></svg>",
 		},
 		// line stroke
 		{
-			fn: func(d *Draw) {
-				d.lineStroke([]Point{
+			fn: func(p *Painter) {
+				p.SetDrawingStyle(Style{
+					StrokeColor: drawing.ColorBlack,
+					StrokeWidth: 1,
+				})
+				p.LineStroke([]Point{
 					{
 						X: 1,
 						Y: 2,
@@ -245,38 +112,35 @@ func TestDraw(t *testing.T) {
 						X: 3,
 						Y: 4,
 					},
-				}, LineStyle{
-					StrokeColor: drawing.ColorBlack,
-					StrokeWidth: 1,
 				})
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 6 12\nL 8 14\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:none\"/></svg>",
 		},
 		// set background
 		{
-			fn: func(d *Draw) {
-				d.setBackground(400, 300, chart.ColorWhite)
+			fn: func(p *Painter) {
+				p.SetBackground(400, 300, chart.ColorWhite)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 0 0\nL 400 0\nL 400 300\nL 0 300\nL 0 0\" style=\"stroke-width:0;stroke:none;fill:rgba(255,255,255,1.0)\"/></svg>",
 		},
 		// arcTo
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.ColorBlack,
 					FillColor:   drawing.ColorBlue,
-				}.WriteToRenderer(d.Render)
-				d.arcTo(100, 100, 100, 100, 0, math.Pi/2)
-				d.Render.Close()
-				d.Render.FillStroke()
+				})
+				p.ArcTo(100, 100, 100, 100, 0, math.Pi/2)
+				p.Close()
+				p.FillStroke()
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 205 110\nA 100 100 90.00 0 1 105 210\nZ\" style=\"stroke-width:1;stroke:rgba(0,0,0,1.0);fill:rgba(0,0,255,1.0)\"/></svg>",
 		},
 		// pin
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.Color{
 						R: 84,
@@ -290,15 +154,15 @@ func TestDraw(t *testing.T) {
 						B: 198,
 						A: 255,
 					},
-				}.WriteToRenderer(d.Render)
-				d.pin(30, 30, 30)
+				})
+				p.Pin(30, 30, 30)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 32 47\nA 15 15 330.00 1 1 38 47\nL 35 33\nZ\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path  d=\"M 20 33\nQ35,70 50,33\nZ\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
 		// arrow left
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.Color{
 						R: 84,
@@ -312,15 +176,15 @@ func TestDraw(t *testing.T) {
 						B: 198,
 						A: 255,
 					},
-				}.WriteToRenderer(d.Render)
-				d.arrowLeft(30, 30, 16, 10)
+				})
+				p.ArrowLeft(30, 30, 16, 10)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 51 35\nL 35 40\nL 51 45\nL 46 40\nL 51 35\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
 		// arrow right
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.Color{
 						R: 84,
@@ -334,15 +198,15 @@ func TestDraw(t *testing.T) {
 						B: 198,
 						A: 255,
 					},
-				}.WriteToRenderer(d.Render)
-				d.arrowRight(30, 30, 16, 10)
+				})
+				p.ArrowRight(30, 30, 16, 10)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 19 35\nL 35 40\nL 19 45\nL 24 40\nL 19 35\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
 		// arrow top
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.Color{
 						R: 84,
@@ -356,15 +220,15 @@ func TestDraw(t *testing.T) {
 						B: 198,
 						A: 255,
 					},
-				}.WriteToRenderer(d.Render)
-				d.arrowTop(30, 30, 10, 16)
+				})
+				p.ArrowTop(30, 30, 10, 16)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 30 40\nL 35 24\nL 40 40\nL 35 35\nL 30 40\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
 		// arrow bottom
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.Color{
 						R: 84,
@@ -378,15 +242,15 @@ func TestDraw(t *testing.T) {
 						B: 198,
 						A: 255,
 					},
-				}.WriteToRenderer(d.Render)
-				d.arrowBottom(30, 30, 10, 16)
+				})
+				p.ArrowBottom(30, 30, 10, 16)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 30 24\nL 35 40\nL 40 24\nL 35 30\nL 30 24\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
 		// mark line
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.Color{
 						R: 84,
@@ -404,15 +268,15 @@ func TestDraw(t *testing.T) {
 						4,
 						2,
 					},
-				}.WriteToRenderer(d.Render)
-				d.makeLine(0, 20, 300)
+				})
+				p.MarkLine(0, 20, 300)
 			},
-			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<circle cx=\"5\" cy=\"30\" r=\"3\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path stroke-dasharray=\"4.0, 2.0\" d=\"\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path stroke-dasharray=\"4.0, 2.0\" d=\"M 10 30\nL 289 30\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path  d=\"M 289 25\nL 305 30\nL 289 35\nL 294 30\nL 289 25\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<circle cx=\"8\" cy=\"30\" r=\"3\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path stroke-dasharray=\"4.0, 2.0\" d=\"\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path stroke-dasharray=\"4.0, 2.0\" d=\"M 14 30\nL 289 30\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/><path stroke-dasharray=\"4.0, 2.0\" d=\"M 289 25\nL 305 30\nL 289 35\nL 294 30\nL 289 25\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
 		// polygon
 		{
-			fn: func(d *Draw) {
-				chart.Style{
+			fn: func(p *Painter) {
+				p.SetStyle(Style{
 					StrokeWidth: 1,
 					StrokeColor: drawing.Color{
 						R: 84,
@@ -420,18 +284,26 @@ func TestDraw(t *testing.T) {
 						B: 198,
 						A: 255,
 					},
-				}.WriteToRenderer(d.Render)
-				d.polygon(Point{
+				})
+				p.Polygon(Point{
 					X: 100,
 					Y: 100,
 				}, 50, 6)
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 105 60\nL 148 85\nL 148 134\nL 105 160\nL 62 135\nL 62 86\nL 105 60\" style=\"stroke-width:1;stroke:rgba(84,112,198,1.0);fill:none\"/></svg>",
 		},
-		// fill
+		// FillArea
 		{
-			fn: func(d *Draw) {
-				d.fill([]Point{
+			fn: func(p *Painter) {
+				p.SetDrawingStyle(Style{
+					FillColor: drawing.Color{
+						R: 84,
+						G: 112,
+						B: 198,
+						A: 255,
+					},
+				})
+				p.FillArea([]Point{
 					{
 						X: 0,
 						Y: 0,
@@ -448,23 +320,16 @@ func TestDraw(t *testing.T) {
 						X: 0,
 						Y: 0,
 					},
-				}, chart.Style{
-					FillColor: drawing.Color{
-						R: 84,
-						G: 112,
-						B: 198,
-						A: 255,
-					},
 				})
 			},
 			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 5 10\nL 5 110\nL 105 110\nL 5 10\" style=\"stroke-width:0;stroke:none;fill:rgba(84,112,198,1.0)\"/></svg>",
 		},
 	}
 	for _, tt := range tests {
-		d, err := NewDraw(DrawOption{
+		d, err := NewPainter(PainterOptions{
 			Width:  400,
 			Height: 300,
-		}, PaddingOption(chart.Box{
+		}, PainterPaddingOption(chart.Box{
 			Left: 5,
 			Top:  10,
 		}))
@@ -476,32 +341,33 @@ func TestDraw(t *testing.T) {
 	}
 }
 
-func TestDrawTextFit(t *testing.T) {
+func TestPainterTextFit(t *testing.T) {
 	assert := assert.New(t)
-	d, err := NewDraw(DrawOption{
+	p, err := NewPainter(PainterOptions{
 		Width:  400,
 		Height: 300,
 	})
 	assert.Nil(err)
 	f, _ := chart.GetDefaultFont()
-	style := chart.Style{
+	style := Style{
 		FontSize:  12,
 		FontColor: chart.ColorBlack,
 		Font:      f,
 	}
-	box := d.textFit("Hello World!", 0, 20, 80, style)
+	p.SetStyle(style)
+	box := p.TextFit("Hello World!", 0, 20, 80)
 	assert.Equal(chart.Box{
 		Right:  45,
 		Bottom: 35,
 	}, box)
 
-	box = d.textFit("Hello World!", 0, 100, 200, style)
+	box = p.TextFit("Hello World!", 0, 100, 200)
 	assert.Equal(chart.Box{
 		Right:  84,
 		Bottom: 15,
 	}, box)
 
-	buf, err := d.Bytes()
+	buf, err := p.Bytes()
 	assert.Nil(err)
 	assert.Equal(`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="400" height="300">\n<text x="0" y="20" style="stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:15.3px;font-family:'Roboto Medium',sans-serif">Hello</text><text x="0" y="40" style="stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:15.3px;font-family:'Roboto Medium',sans-serif">World!</text><text x="0" y="100" style="stroke-width:0;stroke:none;fill:rgba(51,51,51,1.0);font-size:15.3px;font-family:'Roboto Medium',sans-serif">Hello World!</text></svg>`, string(buf))
 }

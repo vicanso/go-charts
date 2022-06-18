@@ -22,84 +22,92 @@
 
 package charts
 
-import (
-	"strings"
-
-	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
-)
+import "github.com/golang/freetype/truetype"
 
 type YAxisOption struct {
 	// The minimun value of axis.
 	Min *float64
 	// The maximum value of axis.
 	Max *float64
-	// Hidden y axis
-	Hidden bool
+	// The font of y axis
+	Font *truetype.Font
+	// The data value of x axis
+	Data []string
+	// The theme of chart
+	Theme ColorPalette
+	// The font size of x axis label
+	FontSize float64
+	// The position of axis, it can be 'left' or 'right'
+	Position string
+	// The color of label
+	FontColor Color
 	// Formatter for y axis text value
 	Formatter string
 	// Color for y axis
-	Color drawing.Color
+	Color Color
+	// The flag for show axis, set this to *false will hide axis
+	Show           *bool
+	isCategoryAxis bool
 }
 
-// TODO 长度是否可以变化
-const YAxisWidth = 40
-
-func drawYAxis(p *Draw, opt *ChartOption, axisIndex, xAxisHeight int, padding chart.Box) (*Range, error) {
-	theme := NewTheme(opt.Theme)
-	yRange := opt.newYRange(axisIndex)
-	values := yRange.Values()
-	yAxis := opt.YAxisList[axisIndex]
-	formatter := yAxis.Formatter
-	if len(formatter) != 0 {
-		for index, text := range values {
-			values[index] = strings.ReplaceAll(formatter, "{value}", text)
-		}
+func NewYAxisOptions(data []string, others ...[]string) []YAxisOption {
+	arr := [][]string{
+		data,
 	}
+	arr = append(arr, others...)
+	opts := make([]YAxisOption, 0)
+	for _, data := range arr {
+		opts = append(opts, YAxisOption{
+			Data: data,
+		})
+	}
+	return opts
+}
 
-	data := NewAxisDataListFromStringList(values)
-	style := AxisOption{
-		Position:       PositionLeft,
+func (opt *YAxisOption) ToAxisOption() AxisOption {
+	position := PositionLeft
+	if opt.Position == PositionRight {
+		position = PositionRight
+	}
+	axisOpt := AxisOption{
+		Formatter:      opt.Formatter,
+		Theme:          opt.Theme,
+		Data:           opt.Data,
+		Position:       position,
+		FontSize:       opt.FontSize,
+		StrokeWidth:    -1,
+		Font:           opt.Font,
+		FontColor:      opt.FontColor,
 		BoundaryGap:    FalseFlag(),
-		FontColor:      theme.GetAxisStrokeColor(),
-		TickShow:       FalseFlag(),
-		StrokeWidth:    1,
-		SplitLineColor: theme.GetAxisSplitLineColor(),
 		SplitLineShow:  true,
+		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
+		Show:           opt.Show,
 	}
-	if !yAxis.Color.IsZero() {
-		style.FontColor = yAxis.Color
-		style.StrokeColor = yAxis.Color
+	if !opt.Color.IsZero() {
+		axisOpt.FontColor = opt.Color
+		axisOpt.StrokeColor = opt.Color
 	}
-	width := NewAxis(p, data, style).measure().Width
+	if opt.isCategoryAxis {
+		axisOpt.BoundaryGap = TrueFlag()
+		axisOpt.StrokeWidth = 1
+		axisOpt.SplitLineShow = false
+	}
+	return axisOpt
+}
 
-	yAxisCount := len(opt.YAxisList)
-	boxWidth := p.Box.Width()
-	if axisIndex > 0 {
-		style.SplitLineShow = false
-		style.Position = PositionRight
-		padding.Right += (axisIndex - 1) * YAxisWidth
-	} else {
-		boxWidth = p.Box.Width() - (yAxisCount-1)*YAxisWidth
-		padding.Left += (YAxisWidth - width)
-	}
+func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {
+	p = p.Child(PainterPaddingOption(Box{
+		Bottom: defaultXAxisHeight,
+	}))
+	return NewAxisPainter(p, opt.ToAxisOption())
+}
 
-	dYAxis, err := NewDraw(
-		DrawOption{
-			Parent: p,
-			Width:  boxWidth,
-			// 减去x轴的高
-			Height: p.Box.Height() - xAxisHeight,
-		},
-		PaddingOption(padding),
-	)
-	if err != nil {
-		return nil, err
-	}
-	if opt.Font != nil {
-		dYAxis.Font = opt.Font
-	}
-	NewAxis(dYAxis, data, style).Render()
-	yRange.Size = dYAxis.Box.Height()
-	return &yRange, nil
+func NewRightYAxis(p *Painter, opt YAxisOption) *axisPainter {
+	p = p.Child(PainterPaddingOption(Box{
+		Bottom: defaultXAxisHeight,
+	}))
+	axisOpt := opt.ToAxisOption()
+	axisOpt.Position = PositionRight
+	axisOpt.SplitLineShow = false
+	return NewAxisPainter(p, axisOpt)
 }

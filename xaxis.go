@@ -24,10 +24,10 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
 type XAxisOption struct {
+	// The font of x axis
 	Font *truetype.Font
 	// The boundary gap on both sides of a coordinate axis.
 	// Nil or *true means the center part of two axis ticks
@@ -35,12 +35,23 @@ type XAxisOption struct {
 	// The data value of x axis
 	Data []string
 	// The theme of chart
-	Theme string
-	// Hidden x axis
-	Hidden bool
+	Theme ColorPalette
+	// The font size of x axis label
+	FontSize float64
+	// The flag for show axis, set this to *false will hide axis
+	Show *bool
 	// Number of segments that the axis is split into. Note that this number serves only as a recommendation.
 	SplitNumber int
+	// The position of axis, it can be 'top' or 'bottom'
+	Position string
+	// The line color of axis
+	StrokeColor Color
+	// The color of label
+	FontColor   Color
+	isValueAxis bool
 }
+
+const defaultXAxisHeight = 30
 
 func NewXAxisOption(data []string, boundaryGap ...*bool) XAxisOption {
 	opt := XAxisOption{
@@ -52,51 +63,32 @@ func NewXAxisOption(data []string, boundaryGap ...*bool) XAxisOption {
 	return opt
 }
 
-// drawXAxis draws x axis, and returns the height, range of if.
-func drawXAxis(p *Draw, opt *XAxisOption, yAxisCount int) (int, *Range, error) {
-	if opt.Hidden {
-		return 0, nil, nil
+func (opt *XAxisOption) ToAxisOption() AxisOption {
+	position := PositionBottom
+	if opt.Position == PositionTop {
+		position = PositionTop
 	}
-	left := YAxisWidth
-	right := (yAxisCount - 1) * YAxisWidth
-	dXAxis, err := NewDraw(
-		DrawOption{
-			Parent: p,
-		},
-		PaddingOption(chart.Box{
-			Left:  left,
-			Right: right,
-		}),
-	)
-	if opt.Font != nil {
-		dXAxis.Font = opt.Font
+	axisOpt := AxisOption{
+		Theme:          opt.Theme,
+		Data:           opt.Data,
+		BoundaryGap:    opt.BoundaryGap,
+		Position:       position,
+		SplitNumber:    opt.SplitNumber,
+		StrokeColor:    opt.StrokeColor,
+		FontSize:       opt.FontSize,
+		Font:           opt.Font,
+		FontColor:      opt.FontColor,
+		Show:           opt.Show,
+		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
 	}
-	if err != nil {
-		return 0, nil, err
+	if opt.isValueAxis {
+		axisOpt.SplitLineShow = true
+		axisOpt.StrokeWidth = -1
+		axisOpt.BoundaryGap = FalseFlag()
 	}
-	theme := NewTheme(opt.Theme)
-	data := NewAxisDataListFromStringList(opt.Data)
-	style := AxisOption{
-		BoundaryGap: opt.BoundaryGap,
-		StrokeColor: theme.GetAxisStrokeColor(),
-		FontColor:   theme.GetAxisStrokeColor(),
-		StrokeWidth: 1,
-		SplitNumber: opt.SplitNumber,
-	}
+	return axisOpt
+}
 
-	boundary := true
-	max := float64(len(opt.Data))
-	if isFalse(opt.BoundaryGap) {
-		boundary = false
-		max--
-	}
-	axis := NewAxis(dXAxis, data, style)
-	axis.Render()
-	return axis.measure().Height, &Range{
-		divideCount: len(opt.Data),
-		Min:         0,
-		Max:         max,
-		Size:        dXAxis.Box.Width(),
-		Boundary:    boundary,
-	}, nil
+func NewBottomXAxis(p *Painter, opt XAxisOption) *axisPainter {
+	return NewAxisPainter(p, opt.ToAxisOption())
 }

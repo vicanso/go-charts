@@ -30,35 +30,43 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
-func getPieStyle(theme *Theme, index int) chart.Style {
-	seriesColor := theme.GetSeriesColor(index)
-	return chart.Style{
-		StrokeColor: seriesColor,
-		StrokeWidth: 1,
-		FillColor:   seriesColor,
-	}
+type pieChart struct {
+	p   *Painter
+	opt *PieChartOption
 }
 
-type pieChartOption struct {
-	Theme      string
-	Font       *truetype.Font
+type PieChartOption struct {
+	Theme ColorPalette
+	// The font size
+	Font *truetype.Font
+	// The data series list
 	SeriesList SeriesList
+	// The padding of line chart
+	Padding Box
+	// The option of title
+	Title TitleOption
+	// The legend option
+	Legend LegendOption
+	// background is filled
+	backgroundIsFilled bool
 }
 
-func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
-	d, err := NewDraw(DrawOption{
-		Parent: result.d,
-	}, PaddingOption(chart.Box{
-		Top: result.titleBox.Height(),
-	}))
-	if err != nil {
-		return err
+func NewPieChart(p *Painter, opt PieChartOption) *pieChart {
+	if opt.Theme == nil {
+		opt.Theme = defaultTheme
 	}
+	return &pieChart{
+		p:   p,
+		opt: &opt,
+	}
+}
 
-	values := make([]float64, len(opt.SeriesList))
+func (p *pieChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
+	opt := p.opt
+	values := make([]float64, len(seriesList))
 	total := float64(0)
 	radiusValue := ""
-	for index, series := range opt.SeriesList {
+	for index, series := range seriesList {
 		if len(series.Radius) != 0 {
 			radiusValue = series.Radius
 		}
@@ -70,16 +78,13 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 		total += value
 	}
 	if total <= 0 {
-		return errors.New("The sum value of pie chart should gt 0")
+		return BoxZero, errors.New("The sum value of pie chart should gt 0")
 	}
-	r := d.Render
-	theme := NewTheme(opt.Theme)
+	seriesPainter := result.seriesPainter
+	cx := seriesPainter.Width() >> 1
+	cy := seriesPainter.Height() >> 1
 
-	box := d.Box
-	cx := box.Width() >> 1
-	cy := box.Height() >> 1
-
-	diameter := chart.MinInt(box.Width(), box.Height())
+	diameter := chart.MinInt(seriesPainter.Width(), seriesPainter.Height())
 	radius := getRadius(float64(diameter), radiusValue)
 
 	labelLineWidth := 15
@@ -87,32 +92,40 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 		labelLineWidth = 10
 	}
 	labelRadius := radius + float64(labelLineWidth)
-
-	seriesNames := opt.SeriesList.Names()
-
+	seriesNames := opt.Legend.Data
+	if len(seriesNames) == 0 {
+		seriesNames = seriesList.Names()
+	}
+	theme := opt.Theme
 	if len(values) == 1 {
-		getPieStyle(theme, 0).WriteToRenderer(r)
-		d.moveTo(cx, cy)
-		d.circle(radius, cx, cy)
+		seriesPainter.OverrideDrawingStyle(Style{
+			StrokeWidth: 1,
+			StrokeColor: theme.GetSeriesColor(0),
+			FillColor:   theme.GetSeriesColor(0),
+		})
+		seriesPainter.MoveTo(cx, cy).
+			Circle(radius, cx, cy)
 	} else {
 		currentValue := float64(0)
 		prevEndX := 0
 		prevEndY := 0
 		for index, v := range values {
-
-			pieStyle := getPieStyle(theme, index)
-			pieStyle.WriteToRenderer(r)
-			d.moveTo(cx, cy)
+			seriesPainter.OverrideDrawingStyle(Style{
+				StrokeWidth: 1,
+				StrokeColor: theme.GetSeriesColor(index),
+				FillColor:   theme.GetSeriesColor(index),
+			})
+			seriesPainter.MoveTo(cx, cy)
 			start := chart.PercentToRadians(currentValue/total) - math.Pi/2
 			currentValue += v
 			percent := (v / total)
 			delta := chart.PercentToRadians(percent)
-			d.arcTo(cx, cy, radius, radius, start, delta)
-			d.lineTo(cx, cy)
-			r.Close()
-			r.FillStroke()
+			seriesPainter.ArcTo(cx, cy, radius, radius, start, delta).
+				LineTo(cx, cy).
+				Close().
+				FillStroke()
 
-			series := opt.SeriesList[index]
+			series := seriesList[index]
 			// 是否显示label
 			showLabel := series.Label.Show
 			if !showLabel {
@@ -134,17 +147,19 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 			}
 			prevEndX = endx
 			prevEndY = endy
-			d.moveTo(startx, starty)
-			d.lineTo(endx, endy)
+
+			seriesPainter.MoveTo(startx, starty)
+			seriesPainter.LineTo(endx, endy)
 			offset := labelLineWidth
 			if endx < cx {
 				offset *= -1
 			}
-			d.moveTo(endx, endy)
+			seriesPainter.MoveTo(endx, endy)
 			endx += offset
-			d.lineTo(endx, endy)
-			r.Stroke()
-			textStyle := chart.Style{
+			seriesPainter.LineTo(endx, endy)
+			seriesPainter.Stroke()
+
+			textStyle := Style{
 				FontColor: theme.GetTextColor(),
 				FontSize:  labelFontSize,
 				Font:      opt.Font,
@@ -152,9 +167,9 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 			if !series.Label.Color.IsZero() {
 				textStyle.FontColor = series.Label.Color
 			}
-			textStyle.GetTextOptions().WriteToRenderer(r)
+			seriesPainter.OverrideTextStyle(textStyle)
 			text := NewPieLabelFormatter(seriesNames, series.Label.Formatter)(index, v, percent)
-			textBox := r.MeasureText(text)
+			textBox := seriesPainter.MeasureText(text)
 			textMargin := 3
 			x := endx + textMargin
 			y := endy + textBox.Height()>>1 - 1
@@ -162,8 +177,35 @@ func pieChartRender(opt pieChartOption, result *basicRenderResult) error {
 				textWidth := textBox.Width()
 				x = endx - textWidth - textMargin
 			}
-			d.text(text, x, y)
+			seriesPainter.Text(text, x, y)
 		}
 	}
-	return nil
+
+	return p.p.box, nil
+}
+
+func (p *pieChart) Render() (Box, error) {
+	opt := p.opt
+
+	renderResult, err := defaultRender(p.p, defaultRenderOption{
+		Theme:      opt.Theme,
+		Padding:    opt.Padding,
+		SeriesList: opt.SeriesList,
+		XAxis: XAxisOption{
+			Show: FalseFlag(),
+		},
+		YAxisOptions: []YAxisOption{
+			{
+				Show: FalseFlag(),
+			},
+		},
+		TitleOption:        opt.Title,
+		LegendOption:       opt.Legend,
+		backgroundIsFilled: opt.backgroundIsFilled,
+	})
+	if err != nil {
+		return BoxZero, err
+	}
+	seriesList := opt.SeriesList.Filter(ChartTypePie)
+	return p.render(renderResult, seriesList)
 }

@@ -30,6 +30,11 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+type radarChart struct {
+	p   *Painter
+	opt *RadarChartOption
+}
+
 type RadarIndicator struct {
 	// Indicator's name
 	Name string
@@ -39,89 +44,101 @@ type RadarIndicator struct {
 	Min float64
 }
 
-type radarChartOption struct {
-	Theme      string
-	Font       *truetype.Font
+type RadarChartOption struct {
+	Theme ColorPalette
+	// The font size
+	Font *truetype.Font
+	// The data series list
 	SeriesList SeriesList
-	Indicators []RadarIndicator
+	// The padding of line chart
+	Padding Box
+	// The option of title
+	Title TitleOption
+	// The legend option
+	Legend LegendOption
+	// The radar indicator list
+	RadarIndicators []RadarIndicator
+	// background is filled
+	backgroundIsFilled bool
 }
 
-func radarChartRender(opt radarChartOption, result *basicRenderResult) error {
-	sides := len(opt.Indicators)
-	if sides < 3 {
-		return errors.New("The count of indicator should be >= 3")
+func NewRadarChart(p *Painter, opt RadarChartOption) *radarChart {
+	if opt.Theme == nil {
+		opt.Theme = defaultTheme
 	}
-	maxValues := make([]float64, len(opt.Indicators))
-	for _, series := range opt.SeriesList {
+	return &radarChart{
+		p:   p,
+		opt: &opt,
+	}
+}
+
+func (r *radarChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
+	opt := r.opt
+	indicators := opt.RadarIndicators
+	sides := len(indicators)
+	if sides < 3 {
+		return BoxZero, errors.New("The count of indicator should be >= 3")
+	}
+	maxValues := make([]float64, len(indicators))
+	for _, series := range seriesList {
 		for index, item := range series.Data {
 			if index < len(maxValues) && item.Value > maxValues[index] {
 				maxValues[index] = item.Value
 			}
 		}
 	}
-	for index, indicator := range opt.Indicators {
+	for index, indicator := range indicators {
 		if indicator.Max <= 0 {
-			opt.Indicators[index].Max = maxValues[index]
+			indicators[index].Max = maxValues[index]
 		}
 	}
-	d, err := NewDraw(DrawOption{
-		Parent: result.d,
-	}, PaddingOption(chart.Box{
-		Top: result.titleBox.Height(),
-	}))
-	if err != nil {
-		return err
-	}
+
 	radiusValue := ""
-	for _, series := range opt.SeriesList {
+	for _, series := range seriesList {
 		if len(series.Radius) != 0 {
 			radiusValue = series.Radius
 		}
 	}
 
-	box := d.Box
-	cx := box.Width() >> 1
-	cy := box.Height() >> 1
-	diameter := chart.MinInt(box.Width(), box.Height())
-	radius := getRadius(float64(diameter), radiusValue)
+	seriesPainter := result.seriesPainter
+	theme := opt.Theme
 
-	theme := NewTheme(opt.Theme)
+	cx := seriesPainter.Width() >> 1
+	cy := seriesPainter.Height() >> 1
+	diameter := chart.MinInt(seriesPainter.Width(), seriesPainter.Height())
+	radius := getRadius(float64(diameter), radiusValue)
 
 	divideCount := 5
 	divideRadius := float64(int(radius / float64(divideCount)))
 	radius = divideRadius * float64(divideCount)
 
-	style := chart.Style{
+	seriesPainter.OverrideDrawingStyle(Style{
 		StrokeColor: theme.GetAxisSplitLineColor(),
 		StrokeWidth: 1,
-	}
-	r := d.Render
-	style.WriteToRenderer(r)
+	})
 	center := Point{
 		X: cx,
 		Y: cy,
 	}
 	for i := 0; i < divideCount; i++ {
-		d.polygon(center, divideRadius*float64(i+1), sides)
+		seriesPainter.Polygon(center, divideRadius*float64(i+1), sides)
 	}
 	points := getPolygonPoints(center, radius, sides)
 	for _, p := range points {
-		d.moveTo(center.X, center.Y)
-		d.lineTo(p.X, p.Y)
-		d.Render.Stroke()
+		seriesPainter.MoveTo(center.X, center.Y)
+		seriesPainter.LineTo(p.X, p.Y)
+		seriesPainter.Stroke()
 	}
-	// 文本
-	textStyle := chart.Style{
+	seriesPainter.OverrideTextStyle(Style{
 		FontColor: theme.GetTextColor(),
 		FontSize:  labelFontSize,
 		Font:      opt.Font,
-	}
-	textStyle.GetTextOptions().WriteToRenderer(r)
+	})
 	offset := 5
 	// 文本生成
 	for index, p := range points {
-		name := opt.Indicators[index].Name
-		b := r.MeasureText(name)
+		name := indicators[index].Name
+		b := seriesPainter.MeasureText(name)
 		isXCenter := p.X == center.X
 		isYCenter := p.Y == center.Y
 		isRight := p.X > center.X
@@ -153,19 +170,19 @@ func radarChartRender(opt radarChartOption, result *basicRenderResult) error {
 		if isLeft {
 			x -= (b.Width() + offset)
 		}
-		d.text(name, x, y)
+		seriesPainter.Text(name, x, y)
 	}
 
 	// 雷达图
 	angles := getPolygonPointAngles(sides)
-	maxCount := len(opt.Indicators)
-	for _, series := range opt.SeriesList {
+	maxCount := len(indicators)
+	for _, series := range seriesList {
 		linePoints := make([]Point, 0, maxCount)
 		for j, item := range series.Data {
 			if j >= maxCount {
 				continue
 			}
-			indicator := opt.Indicators[j]
+			indicator := indicators[j]
 			percent := (item.Value - indicator.Min) / (indicator.Max - indicator.Min)
 			r := percent * radius
 			p := getPolygonPoint(center, r, angles[j])
@@ -177,17 +194,52 @@ func radarChartRender(opt radarChartOption, result *basicRenderResult) error {
 			dotFillColor = color
 		}
 		linePoints = append(linePoints, linePoints[0])
-		s := LineStyle{
-			StrokeColor:  color,
-			StrokeWidth:  defaultStrokeWidth,
-			DotWidth:     defaultDotWidth,
-			DotColor:     color,
-			DotFillColor: dotFillColor,
-			FillColor:    color.WithAlpha(20),
+		seriesPainter.OverrideDrawingStyle(Style{
+			StrokeColor: color,
+			StrokeWidth: defaultStrokeWidth,
+			DotWidth:    defaultDotWidth,
+			DotColor:    color,
+			FillColor:   color.WithAlpha(20),
+		})
+		seriesPainter.LineStroke(linePoints).
+			FillArea(linePoints)
+		dotWith := 2.0
+		seriesPainter.OverrideDrawingStyle(Style{
+			StrokeWidth: defaultStrokeWidth,
+			StrokeColor: color,
+			FillColor:   dotFillColor,
+		})
+		for _, point := range linePoints {
+			seriesPainter.Circle(dotWith, point.X, point.Y)
+			seriesPainter.FillStroke()
 		}
-		d.lineStroke(linePoints, s)
-		d.fill(linePoints, s.Style())
-		d.lineDot(linePoints[0:len(linePoints)-1], s)
 	}
-	return nil
+
+	return r.p.box, nil
+}
+
+func (r *radarChart) Render() (Box, error) {
+	p := r.p
+	opt := r.opt
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:      opt.Theme,
+		Padding:    opt.Padding,
+		SeriesList: opt.SeriesList,
+		XAxis: XAxisOption{
+			Show: FalseFlag(),
+		},
+		YAxisOptions: []YAxisOption{
+			{
+				Show: FalseFlag(),
+			},
+		},
+		TitleOption:        opt.Title,
+		LegendOption:       opt.Legend,
+		backgroundIsFilled: opt.backgroundIsFilled,
+	})
+	if err != nil {
+		return BoxZero, err
+	}
+	seriesList := opt.SeriesList.Filter(ChartTypeRadar)
+	return r.render(renderResult, seriesList)
 }

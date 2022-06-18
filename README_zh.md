@@ -21,53 +21,44 @@
 
 
 下面的示例为`go-charts`两种方式的参数配置：golang的参数配置、echarts的JSON配置，输出相同的折线图。
-更多的示例参考：`./examples/`目录
+更多的示例参考：[./examples/](./examples/)目录
 
+### Line Chart
 ```go
 package main
 
 import (
-	"os"
-	"path/filepath"
-
-	charts "github.com/vicanso/go-charts"
+	charts "github.com/vicanso/go-charts/v2"
 )
 
-func writeFile(file string, buf []byte) error {
-	tmpPath := "./tmp"
-	err := os.MkdirAll(tmpPath, 0700)
-	if err != nil {
-		return err
-	}
-
-	file = filepath.Join(tmpPath, file)
-	err = os.WriteFile(file, buf, 0600)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func chartsRender() ([]byte, error) {
-	d, err := charts.LineRender([][]float64{
+func main() {
+values := [][]float64{
 		{
-			150,
+			120,
+			132,
+			101,
+			134,
+			90,
 			230,
-			224,
-			218,
-			135,
-			147,
-			260,
+			210,
 		},
-	},
-		// output type
-		charts.PNGTypeOption(),
-		// title
-		charts.TitleOptionFunc(charts.TitleOption{
-			Text: "Line",
-		}),
-		// x axis
-		charts.XAxisOptionFunc(charts.NewXAxisOption([]string{
+		{
+			// snip...
+		},
+		{
+			// snip...
+		},
+		{
+			// snip...
+		},
+		{
+			// snip...
+		},
+	}
+	p, err := charts.LineRender(
+		values,
+		charts.TitleTextOptionFunc("Line"),
+		charts.XAxisDataOptionFunc([]string{
 			"Mon",
 			"Tue",
 			"Wed",
@@ -75,16 +66,324 @@ func chartsRender() ([]byte, error) {
 			"Fri",
 			"Sat",
 			"Sun",
-		})),
+		}),
+		charts.LegendLabelsOptionFunc([]string{
+			"Email",
+			"Union Ads",
+			"Video Ads",
+			"Direct",
+			"Search Engine",
+		}, charts.PositionCenter),
+	)
+
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Bar Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := [][]float64{
+		{
+			2.0,
+			4.9,
+			7.0,
+			23.2,
+			25.6,
+			76.7,
+			135.6,
+			162.2,
+			32.6,
+			20.0,
+			6.4,
+			3.3,
+		},
+		{
+			// snip...	
+		},
+	}
+	p, err := charts.BarRender(
+		values,
+		charts.XAxisDataOptionFunc([]string{
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep",
+			"Oct",
+			"Nov",
+			"Dec",
+		}),
+		charts.LegendLabelsOptionFunc([]string{
+			"Rainfall",
+			"Evaporation",
+		}, charts.PositionRight),
+		charts.MarkLineOptionFunc(0, charts.SeriesMarkDataTypeAverage),
+		charts.MarkPointOptionFunc(0, charts.SeriesMarkDataTypeMax,
+			charts.SeriesMarkDataTypeMin),
+		// custom option func
+		func(opt *charts.ChartOption) {
+			opt.SeriesList[1].MarkPoint = charts.NewMarkPoint(
+				charts.SeriesMarkDataTypeMax,
+				charts.SeriesMarkDataTypeMin,
+			)
+			opt.SeriesList[1].MarkLine = charts.NewMarkLine(
+				charts.SeriesMarkDataTypeAverage,
+			)
+		},
 	)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
-	return d.Bytes()
-}
 
-func echartsRender() ([]byte, error) {
-	return charts.RenderEChartsToPNG(`{
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Horizontal Bar Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := [][]float64{
+		{
+			18203,
+			23489,
+			29034,
+			104970,
+			131744,
+			630230,
+		},
+		{
+			// snip...	
+		},
+	}
+	p, err := charts.HorizontalBarRender(
+		values,
+		charts.TitleTextOptionFunc("World Population"),
+		charts.PaddingOptionFunc(charts.Box{
+			Top:    20,
+			Right:  40,
+			Bottom: 20,
+			Left:   20,
+		}),
+		charts.LegendLabelsOptionFunc([]string{
+			"2011",
+			"2012",
+		}),
+		charts.YAxisDataOptionFunc([]string{
+			"Brazil",
+			"Indonesia",
+			"USA",
+			"India",
+			"China",
+			"World",
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Pie Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := []float64{
+		1048,
+		735,
+		580,
+		484,
+		300,
+	}
+	p, err := charts.PieRender(
+		values,
+		charts.TitleOptionFunc(charts.TitleOption{
+			Text:    "Rainfall vs Evaporation",
+			Subtext: "Fake Data",
+			Left:    charts.PositionCenter,
+		}),
+		charts.PaddingOptionFunc(charts.Box{
+			Top:    20,
+			Right:  20,
+			Bottom: 20,
+			Left:   20,
+		}),
+		charts.LegendOptionFunc(charts.LegendOption{
+			Orient: charts.OrientVertical,
+			Data: []string{
+				"Search Engine",
+				"Direct",
+				"Email",
+				"Union Ads",
+				"Video Ads",
+			},
+			Left: charts.PositionLeft,
+		}),
+		charts.PieSeriesShowLabel(),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...	
+}
+```
+
+### Radar Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := [][]float64{
+		{
+			4200,
+			3000,
+			20000,
+			35000,
+			50000,
+			18000,
+		},
+		{
+			// snip...
+		},
+	}
+	p, err := charts.RadarRender(
+		values,
+		charts.TitleTextOptionFunc("Basic Radar Chart"),
+		charts.LegendLabelsOptionFunc([]string{
+			"Allocated Budget",
+			"Actual Spending",
+		}),
+		charts.RadarIndicatorOptionFunc([]string{
+			"Sales",
+			"Administration",
+			"Information Technology",
+			"Customer Support",
+			"Development",
+			"Marketing",
+		}, []float64{
+			6500,
+			16000,
+			30000,
+			38000,
+			52000,
+			25000,
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### Funnel Chart
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	values := []float64{
+		100,
+		80,
+		60,
+		40,
+		20,
+	}
+	p, err := charts.FunnelRender(
+		values,
+		charts.TitleTextOptionFunc("Funnel"),
+		charts.LegendLabelsOptionFunc([]string{
+			"Show",
+			"Click",
+			"Visit",
+			"Inquiry",
+			"Order",
+		}),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	// snip...
+}
+```
+
+### ECharts Render
+
+```go
+package main
+
+import (
+	"github.com/vicanso/go-charts/v2"
+)
+
+func main() {
+	buf, err := charts.RenderEChartsToPNG(`{
 		"title": {
 			"text": "Line"
 		},
@@ -97,25 +396,7 @@ func echartsRender() ([]byte, error) {
 			}
 		]
 	}`)
-}
-
-type Render func() ([]byte, error)
-
-func main() {
-	m := map[string]Render{
-		"charts-line.png":  chartsRender,
-		"echarts-line.png": echartsRender,
-	}
-	for name, fn := range m {
-		buf, err := fn()
-		if err != nil {
-			panic(err)
-		}
-		err = writeFile(name, buf)
-		if err != nil {
-			panic(err)
-		}
-	}
+	// snip...
 }
 ```
 
@@ -222,4 +503,6 @@ BenchmarkMultiChartSVGRender-8               367           3356325 ns/op        
 
 字体文件可以在[中文字库noto-cjk](https://github.com/googlefonts/noto-cjk)下载，注意下载时选择字体格式为 `ttf` 格式，如果选用 `otf` 格式可能会加载失败。
 
-示例见 [examples/basic/chinese.go](examples/basic/chinese.go)
+
+示例见 [examples/chinese/main.go](examples/chinese/main.go)
+

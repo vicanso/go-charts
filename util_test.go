@@ -60,12 +60,12 @@ func TestAutoDivide(t *testing.T) {
 
 	assert.Equal([]int{
 		0,
-		86,
-		172,
-		258,
-		344,
-		430,
-		515,
+		85,
+		171,
+		257,
+		342,
+		428,
+		514,
 		600,
 	}, autoDivide(600, 7))
 }
@@ -80,13 +80,15 @@ func TestGetRadius(t *testing.T) {
 
 func TestMeasureTextMaxWidthHeight(t *testing.T) {
 	assert := assert.New(t)
-	r, err := chart.SVG(400, 300)
+	p, err := NewPainter(PainterOptions{
+		Width:  400,
+		Height: 300,
+	})
 	assert.Nil(err)
 	style := chart.Style{
 		FontSize: 10,
 	}
-	style.Font, _ = chart.GetDefaultFont()
-	style.WriteToRenderer(r)
+	p.SetStyle(style)
 
 	maxWidth, maxHeight := measureTextMaxWidthHeight([]string{
 		"Mon",
@@ -96,7 +98,7 @@ func TestMeasureTextMaxWidthHeight(t *testing.T) {
 		"Fri",
 		"Sat",
 		"Sun",
-	}, r)
+	}, p)
 	assert.Equal(26, maxWidth)
 	assert.Equal(12, maxHeight)
 }

@@ -24,108 +24,146 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-type lineChartOption struct {
-	Theme      string
-	SeriesList SeriesList
-	Font       *truetype.Font
+type lineChart struct {
+	p   *Painter
+	opt *LineChartOption
 }
 
-func lineChartRender(opt lineChartOption, result *basicRenderResult) ([]markPointRenderOption, error) {
-
-	theme := NewTheme(opt.Theme)
-
-	d, err := NewDraw(DrawOption{
-		Parent: result.d,
-	}, PaddingOption(chart.Box{
-		Top:  result.titleBox.Height(),
-		Left: YAxisWidth,
-	}))
-	if err != nil {
-		return nil, err
+func NewLineChart(p *Painter, opt LineChartOption) *lineChart {
+	if opt.Theme == nil {
+		opt.Theme = defaultTheme
 	}
-	seriesNames := opt.SeriesList.Names()
+	return &lineChart{
+		p:   p,
+		opt: &opt,
+	}
+}
 
-	r := d.Render
-	xRange := result.xRange
-	markPointRenderOptions := make([]markPointRenderOption, 0)
-	for i, s := range opt.SeriesList {
-		// 由于series是for range，为同一个数据，因此需要clone
-		// 后续需要使用，如mark point
-		series := s
-		index := series.index
-		if index == 0 {
-			index = i
+type LineChartOption struct {
+	Theme ColorPalette
+	// The font size
+	Font *truetype.Font
+	// The data series list
+	SeriesList SeriesList
+	// The x axis option
+	XAxis XAxisOption
+	// The padding of line chart
+	Padding Box
+	// The y axis option
+	YAxisOptions []YAxisOption
+	// The option of title
+	Title TitleOption
+	// The legend option
+	Legend LegendOption
+	// background is filled
+	backgroundIsFilled bool
+}
+
+func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
+	p := l.p
+	opt := l.opt
+	boundaryGap := true
+	if opt.XAxis.BoundaryGap != nil && !*opt.XAxis.BoundaryGap {
+		boundaryGap = false
+	}
+
+	seriesPainter := result.seriesPainter
+
+	xDivideCount := len(opt.XAxis.Data)
+	if !boundaryGap {
+		xDivideCount--
+	}
+	xDivideValues := autoDivide(seriesPainter.Width(), xDivideCount)
+	xValues := make([]int, len(xDivideValues)-1)
+	if boundaryGap {
+		for i := 0; i < len(xDivideValues)-1; i++ {
+			xValues[i] = (xDivideValues[i] + xDivideValues[i+1]) >> 1
 		}
-		seriesColor := theme.GetSeriesColor(index)
-
-		yRange := result.getYRange(series.YAxisIndex)
-		points := make([]Point, 0, len(series.Data))
-		// mark line
-		markLineRender(markLineRenderOption{
-			Draw:        d,
-			FillColor:   seriesColor,
-			FontColor:   theme.GetTextColor(),
+	} else {
+		xValues = xDivideValues
+	}
+	markPointPainter := NewMarkPointPainter(seriesPainter)
+	markLinePainter := NewMarkLinePainter(seriesPainter)
+	rendererList := []Renderer{
+		markPointPainter,
+		markLinePainter,
+	}
+	for index := range seriesList {
+		series := seriesList[index]
+		seriesColor := opt.Theme.GetSeriesColor(series.index)
+		drawingStyle := Style{
 			StrokeColor: seriesColor,
-			Font:        opt.Font,
-			Series:      &series,
-			Range:       yRange,
-		})
-
-		for j, item := range series.Data {
-			if j >= xRange.divideCount {
-				continue
-			}
-			y := yRange.getRestHeight(item.Value)
-			x := xRange.getWidth(float64(j))
-			points = append(points, Point{
-				Y: y,
-				X: x,
-			})
-			if !series.Label.Show {
-				continue
-			}
-			distance := series.Label.Distance
-			if distance == 0 {
-				distance = 5
-			}
-			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(i, item.Value, -1)
-			labelStyle := chart.Style{
-				FontColor: theme.GetTextColor(),
-				FontSize:  labelFontSize,
-				Font:      opt.Font,
-			}
-			if !series.Label.Color.IsZero() {
-				labelStyle.FontColor = series.Label.Color
-			}
-			labelStyle.GetTextOptions().WriteToRenderer(r)
-			textBox := r.MeasureText(text)
-			d.text(text, x-textBox.Width()>>1, y-distance)
+			StrokeWidth: defaultStrokeWidth,
 		}
 
-		dotFillColor := drawing.ColorWhite
-		if theme.IsDark() {
-			dotFillColor = seriesColor
+		seriesPainter.SetDrawingStyle(drawingStyle)
+		yRange := result.axisRanges[series.AxisIndex]
+		points := make([]Point, 0)
+		for i, item := range series.Data {
+			h := yRange.getRestHeight(item.Value)
+			p := Point{
+				X: xValues[i],
+				Y: h,
+			}
+			points = append(points, p)
 		}
-		d.Line(points, LineStyle{
-			StrokeColor:  seriesColor,
-			StrokeWidth:  2,
-			DotColor:     seriesColor,
-			DotWidth:     defaultDotWidth,
-			DotFillColor: dotFillColor,
-		})
-		// draw mark point
-		markPointRenderOptions = append(markPointRenderOptions, markPointRenderOption{
-			Draw:      d,
+		// 画线
+		seriesPainter.LineStroke(points)
+
+		// 画点
+		if opt.Theme.IsDark() {
+			drawingStyle.FillColor = drawingStyle.StrokeColor
+		} else {
+			drawingStyle.FillColor = drawing.ColorWhite
+		}
+		drawingStyle.StrokeWidth = 1
+		seriesPainter.SetDrawingStyle(drawingStyle)
+		seriesPainter.Dots(points)
+		markPointPainter.Add(markPointRenderOption{
 			FillColor: seriesColor,
 			Font:      opt.Font,
 			Points:    points,
-			Series:    &series,
+			Series:    series,
+		})
+		markLinePainter.Add(markLineRenderOption{
+			FillColor:   seriesColor,
+			FontColor:   opt.Theme.GetTextColor(),
+			StrokeColor: seriesColor,
+			Font:        opt.Font,
+			Series:      series,
+			Range:       yRange,
 		})
 	}
+	// 最大、最小的mark point
+	err := doRender(rendererList...)
+	if err != nil {
+		return BoxZero, err
+	}
 
-	return markPointRenderOptions, nil
+	return p.box, nil
+}
+
+func (l *lineChart) Render() (Box, error) {
+	p := l.p
+	opt := l.opt
+
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:              opt.Theme,
+		Padding:            opt.Padding,
+		SeriesList:         opt.SeriesList,
+		XAxis:              opt.XAxis,
+		YAxisOptions:       opt.YAxisOptions,
+		TitleOption:        opt.Title,
+		LegendOption:       opt.Legend,
+		backgroundIsFilled: opt.backgroundIsFilled,
+	})
+	if err != nil {
+		return BoxZero, err
+	}
+	seriesList := opt.SeriesList.Filter(ChartTypeLine)
+
+	return l.render(renderResult, seriesList)
 }

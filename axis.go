@@ -23,14 +23,31 @@
 package charts
 
 import (
-	"math"
+	"strings"
 
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+type axisPainter struct {
+	p   *Painter
+	opt *AxisOption
+}
+
+func NewAxisPainter(p *Painter, opt AxisOption) *axisPainter {
+	return &axisPainter{
+		p:   p,
+		opt: &opt,
+	}
+}
+
 type AxisOption struct {
+	// The theme of chart
+	Theme ColorPalette
+	// Formatter for y axis text value
+	Formatter string
+	// The label of axis
+	Data []string
 	// The boundary gap on both sides of a coordinate axis.
 	// Nil or *true means the center part of two axis ticks
 	BoundaryGap *bool
@@ -40,15 +57,12 @@ type AxisOption struct {
 	Position string
 	// Number of segments that the axis is split into. Note that this number serves only as a recommendation.
 	SplitNumber int
-	ClassName   string
 	// The line color of axis
-	StrokeColor drawing.Color
+	StrokeColor Color
 	// The line width
 	StrokeWidth float64
 	// The length of the axis tick
 	TickLength int
-	// The flag for show axis tick, set this to *false will hide axis tick
-	TickShow *bool
 	// The margin value of label
 	LabelMargin int
 	// The font size of label
@@ -56,413 +70,231 @@ type AxisOption struct {
 	// The font of label
 	Font *truetype.Font
 	// The color of label
-	FontColor drawing.Color
+	FontColor Color
 	// The flag for show axis split line, set this to true will show axis split line
 	SplitLineShow bool
 	// The color of split line
-	SplitLineColor drawing.Color
+	SplitLineColor Color
 }
 
-type axis struct {
-	d      *Draw
-	data   *AxisDataList
-	option *AxisOption
-}
-type axisMeasurement struct {
-	Width  int
-	Height int
-}
-
-// NewAxis creates a new axis with data and style options
-func NewAxis(d *Draw, data AxisDataList, option AxisOption) *axis {
-	return &axis{
-		d:      d,
-		data:   &data,
-		option: &option,
+func (a *axisPainter) Render() (Box, error) {
+	opt := a.opt
+	top := a.p
+	theme := opt.Theme
+	if opt.Show != nil && !*opt.Show {
+		return BoxZero, nil
 	}
 
-}
-
-// GetLabelMargin returns the label margin value
-func (as *AxisOption) GetLabelMargin() int {
-	return getDefaultInt(as.LabelMargin, 8)
-}
-
-// GetTickLength returns the tick length value
-func (as *AxisOption) GetTickLength() int {
-	return getDefaultInt(as.TickLength, 5)
-}
-
-// Style returns the style of axis
-func (as *AxisOption) Style(f *truetype.Font) chart.Style {
-	s := chart.Style{
-		ClassName:   as.ClassName,
-		StrokeColor: as.StrokeColor,
-		StrokeWidth: as.StrokeWidth,
-		FontSize:    as.FontSize,
-		FontColor:   as.FontColor,
-		Font:        as.Font,
+	strokeWidth := opt.StrokeWidth
+	if strokeWidth == 0 {
+		strokeWidth = 1
 	}
-	if s.FontSize == 0 {
-		s.FontSize = chart.DefaultFontSize
+
+	font := opt.Font
+	if font == nil {
+		font = a.p.font
 	}
-	if s.Font == nil {
-		s.Font = f
+	if font == nil {
+		font = theme.GetFont()
 	}
-	return s
-}
-
-type AxisData struct {
-	// The text value of axis
-	Text string
-}
-type AxisDataList []AxisData
-
-// TextList returns the text list of axis data
-func (l AxisDataList) TextList() []string {
-	textList := make([]string, len(l))
-	for index, item := range l {
-		textList[index] = item.Text
+	fontColor := opt.FontColor
+	if fontColor.IsZero() {
+		fontColor = theme.GetTextColor()
 	}
-	return textList
-}
+	fontSize := opt.FontSize
+	if fontSize == 0 {
+		fontSize = theme.GetFontSize()
+	}
+	strokeColor := opt.StrokeColor
+	if strokeColor.IsZero() {
+		strokeColor = theme.GetAxisStrokeColor()
+	}
 
-type axisRenderOption struct {
-	textMaxWith   int
-	textMaxHeight int
-	boundaryGap   bool
-	unitCount     int
-	modValue      int
-}
-
-// NewAxisDataListFromStringList creates a new axis data list from string list
-func NewAxisDataListFromStringList(textList []string) AxisDataList {
-	list := make(AxisDataList, len(textList))
-	for index, text := range textList {
-		list[index] = AxisData{
-			Text: text,
+	data := opt.Data
+	formatter := opt.Formatter
+	if len(formatter) != 0 {
+		for index, text := range data {
+			data[index] = strings.ReplaceAll(formatter, "{value}", text)
 		}
 	}
-	return list
-}
+	dataCount := len(data)
+	tickCount := dataCount
 
-func (a *axis) axisLabel(renderOpt *axisRenderOption) {
-	option := a.option
-	data := *a.data
-	d := a.d
-	if option.FontColor.IsZero() || len(data) == 0 {
-		return
+	boundaryGap := true
+	if opt.BoundaryGap != nil && !*opt.BoundaryGap {
+		boundaryGap = false
 	}
-	r := d.Render
+	isVertical := opt.Position == PositionLeft ||
+		opt.Position == PositionRight
 
-	s := option.Style(d.Font)
-	s.GetTextOptions().WriteTextOptionsToRenderer(r)
-
-	width := d.Box.Width()
-	height := d.Box.Height()
-	textList := data.TextList()
-	count := len(textList)
-
-	boundaryGap := renderOpt.boundaryGap
+	labelPosition := ""
 	if !boundaryGap {
-		count--
+		tickCount--
+		labelPosition = PositionLeft
+	}
+	if isVertical && boundaryGap {
+		labelPosition = PositionCenter
 	}
 
-	unitCount := renderOpt.unitCount
-	modValue := renderOpt.modValue
-	labelMargin := option.GetLabelMargin()
+	// 如果小于0，则表示不处理
+	tickLength := getDefaultInt(opt.TickLength, 5)
+	labelMargin := getDefaultInt(opt.LabelMargin, 5)
 
-	// 轴线
-	labelHeight := labelMargin + renderOpt.textMaxHeight
-	labelWidth := labelMargin + renderOpt.textMaxWith
+	style := Style{
+		StrokeColor: strokeColor,
+		StrokeWidth: strokeWidth,
+		Font:        font,
+		FontColor:   fontColor,
+		FontSize:    fontSize,
+	}
+	top.SetDrawingStyle(style).OverrideTextStyle(style)
 
-	// 坐标轴文本
-	position := option.Position
-	switch position {
+	textMaxWidth, textMaxHeight := top.MeasureTextMaxWidthHeight(data)
+	textCount := ceilFloatToInt(float64(top.Width()) / float64(textMaxWidth))
+	unit := ceilFloatToInt(float64(dataCount) / float64(chart.MaxInt(textCount, opt.SplitNumber)))
+
+	width := 0
+	height := 0
+	// 垂直
+	if isVertical {
+		width = textMaxWidth + tickLength<<1
+		height = top.Height()
+	} else {
+		width = top.Width()
+		height = tickLength<<1 + textMaxHeight
+	}
+	padding := Box{}
+	switch opt.Position {
+	case PositionTop:
+		padding.Top = top.Height() - height
 	case PositionLeft:
-		fallthrough
+		padding.Right = top.Width() - width
 	case PositionRight:
-		values := autoDivide(height, count)
-		textList := data.TextList()
-		// 由下往上
-		reverseIntSlice(values)
-		for index, text := range textList {
-			y := values[index] - 2
-			b := r.MeasureText(text)
-			if boundaryGap {
-				height := y - values[index+1]
-				y -= (height - b.Height()) >> 1
-			} else {
-				y += b.Height() >> 1
-			}
-			// 左右位置的x不一样
-			x := width - renderOpt.textMaxWith
-			if position == PositionLeft {
-				x = labelWidth - b.Width() - 1
-			}
-			d.text(text, x, y)
-		}
+		padding.Left = top.Width() - width
 	default:
-		// 定位bottom，重新计算y0的定位
-		y0 := height - labelMargin
-		if position == PositionTop {
-			y0 = labelHeight - labelMargin
-		}
-		values := autoDivide(width, count)
-		for index, text := range data.TextList() {
-			if unitCount != 0 && index%unitCount != modValue {
-				continue
-			}
-			x := values[index]
-			leftOffset := 0
-			b := r.MeasureText(text)
-			if boundaryGap {
-				width := values[index+1] - x
-				leftOffset = (width - b.Width()) >> 1
-			} else {
-				// 左移文本长度
-				leftOffset = -b.Width() >> 1
-			}
-			d.text(text, x+leftOffset, y0)
-		}
+		padding.Top = top.Height() - defaultXAxisHeight
 	}
-}
 
-func (a *axis) axisLine(renderOpt *axisRenderOption) {
-	d := a.d
-	r := d.Render
-	option := a.option
-	s := option.Style(d.Font)
-	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
+	p := top.Child(PainterPaddingOption(padding))
 
 	x0 := 0
 	y0 := 0
 	x1 := 0
 	y1 := 0
-	width := d.Box.Width()
-	height := d.Box.Height()
-	labelMargin := option.GetLabelMargin()
+	ticksPaddingTop := 0
+	ticksPaddingLeft := 0
+	labelPaddingTop := 0
+	labelPaddingLeft := 0
+	labelPaddingRight := 0
+	orient := ""
+	textAlign := ""
 
-	// 轴线
-	labelHeight := labelMargin + renderOpt.textMaxHeight
-	labelWidth := labelMargin + renderOpt.textMaxWith
-	tickLength := option.GetTickLength()
-	switch option.Position {
-	case PositionLeft:
-		x0 = tickLength + labelWidth
-		x1 = x0
-		y0 = 0
-		y1 = height
-	case PositionRight:
-		x0 = width - labelWidth
-		x1 = x0
-		y0 = 0
-		y1 = height
+	switch opt.Position {
 	case PositionTop:
-		x0 = 0
-		x1 = width
-		y0 = labelHeight
+		labelPaddingTop = labelMargin
+		x1 = p.Width()
+		y0 = labelMargin + int(opt.FontSize)
+		ticksPaddingTop = int(opt.FontSize)
 		y1 = y0
-	// bottom
-	default:
-		x0 = 0
-		x1 = width
-		y0 = height - tickLength - labelHeight
-		y1 = y0
-	}
-
-	d.moveTo(x0, y0)
-	d.lineTo(x1, y1)
-	r.FillStroke()
-}
-
-func (a *axis) axisTick(renderOpt *axisRenderOption) {
-	d := a.d
-	r := d.Render
-
-	option := a.option
-	s := option.Style(d.Font)
-	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
-
-	width := d.Box.Width()
-	height := d.Box.Height()
-	data := *a.data
-	tickCount := len(data)
-	if tickCount == 0 {
-		return
-	}
-	if !renderOpt.boundaryGap {
-		tickCount--
-	}
-	labelMargin := option.GetLabelMargin()
-	tickShow := true
-	if isFalse(option.TickShow) {
-		tickShow = false
-	}
-	unitCount := renderOpt.unitCount
-
-	tickLengthValue := option.GetTickLength()
-	labelHeight := labelMargin + renderOpt.textMaxHeight
-	labelWidth := labelMargin + renderOpt.textMaxWith
-	position := option.Position
-	switch position {
+		orient = OrientHorizontal
 	case PositionLeft:
-		fallthrough
+		x0 = p.Width()
+		y0 = 0
+		x1 = p.Width()
+		y1 = p.Height()
+		orient = OrientVertical
+		textAlign = AlignRight
+		ticksPaddingLeft = textMaxWidth + tickLength
+		labelPaddingRight = width - textMaxWidth
 	case PositionRight:
-		values := autoDivide(height, tickCount)
-		// 左右仅是x0的位置不一样
-		x0 := width - labelWidth
-		if option.Position == PositionLeft {
-			x0 = labelWidth
-		}
-		if tickShow {
-			for _, v := range values {
-				x := x0
-				y := v
-				d.moveTo(x, y)
-				d.lineTo(x+tickLengthValue, y)
-				r.Stroke()
-			}
-		}
-		// 辅助线
-		if option.SplitLineShow && !option.SplitLineColor.IsZero() {
-			r.SetStrokeColor(option.SplitLineColor)
-			splitLineWidth := width - labelWidth - tickLengthValue
-			x0 = labelWidth + tickLengthValue
-			if position == PositionRight {
+		orient = OrientVertical
+		y1 = p.Height()
+		labelPaddingLeft = width - textMaxWidth
+	default:
+		labelPaddingTop = height
+		x1 = p.Width()
+		orient = OrientHorizontal
+	}
+
+	if strokeWidth > 0 {
+		p.Child(PainterPaddingOption(Box{
+			Top:  ticksPaddingTop,
+			Left: ticksPaddingLeft,
+		})).Ticks(TicksOption{
+			Count:  tickCount,
+			Length: tickLength,
+			Unit:   unit,
+			Orient: orient,
+		})
+		p.LineStroke([]Point{
+			{
+				X: x0,
+				Y: y0,
+			},
+			{
+				X: x1,
+				Y: y1,
+			},
+		})
+	}
+
+	p.Child(PainterPaddingOption(Box{
+		Left:  labelPaddingLeft,
+		Top:   labelPaddingTop,
+		Right: labelPaddingRight,
+	})).MultiText(MultiTextOption{
+		Align:    textAlign,
+		TextList: data,
+		Orient:   orient,
+		Unit:     unit,
+		Position: labelPosition,
+	})
+	// 显示辅助线
+	if opt.SplitLineShow {
+		style.StrokeColor = opt.SplitLineColor
+		top.OverrideDrawingStyle(style)
+		if isVertical {
+			x0 := p.Width()
+			x1 := top.Width()
+			if opt.Position == PositionRight {
 				x0 = 0
-				splitLineWidth = width - labelWidth - 1
+				x1 = top.Width() - p.Width()
 			}
-			for _, v := range values[0 : len(values)-1] {
-				x := x0
-				y := v
-				d.moveTo(x, y)
-				d.lineTo(x+splitLineWidth, y)
-				r.Stroke()
+			for _, y := range autoDivide(height, tickCount) {
+				top.LineStroke([]Point{
+					{
+						X: x0,
+						Y: y,
+					},
+					{
+						X: x1,
+						Y: y,
+					},
+				})
 			}
-		}
-	default:
-		values := autoDivide(width, tickCount)
-		// 上下仅是y0的位置不一样
-		y0 := height - labelHeight
-		if position == PositionTop {
-			y0 = labelHeight
-		}
-		if tickShow {
-			for index, v := range values {
-				if index%unitCount != 0 {
+		} else {
+			y0 := p.Height() - defaultXAxisHeight
+			y1 := top.Height() - defaultXAxisHeight
+			for index, x := range autoDivide(width, tickCount) {
+				if index == 0 {
 					continue
 				}
-				x := v
-				y := y0
-				d.moveTo(x, y-tickLengthValue)
-				d.lineTo(x, y)
-				r.Stroke()
-			}
-		}
-		// 辅助线
-		if option.SplitLineShow && !option.SplitLineColor.IsZero() {
-			r.SetStrokeColor(option.SplitLineColor)
-			y0 = 0
-			splitLineHeight := height - labelHeight - tickLengthValue
-			if position == PositionTop {
-				y0 = labelHeight
-				splitLineHeight = height - labelHeight
-			}
-
-			for index, v := range values {
-				if index%unitCount != 0 {
-					continue
-				}
-				x := v
-				y := y0
-
-				d.moveTo(x, y)
-				d.lineTo(x, y0+splitLineHeight)
-				r.Stroke()
+				top.LineStroke([]Point{
+					{
+						X: x,
+						Y: y0,
+					},
+					{
+						X: x,
+						Y: y1,
+					},
+				})
 			}
 		}
 	}
-}
 
-func (a *axis) measureTextMaxWidthHeight() (int, int) {
-	d := a.d
-	r := d.Render
-	s := a.option.Style(d.Font)
-	data := a.data
-	s.GetStrokeOptions().WriteDrawingOptionsToRenderer(r)
-	s.GetTextOptions().WriteTextOptionsToRenderer(r)
-	return measureTextMaxWidthHeight(data.TextList(), r)
-}
-
-// measure returns the measurement of axis.
-// Width will be textMaxWidth + labelMargin + tickLength for position left or right.
-// Height will be textMaxHeight + labelMargin + tickLength for position top or bottom.
-func (a *axis) measure() axisMeasurement {
-	option := a.option
-	value := option.GetLabelMargin() + option.GetTickLength()
-	textMaxWidth, textMaxHeight := a.measureTextMaxWidthHeight()
-	info := axisMeasurement{}
-	if option.Position == PositionLeft ||
-		option.Position == PositionRight {
-		info.Width = textMaxWidth + value
-	} else {
-		info.Height = textMaxHeight + value
-	}
-	return info
-}
-
-// Render renders the axis for chart
-func (a *axis) Render() {
-	option := a.option
-	if isFalse(option.Show) {
-		return
-	}
-	textMaxWidth, textMaxHeight := a.measureTextMaxWidthHeight()
-	opt := &axisRenderOption{
-		textMaxWith:   textMaxWidth,
-		textMaxHeight: textMaxHeight,
-		boundaryGap:   true,
-	}
-	if isFalse(option.BoundaryGap) {
-		opt.boundaryGap = false
-	}
-
-	unitCount := chart.MaxInt(option.SplitNumber, 1)
-	width := a.d.Box.Width()
-	textList := a.data.TextList()
-	count := len(textList)
-
-	position := option.Position
-	switch position {
-	case PositionLeft:
-		fallthrough
-	case PositionRight:
-	default:
-		maxCount := width / (opt.textMaxWith + 10)
-		// 可以显示所有
-		if maxCount >= count {
-			unitCount = 1
-		} else if maxCount < count/unitCount {
-			unitCount = int(math.Ceil(float64(count) / float64(maxCount)))
-		}
-	}
-
-	boundaryGap := opt.boundaryGap
-	modValue := 0
-	if boundaryGap && unitCount > 1 {
-		// 如果是居中，unit count需要设置为奇数
-		if unitCount%2 == 0 {
-			unitCount++
-		}
-		modValue = unitCount / 2
-	}
-	opt.modValue = modValue
-	opt.unitCount = unitCount
-
-	// 坐标轴线
-	a.axisLine(opt)
-	a.axisTick(opt)
-	// 坐标文本
-	a.axisLabel(opt)
+	return Box{
+		Bottom: height,
+		Right:  width,
+	}, nil
 }

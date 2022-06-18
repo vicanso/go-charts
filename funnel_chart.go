@@ -24,34 +24,43 @@ package charts
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/dustin/go-humanize"
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
-type funnelChartOption struct {
-	Theme      string
-	Font       *truetype.Font
-	SeriesList SeriesList
+type funnelChart struct {
+	p   *Painter
+	opt *FunnelChartOption
 }
 
-func funnelChartRender(opt funnelChartOption, result *basicRenderResult) error {
-	d, err := NewDraw(DrawOption{
-		Parent: result.d,
-	}, PaddingOption(chart.Box{
-		Top: result.titleBox.Height(),
-	}))
-	if err != nil {
-		return err
+func NewFunnelChart(p *Painter, opt FunnelChartOption) *funnelChart {
+	if opt.Theme == nil {
+		opt.Theme = defaultTheme
 	}
-	seriesList := make([]Series, len(opt.SeriesList))
-	copy(seriesList, opt.SeriesList)
-	sort.Slice(seriesList, func(i, j int) bool {
-		// 大的数据在前
-		return seriesList[i].Data[0].Value > seriesList[j].Data[0].Value
-	})
+	return &funnelChart{
+		p:   p,
+		opt: &opt,
+	}
+}
+
+type FunnelChartOption struct {
+	Theme ColorPalette
+	// The font size
+	Font *truetype.Font
+	// The data series list
+	SeriesList SeriesList
+	// The padding of line chart
+	Padding Box
+	// The option of title
+	Title TitleOption
+	// The legend option
+	Legend LegendOption
+}
+
+func (f *funnelChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
+	opt := f.opt
+	seriesPainter := result.seriesPainter
 	max := seriesList[0].Data[0].Value
 	min := float64(0)
 	for _, item := range seriesList {
@@ -62,11 +71,10 @@ func funnelChartRender(opt funnelChartOption, result *basicRenderResult) error {
 			min = *item.Min
 		}
 	}
-
-	theme := NewTheme(opt.Theme)
+	theme := opt.Theme
 	gap := 2
-	height := d.Box.Height()
-	width := d.Box.Width()
+	height := seriesPainter.Height()
+	width := seriesPainter.Width()
 	count := len(seriesList)
 
 	h := (height - gap*(count-1)) / count
@@ -116,26 +124,49 @@ func funnelChartRender(opt funnelChartOption, result *basicRenderResult) error {
 			},
 		}
 		color := theme.GetSeriesColor(series.index)
-		d.fill(points, chart.Style{
+
+		seriesPainter.OverrideDrawingStyle(Style{
 			FillColor: color,
-		})
+		}).FillArea(points)
 
 		// 文本
 		text := textList[index]
-		r := d.Render
-		textStyle := chart.Style{
+		seriesPainter.OverrideTextStyle(Style{
 			FontColor: theme.GetTextColor(),
 			FontSize:  labelFontSize,
 			Font:      opt.Font,
-		}
-		textStyle.GetTextOptions().WriteToRenderer(r)
-		textBox := r.MeasureText(text)
+		})
+		textBox := seriesPainter.MeasureText(text)
 		textX := width>>1 - textBox.Width()>>1
 		textY := y + h>>1
-		d.text(text, textX, textY)
-
+		seriesPainter.Text(text, textX, textY)
 		y += (h + gap)
 	}
 
-	return nil
+	return f.p.box, nil
+}
+
+func (f *funnelChart) Render() (Box, error) {
+	p := f.p
+	opt := f.opt
+	renderResult, err := defaultRender(p, defaultRenderOption{
+		Theme:      opt.Theme,
+		Padding:    opt.Padding,
+		SeriesList: opt.SeriesList,
+		XAxis: XAxisOption{
+			Show: FalseFlag(),
+		},
+		YAxisOptions: []YAxisOption{
+			{
+				Show: FalseFlag(),
+			},
+		},
+		TitleOption:  opt.Title,
+		LegendOption: opt.Legend,
+	})
+	if err != nil {
+		return BoxZero, err
+	}
+	seriesList := opt.SeriesList.Filter(ChartTypeFunnel)
+	return f.render(renderResult, seriesList)
 }

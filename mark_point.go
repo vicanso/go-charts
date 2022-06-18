@@ -24,8 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func NewMarkPoint(markPointTypes ...string) SeriesMarkPoint {
@@ -40,50 +38,65 @@ func NewMarkPoint(markPointTypes ...string) SeriesMarkPoint {
 	}
 }
 
+type markPointPainter struct {
+	p       *Painter
+	options []markPointRenderOption
+}
+
+func (m *markPointPainter) Add(opt markPointRenderOption) {
+	m.options = append(m.options, opt)
+}
+
 type markPointRenderOption struct {
-	Draw      *Draw
-	FillColor drawing.Color
+	FillColor Color
 	Font      *truetype.Font
-	Series    *Series
+	Series    Series
 	Points    []Point
 }
 
-func markPointRender(opt markPointRenderOption) {
-	d := opt.Draw
-	s := opt.Series
-	if len(s.MarkPoint.Data) == 0 {
-		return
+func NewMarkPointPainter(p *Painter) *markPointPainter {
+	return &markPointPainter{
+		p:       p,
+		options: make([]markPointRenderOption, 0),
 	}
-	points := opt.Points
-	summary := s.Summary()
-	symbolSize := s.MarkPoint.SymbolSize
-	if symbolSize == 0 {
-		symbolSize = 30
-	}
-	r := d.Render
-	// 设置填充样式
-	chart.Style{
-		FillColor: opt.FillColor,
-	}.WriteToRenderer(r)
-	// 设置文本样式
-	chart.Style{
-		FontColor:   NewTheme(ThemeDark).GetTextColor(),
-		FontSize:    labelFontSize,
-		StrokeWidth: 1,
-		Font:        opt.Font,
-	}.WriteTextOptionsToRenderer(r)
-	for _, markPointData := range s.MarkPoint.Data {
-		p := points[summary.MinIndex]
-		value := summary.MinValue
-		switch markPointData.Type {
-		case SeriesMarkDataTypeMax:
-			p = points[summary.MaxIndex]
-			value = summary.MaxValue
-		}
+}
 
-		d.pin(p.X, p.Y-symbolSize>>1, symbolSize)
-		text := commafWithDigits(value)
-		textBox := r.MeasureText(text)
-		d.text(text, p.X-textBox.Width()>>1, p.Y-symbolSize>>1-2)
+func (m *markPointPainter) Render() (Box, error) {
+	painter := m.p
+	theme := m.p.theme
+	for _, opt := range m.options {
+		s := opt.Series
+		if len(s.MarkPoint.Data) == 0 {
+			continue
+		}
+		points := opt.Points
+		summary := s.Summary()
+		symbolSize := s.MarkPoint.SymbolSize
+		if symbolSize == 0 {
+			symbolSize = 30
+		}
+		painter.OverrideDrawingStyle(Style{
+			FillColor: opt.FillColor,
+		}).OverrideTextStyle(Style{
+			FontColor:   theme.GetTextColor(),
+			FontSize:    labelFontSize,
+			StrokeWidth: 1,
+			Font:        opt.Font,
+		})
+		for _, markPointData := range s.MarkPoint.Data {
+			p := points[summary.MinIndex]
+			value := summary.MinValue
+			switch markPointData.Type {
+			case SeriesMarkDataTypeMax:
+				p = points[summary.MaxIndex]
+				value = summary.MaxValue
+			}
+
+			painter.Pin(p.X, p.Y-symbolSize>>1, symbolSize)
+			text := commafWithDigits(value)
+			textBox := painter.MeasureText(text)
+			painter.Text(text, p.X-textBox.Width()>>1, p.Y-symbolSize>>1-2)
+		}
 	}
+	return BoxZero, nil
 }

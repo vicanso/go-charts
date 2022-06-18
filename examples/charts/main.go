@@ -5,9 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	charts "github.com/vicanso/go-charts"
-	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
+	charts "github.com/vicanso/go-charts/v2"
 )
 
 var html = `<!DOCTYPE html>
@@ -75,6 +73,7 @@ func handler(w http.ResponseWriter, req *http.Request, chartOptions []charts.Cha
 	bytesList := make([][]byte, 0)
 	for _, opt := range chartOptions {
 		opt.Theme = theme
+		opt.Type = charts.ChartOutputSVG
 		d, err := charts.Render(opt)
 		if err != nil {
 			panic(err)
@@ -100,7 +99,6 @@ func handler(w http.ResponseWriter, req *http.Request, chartOptions []charts.Cha
 
 func indexHandler(w http.ResponseWriter, req *http.Request) {
 	chartOptions := []charts.ChartOption{
-		// 普通折线图
 		{
 			Title: charts.TitleOption{
 				Text: "Line",
@@ -174,7 +172,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 			Title: charts.TitleOption{
 				Text: "Temperature Change in the Coming Week",
 			},
-			Padding: chart.Box{
+			Padding: charts.Box{
 				Top:    20,
 				Left:   20,
 				Right:  30,
@@ -240,7 +238,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 					"Rainfall",
 					"Evaporation",
 				},
-				Icon: charts.LegendIconRect,
+				Icon: charts.IconRect,
 			},
 			SeriesList: []charts.Series{
 				charts.NewSeriesFromValues([]float64{
@@ -260,8 +258,8 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 						},
 						{
 							Value: 190,
-							Style: chart.Style{
-								FillColor: drawing.Color{
+							Style: charts.Style{
+								FillColor: charts.Color{
 									R: 169,
 									G: 0,
 									B: 0,
@@ -288,13 +286,61 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				},
 			},
 		},
-		// 柱状图+mark
+		// 水平柱状图
+		{
+			Title: charts.TitleOption{
+				Text: "World Population",
+			},
+			Padding: charts.Box{
+				Top:    20,
+				Right:  40,
+				Bottom: 20,
+				Left:   20,
+			},
+			Legend: charts.NewLegendOption([]string{
+				"2011",
+				"2012",
+			}),
+			YAxisOptions: charts.NewYAxisOptions([]string{
+				"Brazil",
+				"Indonesia",
+				"USA",
+				"India",
+				"China",
+				"World",
+			}),
+			SeriesList: []charts.Series{
+				{
+					Type: charts.ChartTypeHorizontalBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						18203,
+						23489,
+						29034,
+						104970,
+						131744,
+						630230,
+					}),
+				},
+				{
+					Type: charts.ChartTypeHorizontalBar,
+					Data: charts.NewSeriesDataFromValues([]float64{
+						19325,
+						23438,
+						31000,
+						121594,
+						134141,
+						681807,
+					}),
+				},
+			},
+		},
+		// 柱状图+标记
 		{
 			Title: charts.TitleOption{
 				Text:    "Rainfall vs Evaporation",
 				Subtext: "Fake Data",
 			},
-			Padding: chart.Box{
+			Padding: charts.Box{
 				Top:    20,
 				Right:  20,
 				Bottom: 20,
@@ -371,6 +417,9 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 		},
 		// 双Y轴示例
 		{
+			Title: charts.TitleOption{
+				Text: "Temperature",
+			},
 			XAxis: charts.NewXAxisOption([]string{
 				"Jan",
 				"Feb",
@@ -390,22 +439,22 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				"Precipitation",
 				"Temperature",
 			}),
-			YAxisList: []charts.YAxisOption{
+			YAxisOptions: []charts.YAxisOption{
 				{
-					Formatter: "{value}°C",
-					Color: drawing.Color{
-						R: 250,
-						G: 200,
-						B: 88,
+					Formatter: "{value}ml",
+					Color: charts.Color{
+						R: 84,
+						G: 112,
+						B: 198,
 						A: 255,
 					},
 				},
 				{
-					Formatter: "{value}ml",
-					Color: drawing.Color{
-						R: 84,
-						G: 112,
-						B: 198,
+					Formatter: "{value}°C",
+					Color: charts.Color{
+						R: 250,
+						G: 200,
+						B: 88,
 						A: 255,
 					},
 				},
@@ -426,9 +475,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 						20.0,
 						6.4,
 						3.3,
-						10.2,
 					}),
-					YAxisIndex: 1,
 				},
 				{
 					Type: charts.ChartTypeBar,
@@ -445,9 +492,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 						18.8,
 						6.0,
 						2.3,
-						20.2,
 					}),
-					YAxisIndex: 1,
 				},
 				{
 					Data: charts.NewSeriesDataFromValues([]float64{
@@ -463,8 +508,8 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 						16.5,
 						12.0,
 						6.2,
-						30.3,
 					}),
+					AxisIndex: 1,
 				},
 			},
 		},
@@ -574,6 +619,20 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 			SeriesList: []charts.Series{
 				{
 					Type: charts.ChartTypeFunnel,
+					Name: "Show",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						100,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
+					Name: "Click",
+					Data: charts.NewSeriesDataFromValues([]float64{
+						80,
+					}),
+				},
+				{
+					Type: charts.ChartTypeFunnel,
 					Name: "Visit",
 					Data: charts.NewSeriesDataFromValues([]float64{
 						60,
@@ -593,20 +652,6 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 						20,
 					}),
 				},
-				{
-					Type: charts.ChartTypeFunnel,
-					Name: "Click",
-					Data: charts.NewSeriesDataFromValues([]float64{
-						80,
-					}),
-				},
-				{
-					Type: charts.ChartTypeFunnel,
-					Name: "Show",
-					Data: charts.NewSeriesDataFromValues([]float64{
-						100,
-					}),
-				},
 			},
 		},
 		// 多图展示
@@ -620,7 +665,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 					"Walnut Brownie",
 				},
 			},
-			Padding: chart.Box{
+			Padding: charts.Box{
 				Top:    100,
 				Right:  10,
 				Bottom: 10,
@@ -634,7 +679,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 				"2016",
 				"2017",
 			}),
-			YAxisList: []charts.YAxisOption{
+			YAxisOptions: []charts.YAxisOption{
 				{
 
 					Min: charts.NewFloatPoint(0),
@@ -686,7 +731,7 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 							"Walnut Brownie",
 						},
 					},
-					Box: chart.Box{
+					Box: charts.Box{
 						Top:    20,
 						Left:   400,
 						Right:  500,
@@ -1013,6 +1058,64 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 		}`,
 		`{
 			"title": {
+				"text": "World Population"
+			},
+			"tooltip": {
+				"trigger": "axis",
+				"axisPointer": {
+					"type": "shadow"
+				}
+			},
+			"legend": {},
+			"grid": {
+				"left": "3%",
+				"right": "4%",
+				"bottom": "3%",
+				"containLabel": true
+			},
+			"xAxis": {
+				"type": "value"
+			},
+			"yAxis": {
+				"type": "category",
+				"data": [
+					"Brazil",
+					"Indonesia",
+					"USA",
+					"India",
+					"China",
+					"World"
+				]
+			},
+			"series": [
+				{
+					"name": "2011",
+					"type": "bar",
+					"data": [
+						18203,
+						23489,
+						29034,
+						104970,
+						131744,
+						630230
+					]
+				},
+				{
+					"name": "2012",
+					"type": "bar",
+					"data": [
+						19325,
+						23438,
+						31000,
+						121594,
+						134141,
+						681807
+					]
+				}
+			]
+		}`,
+		`{
+			"title": {
 				"text": "Rainfall vs Evaporation",
 				"subtext": "Fake Data"
 			},
@@ -1172,12 +1275,7 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 						23.2,
 						25.6,
 						76.7,
-						135.6,
-						162.2,
-						32.6,
-						20,
-						6.4,
-						3.3
+						135.6
 					]
 				},
 				{
@@ -1191,12 +1289,7 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 						26.4,
 						28.7,
 						70.7,
-						175.6,
-						182.2,
-						48.7,
-						18.8,
-						6,
-						2.3
+						175.6
 					]
 				},
 				{
@@ -1211,12 +1304,7 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 						4.5,
 						6.3,
 						10.2,
-						20.3,
-						23.4,
-						23,
-						16.5,
-						12,
-						6.2
+						20.3
 					]
 				}
 			]

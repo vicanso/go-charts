@@ -19,7 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
 package charts
 
 import (
@@ -28,14 +27,21 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/wcharczuk/go-chart/v2"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 type SeriesData struct {
 	// The value of series data
 	Value float64
 	// The style of series data
-	Style chart.Style
+	Style Style
+}
+
+func NewSeriesListDataFromValues(values [][]float64, chartType ...string) SeriesList {
+	seriesList := make(SeriesList, len(values))
+	for index, value := range values {
+		seriesList[index] = NewSeriesFromValues(value, chartType...)
+	}
+	return seriesList
 }
 
 func NewSeriesFromValues(values []float64, chartType ...string) Series {
@@ -65,7 +71,7 @@ type SeriesLabel struct {
 	// {d}: the percent of a data item(pie chart).
 	Formatter string
 	// The color for label
-	Color drawing.Color
+	Color Color
 	// Show flag for label
 	Show bool
 	// Distance to the host graphic element.
@@ -101,8 +107,8 @@ type Series struct {
 	// The data list of series
 	Data []SeriesData
 	// The Y axis index, it should be 0 or 1.
-	// Default value is 1
-	YAxisIndex int
+	// Default value is 0
+	AxisIndex int
 	// The style for series
 	Style chart.Style
 	// The label for series
@@ -121,6 +127,54 @@ type Series struct {
 	Max *float64
 }
 type SeriesList []Series
+
+func (sl SeriesList) init() {
+	if sl[len(sl)-1].index != 0 {
+		return
+	}
+	for i := 0; i < len(sl); i++ {
+		if sl[i].Type == "" {
+			sl[i].Type = ChartTypeLine
+		}
+		sl[i].index = i
+	}
+}
+
+func (sl SeriesList) reverse() {
+	for i, j := 0, len(sl)-1; i < j; i, j = i+1, j-1 {
+		sl[i], sl[j] = sl[j], sl[i]
+	}
+}
+
+func (sl SeriesList) Filter(chartType string) SeriesList {
+	arr := make(SeriesList, 0)
+	for index, item := range sl {
+		if item.Type == chartType {
+			arr = append(arr, sl[index])
+		}
+	}
+	return arr
+}
+
+// GetMaxMin get max and min value of series list
+func (sl SeriesList) GetMaxMin(axisIndex int) (float64, float64) {
+	min := math.MaxFloat64
+	max := -math.MaxFloat64
+	for _, series := range sl {
+		if series.AxisIndex != axisIndex {
+			continue
+		}
+		for _, item := range series.Data {
+			if item.Value > max {
+				max = item.Value
+			}
+			if item.Value < min {
+				min = item.Value
+			}
+		}
+	}
+	return max, min
+}
 
 type PieSeriesOption struct {
 	Radius string

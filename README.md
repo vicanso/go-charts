@@ -33,7 +33,7 @@ import (
 )
 
 func main() {
-values := [][]float64{
+	values := [][]float64{
 		{
 			120,
 			132,

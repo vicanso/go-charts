@@ -66,7 +66,7 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 	p := l.p
 	opt := l.opt
 	boundaryGap := true
-	if opt.XAxis.BoundaryGap != nil && !*opt.XAxis.BoundaryGap {
+	if isFalse(opt.XAxis.BoundaryGap) {
 		boundaryGap = false
 	}
 

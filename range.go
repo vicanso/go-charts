@@ -115,13 +115,3 @@ func (r *axisRange) GetRange(index int) (float64, float64) {
 func (r *axisRange) AutoDivide() []int {
 	return autoDivide(r.size, r.divideCount)
 }
-
-func (r *axisRange) getWidth(value float64) int {
-	v := value / (r.max - r.min)
-	// 移至居中
-	if r.boundary &&
-		r.divideCount != 0 {
-		v += 1 / float64(r.divideCount*2)
-	}
-	return int(v * float64(r.size))
-}

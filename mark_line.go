@@ -105,13 +105,3 @@ func (m *markLinePainter) Render() (Box, error) {
 	}
 	return BoxZero, nil
 }
-
-func markLineRender(opt markLineRenderOption) {
-	// d := opt.Draw
-	// s := opt.Series
-	// if len(s.MarkLine.Data) == 0 {
-	// 	return
-	// }
-	// r := d.Render
-
-}

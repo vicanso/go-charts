@@ -92,7 +92,7 @@ func (l *legendPainter) Render() (Box, error) {
 	opt := l.opt
 	theme := opt.Theme
 	if opt.IsEmpty() ||
-		(opt.Show != nil && !*opt.Show) {
+		isFalse(opt.Show) {
 		return BoxZero, nil
 	}
 	if theme == nil {

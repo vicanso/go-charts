@@ -41,7 +41,7 @@ type Painter struct {
 }
 
 type PainterOptions struct {
-	// Draw type, "svg" or "png", default type is "svg"
+	// Draw type, "svg" or "png", default type is "png"
 	Type string
 	// The width of draw painter
 	Width int
@@ -628,7 +628,7 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 		values = autoDivide(width, count)
 	}
 	for index, text := range opt.TextList {
-		if index%opt.Unit != 0 {
+		if opt.Unit != 0 && index%opt.Unit != 0 {
 			continue
 		}
 		box := p.MeasureText(text)

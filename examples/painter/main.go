@@ -430,7 +430,7 @@ func main() {
 		Left:   1,
 		Right:  p.Width() - 1,
 		Bottom: top + 30,
-	})), charts.LegendPainterOption{
+	})), charts.LegendOption{
 		Left: "10",
 		Data: []string{
 			"Email",
@@ -449,7 +449,7 @@ func main() {
 		Left:   1,
 		Right:  p.Width() - 1,
 		Bottom: top + 30,
-	})), charts.LegendPainterOption{
+	})), charts.LegendOption{
 		Left: charts.PositionRight,
 		Data: []string{
 			"Email",
@@ -470,7 +470,7 @@ func main() {
 		Left:   1,
 		Right:  p.Width() - 1,
 		Bottom: top + 100,
-	})), charts.LegendPainterOption{
+	})), charts.LegendOption{
 		Top: "10",
 		Data: []string{
 			"Email",

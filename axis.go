@@ -81,7 +81,10 @@ func (a *axisPainter) Render() (Box, error) {
 	opt := a.opt
 	top := a.p
 	theme := opt.Theme
-	if opt.Show != nil && !*opt.Show {
+	if theme == nil {
+		theme = top.theme
+	}
+	if isFalse(opt.Show) {
 		return BoxZero, nil
 	}
 
@@ -121,7 +124,7 @@ func (a *axisPainter) Render() (Box, error) {
 	tickCount := dataCount
 
 	boundaryGap := true
-	if opt.BoundaryGap != nil && !*opt.BoundaryGap {
+	if isFalse(opt.BoundaryGap) {
 		boundaryGap = false
 	}
 	isVertical := opt.Position == PositionLeft ||

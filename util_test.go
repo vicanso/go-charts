@@ -99,7 +99,7 @@ func TestMeasureTextMaxWidthHeight(t *testing.T) {
 		"Sat",
 		"Sun",
 	}, p)
-	assert.Equal(26, maxWidth)
+	assert.Equal(31, maxWidth)
 	assert.Equal(12, maxHeight)
 }
 

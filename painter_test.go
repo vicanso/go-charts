@@ -39,6 +39,7 @@ func TestPainterOption(t *testing.T) {
 	d, err := NewPainter(PainterOptions{
 		Width:  800,
 		Height: 600,
+		Type:   ChartOutputSVG,
 	},
 		PainterBoxOption(Box{
 			Right:  400,
@@ -329,6 +330,7 @@ func TestPainter(t *testing.T) {
 		d, err := NewPainter(PainterOptions{
 			Width:  400,
 			Height: 300,
+			Type:   ChartOutputSVG,
 		}, PainterPaddingOption(chart.Box{
 			Left: 5,
 			Top:  10,
@@ -346,6 +348,7 @@ func TestPainterTextFit(t *testing.T) {
 	p, err := NewPainter(PainterOptions{
 		Width:  400,
 		Height: 300,
+		Type:   ChartOutputSVG,
 	})
 	assert.Nil(err)
 	f, _ := chart.GetDefaultFont()

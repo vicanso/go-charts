@@ -503,4 +503,6 @@ BenchmarkMultiChartSVGRender-8               367           3356325 ns/op        
 
 字体文件可以在[中文字库noto-cjk](https://github.com/googlefonts/noto-cjk)下载，注意下载时选择字体格式为 `ttf` 格式，如果选用 `otf` 格式可能会加载失败。
 
+
 示例见 [examples/chinese/main.go](examples/chinese/main.go)
+

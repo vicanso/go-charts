@@ -114,5 +114,6 @@ func main() {
 	err = writeFile(buf)
 	if err != nil {
 		panic(err)
-	}
-}
+  }
+)
+

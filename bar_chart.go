@@ -60,6 +60,13 @@ type BarChartOption struct {
 	Legend LegendOption
 }
 
+type barChartLabelRenderOption struct {
+	Text  string
+	Style Style
+	X     int
+	Y     int
+}
+
 func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
 	p := b.p
 	opt := b.opt
@@ -95,6 +102,7 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 		markPointPainter,
 		markLinePainter,
 	}
+	labelRenderOptions := make([]barChartLabelRenderOption, 0)
 	for index := range seriesList {
 		series := seriesList[index]
 		yRange := result.axisRanges[series.AxisIndex]
@@ -156,9 +164,15 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			if !series.Label.Color.IsZero() {
 				labelStyle.FontColor = series.Label.Color
 			}
-			seriesPainter.OverrideTextStyle(labelStyle)
+
 			textBox := seriesPainter.MeasureText(text)
-			seriesPainter.Text(text, x+(barWidth-textBox.Width())>>1, barMaxHeight-h-distance)
+
+			labelRenderOptions = append(labelRenderOptions, barChartLabelRenderOption{
+				Text:  text,
+				Style: labelStyle,
+				X:     x + (barWidth-textBox.Width())>>1,
+				Y:     barMaxHeight - h - distance,
+			})
 		}
 
 		markPointPainter.Add(markPointRenderOption{
@@ -175,6 +189,10 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			Series:      series,
 			Range:       yRange,
 		})
+	}
+	for _, labelOpt := range labelRenderOptions {
+		seriesPainter.OverrideTextStyle(labelOpt.Style)
+		seriesPainter.Text(labelOpt.Text, labelOpt.X, labelOpt.Y)
 	}
 	// 最大、最小的mark point
 	err := doRender(rendererList...)

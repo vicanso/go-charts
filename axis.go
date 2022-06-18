@@ -194,7 +194,7 @@ func (a *axisPainter) Render() (Box, error) {
 
 	switch opt.Position {
 	case PositionTop:
-		labelPaddingTop = labelMargin
+		labelPaddingTop = 0
 		x1 = p.Width()
 		y0 = labelMargin + int(opt.FontSize)
 		ticksPaddingTop = int(opt.FontSize)

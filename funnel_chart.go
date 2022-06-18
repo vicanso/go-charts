@@ -34,6 +34,16 @@ type funnelChart struct {
 	opt *FunnelChartOption
 }
 
+func NewFunnelSeriesList(values []float64) SeriesList {
+	seriesList := make(SeriesList, len(values))
+	for index, value := range values {
+		seriesList[index] = NewSeriesFromValues([]float64{
+			value,
+		}, ChartTypeFunnel)
+	}
+	return seriesList
+}
+
 func NewFunnelChart(p *Painter, opt FunnelChartOption) *funnelChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme

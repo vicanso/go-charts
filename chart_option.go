@@ -336,12 +336,7 @@ func RadarRender(values [][]float64, opts ...OptionFunc) (*Painter, error) {
 
 // FunnelRender funnel chart render
 func FunnelRender(values []float64, opts ...OptionFunc) (*Painter, error) {
-	seriesList := make(SeriesList, len(values))
-	for index, value := range values {
-		seriesList[index] = NewSeriesFromValues([]float64{
-			value,
-		}, ChartTypeFunnel)
-	}
+	seriesList := NewFunnelSeriesList(values)
 	return Render(ChartOption{
 		SeriesList: seriesList,
 	}, opts...)

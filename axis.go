@@ -92,6 +92,9 @@ func (a *axisPainter) Render() (Box, error) {
 
 	font := opt.Font
 	if font == nil {
+		font = a.p.font
+	}
+	if font == nil {
 		font = theme.GetFont()
 	}
 	fontColor := opt.FontColor

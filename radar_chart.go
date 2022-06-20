@@ -62,6 +62,20 @@ type RadarChartOption struct {
 	backgroundIsFilled bool
 }
 
+func NewRadarIndicators(names []string, values []float64) []RadarIndicator {
+	if len(names) != len(values) {
+		return nil
+	}
+	indicators := make([]RadarIndicator, len(names))
+	for index, name := range names {
+		indicators[index] = RadarIndicator{
+			Name: name,
+			Max:  values[index],
+		}
+	}
+	return indicators
+}
+
 func NewRadarChart(p *Painter, opt RadarChartOption) *radarChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme

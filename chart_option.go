@@ -201,17 +201,7 @@ func ChildOptionFunc(child ...ChartOption) OptionFunc {
 // RadarIndicatorOptionFunc set radar indicator of chart
 func RadarIndicatorOptionFunc(names []string, values []float64) OptionFunc {
 	return func(opt *ChartOption) {
-		if len(names) != len(values) {
-			return
-		}
-		indicators := make([]RadarIndicator, len(names))
-		for index, name := range names {
-			indicators[index] = RadarIndicator{
-				Name: name,
-				Max:  values[index],
-			}
-		}
-		opt.RadarIndicators = indicators
+		opt.RadarIndicators = NewRadarIndicators(names, values)
 	}
 }
 

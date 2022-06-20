@@ -24,6 +24,7 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
+	"github.com/wcharczuk/go-chart/v2"
 )
 
 func NewMarkLine(markLineTypes ...string) SeriesMarkLine {
@@ -70,6 +71,10 @@ func (m *markLinePainter) Render() (Box, error) {
 		if len(s.MarkLine.Data) == 0 {
 			continue
 		}
+		font := opt.Font
+		if font == nil {
+			font, _ = chart.GetDefaultFont()
+		}
 		summary := s.Summary()
 		for _, markLine := range s.MarkLine.Data {
 			// 由于mark line会修改style，因此每次重新设置
@@ -82,7 +87,7 @@ func (m *markLinePainter) Render() (Box, error) {
 					2,
 				},
 			}).OverrideTextStyle(Style{
-				Font:      opt.Font,
+				Font:      font,
 				FontColor: opt.FontColor,
 				FontSize:  labelFontSize,
 			})

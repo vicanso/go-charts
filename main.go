@@ -8,7 +8,7 @@ import (
 
 	"github.com/vicanso/elton"
 	"github.com/vicanso/elton/middleware"
-	"github.com/vicanso/go-charts"
+	"github.com/vicanso/go-charts/v2"
 )
 
 //go:embed web

@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -98,7 +97,6 @@ func TestNewLegend(t *testing.T) {
 		assert.Nil(err)
 		data, err := tt.render(p)
 		assert.Nil(err)
-		fmt.Println(string(data))
 		assert.Equal(tt.result, string(data))
 	}
 }

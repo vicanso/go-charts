@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -103,7 +102,6 @@ func TestRadarChart(t *testing.T) {
 			Bottom: 20,
 		})))
 		assert.Nil(err)
-		fmt.Println(string(data))
 		assert.Equal(tt.result, string(data))
 	}
 }

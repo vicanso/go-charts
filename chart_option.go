@@ -69,9 +69,9 @@ type ChartOption struct {
 // OptionFunc option function
 type OptionFunc func(opt *ChartOption)
 
-// PNGTypeOption set png type of chart's output
-func PNGTypeOption() OptionFunc {
-	return TypeOptionFunc(ChartOutputPNG)
+// SVGTypeOption set svg type of chart's output
+func SVGTypeOption() OptionFunc {
+	return TypeOptionFunc(ChartOutputSVG)
 }
 
 // TypeOptionFunc set type of chart's output

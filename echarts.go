@@ -60,9 +60,9 @@ type EChartStyle struct {
 	Color string `json:"color"`
 }
 
-func (es *EChartStyle) ToStyle() chart.Style {
+func (es *EChartStyle) ToStyle() Style {
 	color := parseColor(es.Color)
-	return chart.Style{
+	return Style{
 		FillColor:   color,
 		FontColor:   color,
 		StrokeColor: color,

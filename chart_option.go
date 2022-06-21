@@ -74,6 +74,11 @@ func SVGTypeOption() OptionFunc {
 	return TypeOptionFunc(ChartOutputSVG)
 }
 
+// PNGTypeOption set png type of chart's output
+func PNGTypeOption() OptionFunc {
+	return TypeOptionFunc(ChartOutputPNG)
+}
+
 // TypeOptionFunc set type of chart's output
 func TypeOptionFunc(t string) OptionFunc {
 	return func(opt *ChartOption) {

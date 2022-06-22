@@ -69,7 +69,7 @@ func TestMarkPoint(t *testing.T) {
 				}
 				return p.Bytes()
 			},
-			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"600\" height=\"400\">\\n<path  d=\"M 67 62\nA 15 15 330.00 1 1 73 62\nL 70 48\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><path  d=\"M 55 48\nQ70,85 85,48\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><text x=\"66\" y=\"53\" style=\"stroke-width:0;stroke:none;fill:rgba(70,70,70,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">3</text></svg>",
+			result: "<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"600\" height=\"400\">\\n<path  d=\"M 67 62\nA 15 15 330.00 1 1 73 62\nL 70 48\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><path  d=\"M 55 48\nQ70,85 85,48\nZ\" style=\"stroke-width:0;stroke:none;fill:rgba(0,0,0,1.0)\"/><text x=\"66\" y=\"53\" style=\"stroke-width:0;stroke:none;fill:rgba(238,238,238,1.0);font-size:12.8px;font-family:'Roboto Medium',sans-serif\">3</text></svg>",
 		},
 	}
 

@@ -5,7 +5,7 @@
 
 [中文](./README_zh.md)
 
-`go-charts` base on [go-chart](https://github.com/wcharczuk/go-chart)，it is simpler way for generating charts, which supports `svg` and `png` format and themes: `light`, `dark`, `grafana` and `ant`.
+`go-charts` base on [go-chart](https://github.com/wcharczuk/go-chart)，it is simpler way for generating charts, which supports `svg` and `png` format and themes: `light`, `dark`, `grafana` and `ant`. The default format is `png` and the default theme is `light`.
 
 `Apache ECharts` is popular among Front-end developers, so `go-charts` supports the option of `Apache ECharts`. Developers can generate charts almost the same as `Apache ECharts`. 
 

@@ -24,6 +24,7 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 func NewMarkPoint(markPointTypes ...string) SeriesMarkPoint {
@@ -63,7 +64,6 @@ func NewMarkPointPainter(p *Painter) *markPointPainter {
 
 func (m *markPointPainter) Render() (Box, error) {
 	painter := m.p
-	theme := m.p.theme
 	for _, opt := range m.options {
 		s := opt.Series
 		if len(s.MarkPoint.Data) == 0 {
@@ -75,15 +75,23 @@ func (m *markPointPainter) Render() (Box, error) {
 		if symbolSize == 0 {
 			symbolSize = 30
 		}
-		painter.OverrideDrawingStyle(Style{
-			FillColor: opt.FillColor,
-		}).OverrideTextStyle(Style{
-			FontColor:   theme.GetTextColor(),
+		textStyle := Style{
+			FontColor: drawing.Color{
+				R: 238,
+				G: 238,
+				B: 238,
+				A: 255,
+			},
 			FontSize:    labelFontSize,
 			StrokeWidth: 1,
 			Font:        opt.Font,
-		})
+		}
+		painter.OverrideDrawingStyle(Style{
+			FillColor: opt.FillColor,
+		}).OverrideTextStyle(textStyle)
 		for _, markPointData := range s.MarkPoint.Data {
+			textStyle.FontSize = labelFontSize
+			painter.OverrideTextStyle(textStyle)
 			p := points[summary.MinIndex]
 			value := summary.MinValue
 			switch markPointData.Type {
@@ -95,6 +103,11 @@ func (m *markPointPainter) Render() (Box, error) {
 			painter.Pin(p.X, p.Y-symbolSize>>1, symbolSize)
 			text := commafWithDigits(value)
 			textBox := painter.MeasureText(text)
+			if textBox.Width() > symbolSize {
+				textStyle.FontSize = smallLabelFontSize
+				painter.OverrideTextStyle(textStyle)
+				textBox = painter.MeasureText(text)
+			}
 			painter.Text(text, p.X-textBox.Width()>>1, p.Y-symbolSize>>1-2)
 		}
 	}

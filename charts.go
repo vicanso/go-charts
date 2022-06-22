@@ -28,6 +28,7 @@ import (
 )
 
 const labelFontSize = 10
+const smallLabelFontSize = 8
 const defaultDotWidth = 2.0
 const defaultStrokeWidth = 2.0
 

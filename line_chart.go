@@ -32,6 +32,7 @@ type lineChart struct {
 	opt *LineChartOption
 }
 
+// NewLineChart returns a line chart render
 func NewLineChart(p *Painter, opt LineChartOption) *lineChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme
@@ -43,6 +44,7 @@ func NewLineChart(p *Painter, opt LineChartOption) *lineChart {
 }
 
 type LineChartOption struct {
+	// The theme
 	Theme ColorPalette
 	// The font size
 	Font *truetype.Font

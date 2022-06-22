@@ -37,13 +37,19 @@ type axisRange struct {
 }
 
 type AxisRangeOption struct {
-	Min         float64
-	Max         float64
-	Size        int
-	Boundary    bool
+	// The min value of axis
+	Min float64
+	// The max value of axis
+	Max float64
+	// The size of axis
+	Size int
+	// Boundary gap
+	Boundary bool
+	// The count of divide
 	DivideCount int
 }
 
+// NewRange returns a axis range
 func NewRange(opt AxisRangeOption) axisRange {
 	max := opt.Max
 	min := opt.Min
@@ -88,6 +94,7 @@ func NewRange(opt AxisRangeOption) axisRange {
 	}
 }
 
+// Values returns values of range
 func (r axisRange) Values() []string {
 	offset := (r.max - r.min) / float64(r.divideCount)
 	values := make([]string, 0)
@@ -108,10 +115,13 @@ func (r *axisRange) getRestHeight(value float64) int {
 	return r.size - r.getHeight(value)
 }
 
+// GetRange returns a range of index
 func (r *axisRange) GetRange(index int) (float64, float64) {
 	unit := float64(r.size) / float64(r.divideCount)
 	return unit * float64(index), unit * float64(index+1)
 }
+
+// AutoDivide divides the axis
 func (r *axisRange) AutoDivide() []int {
 	return autoDivide(r.size, r.divideCount)
 }

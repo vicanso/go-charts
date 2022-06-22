@@ -36,6 +36,7 @@ type pieChart struct {
 }
 
 type PieChartOption struct {
+	// The theme
 	Theme ColorPalette
 	// The font size
 	Font *truetype.Font
@@ -51,6 +52,7 @@ type PieChartOption struct {
 	backgroundIsFilled bool
 }
 
+// NewPieChart returns a pie chart renderer
 func NewPieChart(p *Painter, opt PieChartOption) *pieChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme

@@ -136,7 +136,7 @@ func PainterWidthHeightOption(width, height int) PainterOption {
 	}
 }
 
-// NewPainter creates a new painter
+// NewPainter creates a painter
 func NewPainter(opts PainterOptions, opt ...PainterOption) (*Painter, error) {
 	if opts.Width <= 0 || opts.Height <= 0 {
 		return nil, errors.New("width/height can not be nil")

@@ -32,6 +32,7 @@ type barChart struct {
 	opt *BarChartOption
 }
 
+// NewBarChart returns a bar chart renderer
 func NewBarChart(p *Painter, opt BarChartOption) *barChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme
@@ -43,6 +44,7 @@ func NewBarChart(p *Painter, opt BarChartOption) *barChart {
 }
 
 type BarChartOption struct {
+	// The theme
 	Theme ColorPalette
 	// The font size
 	Font *truetype.Font
@@ -155,7 +157,7 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			if distance == 0 {
 				distance = 5
 			}
-			text := NewValueLabelFormater(seriesNames, series.Label.Formatter)(index, item.Value, -1)
+			text := NewValueLabelFormatter(seriesNames, series.Label.Formatter)(index, item.Value, -1)
 			labelStyle := Style{
 				FontColor: theme.GetTextColor(),
 				FontSize:  labelFontSize,

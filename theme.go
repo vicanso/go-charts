@@ -220,6 +220,7 @@ func init() {
 	SetDefaultTheme(ThemeLight)
 }
 
+// SetDefaultTheme sets default theme
 func SetDefaultTheme(name string) {
 	defaultTheme = NewTheme(name)
 }

@@ -28,16 +28,25 @@ type gridPainter struct {
 }
 
 type GridPainterOption struct {
-	StrokeWidth       float64
-	StrokeColor       Color
-	Column            int
-	Row               int
-	IgnoreFirstRow    bool
-	IgnoreLastRow     bool
+	// The stroke width
+	StrokeWidth float64
+	// The stroke color
+	StrokeColor Color
+	// The column of grid
+	Column int
+	// The row of grid
+	Row int
+	// Ignore first row
+	IgnoreFirstRow bool
+	// Ignore last row
+	IgnoreLastRow bool
+	// Ignore first column
 	IgnoreFirstColumn bool
-	IgnoreLastColumn  bool
+	// Ignore last column
+	IgnoreLastColumn bool
 }
 
+// NewGridPainter returns new a grid renderer
 func NewGridPainter(p *Painter, opt GridPainterOption) *gridPainter {
 	return &gridPainter{
 		p:   p,

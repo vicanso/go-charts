@@ -50,6 +50,7 @@ type YAxisOption struct {
 	isCategoryAxis bool
 }
 
+// NewYAxisOptions returns a y axis option
 func NewYAxisOptions(data []string, others ...[]string) []YAxisOption {
 	arr := [][]string{
 		data,
@@ -95,6 +96,7 @@ func (opt *YAxisOption) ToAxisOption() AxisOption {
 	return axisOpt
 }
 
+// NewLeftYAxis returns a left y axis renderer
 func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {
 	p = p.Child(PainterPaddingOption(Box{
 		Bottom: defaultXAxisHeight,
@@ -102,6 +104,7 @@ func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {
 	return NewAxisPainter(p, opt.ToAxisOption())
 }
 
+// NewRightYAxis returns a right y axis renderer
 func NewRightYAxis(p *Painter, opt YAxisOption) *axisPainter {
 	p = p.Child(PainterPaddingOption(Box{
 		Bottom: defaultXAxisHeight,

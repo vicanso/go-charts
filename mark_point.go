@@ -27,6 +27,7 @@ import (
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
+// NewMarkPoint returns a series mark point
 func NewMarkPoint(markPointTypes ...string) SeriesMarkPoint {
 	data := make([]SeriesMarkData, len(markPointTypes))
 	for index, t := range markPointTypes {
@@ -55,6 +56,7 @@ type markPointRenderOption struct {
 	Points    []Point
 }
 
+// NewMarkPointPainter returns a mark point renderer
 func NewMarkPointPainter(p *Painter) *markPointPainter {
 	return &markPointPainter{
 		p:       p,

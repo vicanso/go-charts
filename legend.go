@@ -36,6 +36,7 @@ const IconRect = "rect"
 const IconLineDot = "lineDot"
 
 type LegendOption struct {
+	// The theme
 	Theme ColorPalette
 	// Text array of legend
 	Data []string
@@ -60,6 +61,7 @@ type LegendOption struct {
 	Show *bool
 }
 
+// NewLegendOption returns a legend option
 func NewLegendOption(labels []string, left ...string) LegendOption {
 	opt := LegendOption{
 		Data: labels,
@@ -70,6 +72,7 @@ func NewLegendOption(labels []string, left ...string) LegendOption {
 	return opt
 }
 
+// IsEmpty checks legend is empty
 func (opt *LegendOption) IsEmpty() bool {
 	isEmpty := true
 	for _, v := range opt.Data {
@@ -81,6 +84,7 @@ func (opt *LegendOption) IsEmpty() bool {
 	return isEmpty
 }
 
+// NewLegendPainter returns a legend renderer
 func NewLegendPainter(p *Painter, opt LegendOption) *legendPainter {
 	return &legendPainter{
 		p:   p,

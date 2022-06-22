@@ -53,6 +53,7 @@ type XAxisOption struct {
 
 const defaultXAxisHeight = 30
 
+// NewXAxisOption returns a x axis option
 func NewXAxisOption(data []string, boundaryGap ...*bool) XAxisOption {
 	opt := XAxisOption{
 		Data: data,
@@ -89,6 +90,7 @@ func (opt *XAxisOption) ToAxisOption() AxisOption {
 	return axisOpt
 }
 
+// NewBottomXAxis returns a bottom x axis renderer
 func NewBottomXAxis(p *Painter, opt XAxisOption) *axisPainter {
 	return NewAxisPainter(p, opt.ToAxisOption())
 }

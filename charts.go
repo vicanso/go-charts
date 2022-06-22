@@ -35,11 +35,14 @@ const defaultStrokeWidth = 2.0
 var defaultChartWidth = 600
 var defaultChartHeight = 400
 
+// SetDefaultWidth sets default width of chart
 func SetDefaultWidth(width int) {
 	if width > 0 {
 		defaultChartWidth = width
 	}
 }
+
+// SetDefaultHeight sets default height of chart
 func SetDefaultHeight(height int) {
 	if height > 0 {
 		defaultChartHeight = height

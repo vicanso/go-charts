@@ -84,6 +84,7 @@ type titlePainter struct {
 	opt *TitleOption
 }
 
+// NewTitlePainter returns a title renderer
 func NewTitlePainter(p *Painter, opt TitleOption) *titlePainter {
 	return &titlePainter{
 		p:   p,

@@ -33,6 +33,7 @@ type horizontalBarChart struct {
 }
 
 type HorizontalBarChartOption struct {
+	// The theme
 	Theme ColorPalette
 	// The font size
 	Font *truetype.Font
@@ -50,6 +51,7 @@ type HorizontalBarChartOption struct {
 	Legend LegendOption
 }
 
+// NewHorizontalBarChart returns a horizontal bar chart renderer
 func NewHorizontalBarChart(p *Painter, opt HorizontalBarChartOption) *horizontalBarChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme

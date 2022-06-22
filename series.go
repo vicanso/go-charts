@@ -36,6 +36,7 @@ type SeriesData struct {
 	Style Style
 }
 
+// NewSeriesListDataFromValues returns a series list
 func NewSeriesListDataFromValues(values [][]float64, chartType ...string) SeriesList {
 	seriesList := make(SeriesList, len(values))
 	for index, value := range values {
@@ -44,6 +45,7 @@ func NewSeriesListDataFromValues(values [][]float64, chartType ...string) Series
 	return seriesList
 }
 
+// NewSeriesFromValues returns a series
 func NewSeriesFromValues(values []float64, chartType ...string) Series {
 	s := Series{
 		Data: NewSeriesDataFromValues(values),
@@ -54,6 +56,7 @@ func NewSeriesFromValues(values []float64, chartType ...string) Series {
 	return s
 }
 
+// NewSeriesDataFromValues return a series data
 func NewSeriesDataFromValues(values []float64) []SeriesData {
 	data := make([]SeriesData, len(values))
 	for index, value := range values {
@@ -204,13 +207,19 @@ func NewPieSeriesList(values []float64, opts ...PieSeriesOption) SeriesList {
 }
 
 type seriesSummary struct {
-	MaxIndex     int
-	MaxValue     float64
-	MinIndex     int
-	MinValue     float64
+	// The index of max value
+	MaxIndex int
+	// The max value
+	MaxValue float64
+	// The index of min value
+	MinIndex int
+	// The min value
+	MinValue float64
+	// THe average value
 	AverageValue float64
 }
 
+// Summary get summary of series
 func (s *Series) Summary() seriesSummary {
 	minIndex := -1
 	maxIndex := -1
@@ -237,6 +246,7 @@ func (s *Series) Summary() seriesSummary {
 	}
 }
 
+// Names returns the names of series list
 func (sl SeriesList) Names() []string {
 	names := make([]string, len(sl))
 	for index, s := range sl {
@@ -245,8 +255,10 @@ func (sl SeriesList) Names() []string {
 	return names
 }
 
+// LabelFormatter label formatter
 type LabelFormatter func(index int, value float64, percent float64) string
 
+// NewPieLabelFormatter returns a pie label formatter
 func NewPieLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 	if len(layout) == 0 {
 		layout = "{b}: {d}"
@@ -254,13 +266,15 @@ func NewPieLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 	return NewLabelFormatter(seriesNames, layout)
 }
 
-func NewValueLabelFormater(seriesNames []string, layout string) LabelFormatter {
+// NewValueLabelFormatter returns a value formatter
+func NewValueLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 	if len(layout) == 0 {
 		layout = "{c}"
 	}
 	return NewLabelFormatter(seriesNames, layout)
 }
 
+// NewLabelFormatter returns a label formaatter
 func NewLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 	return func(index int, value, percent float64) string {
 		// 如果无percent的则设置为<0

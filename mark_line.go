@@ -27,6 +27,7 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
+// NewMarkLine returns a series mark line
 func NewMarkLine(markLineTypes ...string) SeriesMarkLine {
 	data := make([]SeriesMarkData, len(markLineTypes))
 	for index, t := range markLineTypes {
@@ -48,6 +49,7 @@ func (m *markLinePainter) Add(opt markLineRenderOption) {
 	m.options = append(m.options, opt)
 }
 
+// NewMarkLinePainter returns a mark line renderer
 func NewMarkLinePainter(p *Painter) *markLinePainter {
 	return &markLinePainter{
 		p:       p,

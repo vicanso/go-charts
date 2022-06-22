@@ -45,6 +45,7 @@ type RadarIndicator struct {
 }
 
 type RadarChartOption struct {
+	// The theme
 	Theme ColorPalette
 	// The font size
 	Font *truetype.Font
@@ -62,6 +63,7 @@ type RadarChartOption struct {
 	backgroundIsFilled bool
 }
 
+// NewRadarIndicators returns a radar indicator list
 func NewRadarIndicators(names []string, values []float64) []RadarIndicator {
 	if len(names) != len(values) {
 		return nil
@@ -76,6 +78,7 @@ func NewRadarIndicators(names []string, values []float64) []RadarIndicator {
 	return indicators
 }
 
+// NewRadarChart returns a radar chart renderer
 func NewRadarChart(p *Painter, opt RadarChartOption) *radarChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme

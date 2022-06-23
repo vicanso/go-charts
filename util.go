@@ -90,6 +90,30 @@ func autoDivide(max, size int) []int {
 	return values
 }
 
+func autoDivideSpans(max, size int, spans []int) []int {
+	values := autoDivide(max, size)
+	// 重新合并
+	if len(spans) != 0 {
+		newValues := make([]int, len(spans)+1)
+		newValues[0] = 0
+		end := 0
+		for index, v := range spans {
+			end += v
+			newValues[index+1] = values[end]
+		}
+		values = newValues
+	}
+	return values
+}
+
+func sumInt(values []int) int {
+	sum := 0
+	for _, v := range values {
+		sum += v
+	}
+	return sum
+}
+
 // measureTextMaxWidthHeight returns maxWidth and maxHeight of text list
 func measureTextMaxWidthHeight(textList []string, p *Painter) (int, int) {
 	maxWidth := 0

@@ -32,6 +32,8 @@ type GridPainterOption struct {
 	StrokeWidth float64
 	// The stroke color
 	StrokeColor Color
+	// The spans of column
+	ColumnSpans []int
 	// The column of grid
 	Column int
 	// The row of grid
@@ -81,6 +83,7 @@ func (g *gridPainter) Render() (Box, error) {
 	})
 	g.p.Grid(GridOption{
 		Column:            opt.Column,
+		ColumnSpans:       opt.ColumnSpans,
 		Row:               opt.Row,
 		IgnoreColumnLines: ignoreColumnLines,
 		IgnoreRowLines:    ignoreRowLines,

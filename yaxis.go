@@ -65,14 +65,18 @@ func NewYAxisOptions(data []string, others ...[]string) []YAxisOption {
 	return opts
 }
 
-func (opt *YAxisOption) ToAxisOption() AxisOption {
+func (opt *YAxisOption) ToAxisOption(p *Painter) AxisOption {
 	position := PositionLeft
 	if opt.Position == PositionRight {
 		position = PositionRight
 	}
+	theme := opt.Theme
+	if theme == nil {
+		theme = p.theme
+	}
 	axisOpt := AxisOption{
 		Formatter:      opt.Formatter,
-		Theme:          opt.Theme,
+		Theme:          theme,
 		Data:           opt.Data,
 		Position:       position,
 		FontSize:       opt.FontSize,
@@ -81,7 +85,7 @@ func (opt *YAxisOption) ToAxisOption() AxisOption {
 		FontColor:      opt.FontColor,
 		BoundaryGap:    FalseFlag(),
 		SplitLineShow:  true,
-		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
+		SplitLineColor: theme.GetAxisSplitLineColor(),
 		Show:           opt.Show,
 	}
 	if !opt.Color.IsZero() {
@@ -101,7 +105,7 @@ func NewLeftYAxis(p *Painter, opt YAxisOption) *axisPainter {
 	p = p.Child(PainterPaddingOption(Box{
 		Bottom: defaultXAxisHeight,
 	}))
-	return NewAxisPainter(p, opt.ToAxisOption())
+	return NewAxisPainter(p, opt.ToAxisOption(p))
 }
 
 // NewRightYAxis returns a right y axis renderer
@@ -109,7 +113,7 @@ func NewRightYAxis(p *Painter, opt YAxisOption) *axisPainter {
 	p = p.Child(PainterPaddingOption(Box{
 		Bottom: defaultXAxisHeight,
 	}))
-	axisOpt := opt.ToAxisOption()
+	axisOpt := opt.ToAxisOption(p)
 	axisOpt.Position = PositionRight
 	axisOpt.SplitLineShow = false
 	return NewAxisPainter(p, axisOpt)

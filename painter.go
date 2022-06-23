@@ -69,8 +69,9 @@ type MultiTextOption struct {
 }
 
 type GridOption struct {
-	Column int
-	Row    int
+	Column      int
+	Row         int
+	ColumnSpans []int
 	// 忽略不展示的column
 	IgnoreColumnLines []int
 	// 忽略不展示的row
@@ -542,6 +543,9 @@ func (p *Painter) TextFit(body string, x, y, width int) chart.Box {
 	var output chart.Box
 
 	for index, line := range lines {
+		if line == "" {
+			continue
+		}
 		x0 := x
 		y0 := y + output.Height()
 		p.Text(line, x0, y0)
@@ -690,8 +694,12 @@ func (p *Painter) Grid(opt GridOption) *Painter {
 			})
 		}
 	}
-	if opt.Column > 0 {
-		values := autoDivide(width, opt.Column)
+	columnCount := sumInt(opt.ColumnSpans)
+	if columnCount == 0 {
+		columnCount = opt.Column
+	}
+	if columnCount > 0 {
+		values := autoDivideSpans(width, columnCount, opt.ColumnSpans)
 		drawLines(values, opt.IgnoreColumnLines, true)
 	}
 	if opt.Row > 0 {

@@ -97,6 +97,9 @@ func (t *titlePainter) Render() (Box, error) {
 	p := t.p
 	theme := opt.Theme
 
+	if theme == nil {
+		theme = p.theme
+	}
 	if opt.Text == "" && opt.Subtext == "" {
 		return BoxZero, nil
 	}

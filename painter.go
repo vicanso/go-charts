@@ -468,7 +468,7 @@ func (p *Painter) SmoothLineStroke(points []Point) *Painter {
 	return p
 }
 
-func (p *Painter) SetBackground(width, height int, color Color) *Painter {
+func (p *Painter) SetBackground(width, height int, color Color, inside ...bool) *Painter {
 	r := p.render
 	s := chart.Style{
 		FillColor: color,
@@ -476,12 +476,20 @@ func (p *Painter) SetBackground(width, height int, color Color) *Painter {
 	// 背景色
 	p.SetDrawingStyle(s)
 	defer p.ResetStyle()
-	// 设置背景色不使用box，因此不直接使用Painter
-	r.MoveTo(0, 0)
-	r.LineTo(width, 0)
-	r.LineTo(width, height)
-	r.LineTo(0, height)
-	r.LineTo(0, 0)
+	if len(inside) != 0 && inside[0] {
+		p.MoveTo(0, 0)
+		p.LineTo(width, 0)
+		p.LineTo(width, height)
+		p.LineTo(0, height)
+		p.LineTo(0, 0)
+	} else {
+		// 设置背景色不使用box，因此不直接使用Painter
+		r.MoveTo(0, 0)
+		r.LineTo(width, 0)
+		r.LineTo(width, height)
+		r.LineTo(0, height)
+		r.LineTo(0, 0)
+	}
 	p.FillStroke()
 	return p
 }

@@ -143,13 +143,13 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.SetStyle(Style{
 					StrokeWidth: 1,
-					StrokeColor: drawing.Color{
+					StrokeColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
 						A: 255,
 					},
-					FillColor: drawing.Color{
+					FillColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
@@ -165,13 +165,13 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.SetStyle(Style{
 					StrokeWidth: 1,
-					StrokeColor: drawing.Color{
+					StrokeColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
 						A: 255,
 					},
-					FillColor: drawing.Color{
+					FillColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
@@ -187,13 +187,13 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.SetStyle(Style{
 					StrokeWidth: 1,
-					StrokeColor: drawing.Color{
+					StrokeColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
 						A: 255,
 					},
-					FillColor: drawing.Color{
+					FillColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
@@ -209,13 +209,13 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.SetStyle(Style{
 					StrokeWidth: 1,
-					StrokeColor: drawing.Color{
+					StrokeColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
 						A: 255,
 					},
-					FillColor: drawing.Color{
+					FillColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
@@ -231,13 +231,13 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.SetStyle(Style{
 					StrokeWidth: 1,
-					StrokeColor: drawing.Color{
+					StrokeColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
 						A: 255,
 					},
-					FillColor: drawing.Color{
+					FillColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
@@ -253,13 +253,13 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.SetStyle(Style{
 					StrokeWidth: 1,
-					StrokeColor: drawing.Color{
+					StrokeColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
 						A: 255,
 					},
-					FillColor: drawing.Color{
+					FillColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
@@ -279,7 +279,7 @@ func TestPainter(t *testing.T) {
 			fn: func(p *Painter) {
 				p.SetStyle(Style{
 					StrokeWidth: 1,
-					StrokeColor: drawing.Color{
+					StrokeColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,
@@ -297,7 +297,7 @@ func TestPainter(t *testing.T) {
 		{
 			fn: func(p *Painter) {
 				p.SetDrawingStyle(Style{
-					FillColor: drawing.Color{
+					FillColor: Color{
 						R: 84,
 						G: 112,
 						B: 198,

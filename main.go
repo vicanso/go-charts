@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"embed"
+	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -50,9 +51,19 @@ func main() {
 		return nil
 	})
 	e.POST("/", func(c *elton.Context) error {
-		buf, err := charts.RenderEChartsToSVG(string(c.RequestBody))
+		outputType := c.QueryParam("outputType")
+		fn := charts.RenderEChartsToSVG
+		isPNG := false
+		if outputType == "png" {
+			isPNG = true
+			fn = charts.RenderEChartsToPNG
+		}
+		buf, err := fn(string(c.RequestBody))
 		if err != nil {
 			return err
+		}
+		if isPNG {
+			buf = []byte(base64.StdEncoding.EncodeToString(buf))
 		}
 		c.BodyBuffer = bytes.NewBuffer(buf)
 		return nil

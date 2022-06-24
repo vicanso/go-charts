@@ -35,9 +35,15 @@ function run() {
         alert(err.message);
         return;
     }
+    var dom = document.getElementById("outputType")
+    var outputType = dom.value;
 
-    axios.post("/", data).then(function(resp) {
-        document.getElementById("svg").innerHTML = resp;
+    axios.post("/?outputType=" + outputType, data).then(function(resp) {
+        if (outputType == "png") {
+            document.getElementById("svg").innerHTML = '<img src="data:image/png;base64,' + resp + '" />';
+        } else {
+            document.getElementById("svg").innerHTML = resp;
+        }
     }).catch(function(err) {
         alert(err.message);
     });

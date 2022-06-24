@@ -11,6 +11,10 @@ body {
     background-color: #383838;
     text-indent: 2em;
 }
+.header span {
+    margin-left: 50px;
+    margin-right: 5px;
+}
 .codeWrapper {
     position: fixed;
     left: 0;
@@ -61,7 +65,7 @@ body {
     top: 50%;
     margin-top: -200px;
 }
-svg {
+#svg svg, #svg img {
     display: block;
     margin: auto;
 }

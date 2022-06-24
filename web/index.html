@@ -20,7 +20,13 @@
 </head>
 
 <body>
-    <div class="header">Go Charts</div>
+    <div class="header">Go Charts
+        <span>选择图表输出格式：</span>
+        <select id="outputType">
+            <option value="svg">SVG</option>
+            <option value="png">PNG</option>
+        </select>
+    </div>
     <div class="codeWrapper">
         <textarea id="codeInput"></textarea>
         <div class="optionTips">ECharts配置</div>

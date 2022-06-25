@@ -3,8 +3,8 @@ module github.com/vicanso/go-charts-web
 go 1.17
 
 require (
-	github.com/vicanso/elton v1.9.3
-	github.com/vicanso/go-charts/v2 v2.0.0-alpha
+	github.com/vicanso/elton v1.9.4
+	github.com/vicanso/go-charts/v2 v2.0.0
 )
 
 require (

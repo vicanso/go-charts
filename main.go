@@ -26,6 +26,10 @@ func main() {
 	}))
 	e.Use(middleware.NewDefaultError())
 	e.Use(middleware.NewDefaultBodyParser())
+	e.Use(func(c *elton.Context) error {
+		c.NoCache()
+		return c.Next()
+	})
 
 	assetFS := middleware.NewEmbedStaticFS(webFS, "web")
 	e.GET("/static/*", middleware.NewStaticServe(assetFS, middleware.StaticServeConfig{

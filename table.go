@@ -35,6 +35,7 @@ type tableChart struct {
 	opt *TableChartOption
 }
 
+// NewTableChart returns a table chart render
 func NewTableChart(p *Painter, opt TableChartOption) *tableChart {
 	if opt.Theme == nil {
 		opt.Theme = defaultTheme
@@ -50,8 +51,6 @@ type TableChartOption struct {
 	Type string
 	// The width of table
 	Width int
-	// The height of table
-	Height int
 	// The theme
 	Theme ColorPalette
 	// The padding of table cell
@@ -64,7 +63,9 @@ type TableChartOption struct {
 	Spans []int
 	// The font size of table
 	FontSize float64
-	Font     *truetype.Font
+	// The font family, which should be installed first
+	FontFamily string
+	Font       *truetype.Font
 	// The font color of table
 	FontColor Color
 	// The background color of header
@@ -77,26 +78,101 @@ type TableChartOption struct {
 	BackgroundColor Color
 }
 
-var defaultTableHeaderColor = Color{
-	R: 34,
-	G: 34,
-	B: 34,
-	A: 255,
+type TableSetting struct {
+	// The color of header
+	HeaderColor Color
+	// The color of heder text
+	HeaderFontColor Color
+	// The color of table text
+	FontColor Color
+	// The color list of row
+	RowColors []Color
+	// The padding of cell
+	Padding Box
 }
-var defaultTableRowColors = []Color{
-	drawing.ColorWhite,
-	{
-		R: 242,
-		G: 242,
-		B: 242,
+
+var TableLightThemeSetting = TableSetting{
+	HeaderColor: Color{
+		R: 240,
+		G: 240,
+		B: 240,
 		A: 255,
 	},
+	HeaderFontColor: Color{
+		R: 98,
+		G: 105,
+		B: 118,
+		A: 255,
+	},
+	FontColor: Color{
+		R: 70,
+		G: 70,
+		B: 70,
+		A: 255,
+	},
+	RowColors: []Color{
+		drawing.ColorWhite,
+		{
+			R: 247,
+			G: 247,
+			B: 247,
+			A: 255,
+		},
+	},
+	Padding: Box{
+		Left:   10,
+		Top:    10,
+		Right:  10,
+		Bottom: 10,
+	},
 }
-var defaultTablePadding = Box{
-	Left:   10,
-	Top:    10,
-	Right:  10,
-	Bottom: 10,
+
+var TableDarkThemeSetting = TableSetting{
+	HeaderColor: Color{
+		R: 38,
+		G: 38,
+		B: 42,
+		A: 255,
+	},
+	HeaderFontColor: Color{
+		R: 216,
+		G: 217,
+		B: 218,
+		A: 255,
+	},
+	FontColor: Color{
+		R: 216,
+		G: 217,
+		B: 218,
+		A: 255,
+	},
+	RowColors: []Color{
+		{
+			R: 24,
+			G: 24,
+			B: 28,
+			A: 255,
+		},
+		{
+			R: 38,
+			G: 38,
+			B: 42,
+			A: 255,
+		},
+	},
+	Padding: Box{
+		Left:   10,
+		Top:    10,
+		Right:  10,
+		Bottom: 10,
+	},
+}
+
+var tableDefaultSetting = TableLightThemeSetting
+
+// SetDefaultTableSetting sets the default setting for table
+func SetDefaultTableSetting(setting TableSetting) {
+	tableDefaultSetting = setting
 }
 
 type renderInfo struct {
@@ -106,12 +182,12 @@ type renderInfo struct {
 	RowHeights   []int
 }
 
-func (c *tableChart) render() (*renderInfo, error) {
+func (t *tableChart) render() (*renderInfo, error) {
 	info := renderInfo{
 		RowHeights: make([]int, 0),
 	}
-	p := c.p
-	opt := c.opt
+	p := t.p
+	opt := t.opt
 	if len(opt.Header) == 0 {
 		return nil, errors.New("header can not be nil")
 	}
@@ -125,7 +201,7 @@ func (c *tableChart) render() (*renderInfo, error) {
 	}
 	fontColor := opt.FontColor
 	if fontColor.IsZero() {
-		fontColor = theme.GetTextColor()
+		fontColor = tableDefaultSetting.FontColor
 	}
 	font := opt.Font
 	if font == nil {
@@ -133,14 +209,14 @@ func (c *tableChart) render() (*renderInfo, error) {
 	}
 	headerFontColor := opt.HeaderFontColor
 	if opt.HeaderFontColor.IsZero() {
-		headerFontColor = drawing.ColorWhite
+		headerFontColor = tableDefaultSetting.HeaderFontColor
 	}
 
 	spans := opt.Spans
-	if len(spans) != 0 && len(spans) != len(opt.Header) {
+	if len(spans) != len(opt.Header) {
 		newSpans := make([]int, len(opt.Header))
 		for index := range opt.Header {
-			if len(spans) < index {
+			if index >= len(spans) {
 				newSpans[index] = 1
 			} else {
 				newSpans[index] = spans[index]
@@ -149,7 +225,8 @@ func (c *tableChart) render() (*renderInfo, error) {
 		spans = newSpans
 	}
 
-	values := autoDivideSpans(p.Width(), len(opt.Header)+1, spans)
+	sum := sumInt(spans)
+	values := autoDivideSpans(p.Width(), sum, spans)
 	height := 0
 	textStyle := Style{
 		FontSize:  fontSize,
@@ -162,7 +239,7 @@ func (c *tableChart) render() (*renderInfo, error) {
 	headerHeight := 0
 	padding := opt.Padding
 	if padding.IsZero() {
-		padding = defaultTablePadding
+		padding = tableDefaultSetting.Padding
 	}
 
 	renderTableCells := func(textList []string, currentHeight int, cellPadding Box) int {
@@ -201,34 +278,23 @@ func (c *tableChart) render() (*renderInfo, error) {
 	return &info, nil
 }
 
-func (c *tableChart) Render() (Box, error) {
-	p := c.p
-	opt := c.opt
+func (t *tableChart) renderWithInfo(info *renderInfo) (Box, error) {
+	p := t.p
+	opt := t.opt
 	if !opt.BackgroundColor.IsZero() {
 		p.SetBackground(p.Width(), p.Height(), opt.BackgroundColor)
 	}
 	headerBGColor := opt.HeaderBackgroundColor
 	if headerBGColor.IsZero() {
-		headerBGColor = defaultTableHeaderColor
+		headerBGColor = tableDefaultSetting.HeaderColor
 	}
 
-	r := p.render
-	newRender, err := chart.SVG(p.Width(), 100)
-	if err != nil {
-		return BoxZero, err
-	}
-	p.render = newRender
-	info, err := c.render()
-	if err != nil {
-		return BoxZero, err
-	}
-	p.render = r
 	// 如果设置表头背景色
 	p.SetBackground(info.Width, info.HeaderHeight, headerBGColor, true)
 	currentHeight := info.HeaderHeight
 	rowColors := opt.RowBackgroundColors
 	if len(rowColors) == 0 {
-		rowColors = defaultTableRowColors
+		rowColors = tableDefaultSetting.RowColors
 	}
 	for index, h := range info.RowHeights {
 		color := rowColors[index%len(rowColors)]
@@ -238,7 +304,7 @@ func (c *tableChart) Render() (Box, error) {
 		child.SetBackground(p.Width(), h, color, true)
 		currentHeight += h
 	}
-	_, err = c.render()
+	_, err := t.render()
 	if err != nil {
 		return BoxZero, err
 	}
@@ -247,4 +313,36 @@ func (c *tableChart) Render() (Box, error) {
 		Right:  info.Width,
 		Bottom: info.Height,
 	}, nil
+}
+
+func (t *tableChart) Render() (Box, error) {
+	p := t.p
+	opt := t.opt
+	if !opt.BackgroundColor.IsZero() {
+		p.SetBackground(p.Width(), p.Height(), opt.BackgroundColor)
+	}
+	headerBGColor := opt.HeaderBackgroundColor
+	if headerBGColor.IsZero() {
+		headerBGColor = tableDefaultSetting.HeaderColor
+	}
+	if opt.Font == nil && opt.FontFamily != "" {
+		opt.Font, _ = GetFont(opt.FontFamily)
+	}
+
+	r := p.render
+	fn := chart.PNG
+	if p.outputType == ChartOutputSVG {
+		fn = chart.SVG
+	}
+	newRender, err := fn(p.Width(), 100)
+	if err != nil {
+		return BoxZero, err
+	}
+	p.render = newRender
+	info, err := t.render()
+	if err != nil {
+		return BoxZero, err
+	}
+	p.render = r
+	return t.renderWithInfo(info)
 }

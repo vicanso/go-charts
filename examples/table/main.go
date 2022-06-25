@@ -24,45 +24,49 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
-	p, err := charts.TableRender(charts.TableChartOption{
-		Header: []string{
-			"Name",
-			"Age",
-			"Address",
-			"Tag",
-			"Action",
+	charts.SetDefaultWidth(810)
+	header := []string{
+		"Name",
+		"Age",
+		"Address",
+		"Tag",
+		"Action",
+	}
+	data := [][]string{
+		{
+			"John Brown",
+			"32",
+			"New York No. 1 Lake Park",
+			"nice, developer",
+			"Send Mail",
 		},
-		Spans: []int{
-			1,
-			1,
-			2,
-			1,
-			1,
+		{
+			"Jim Green	",
+			"42",
+			"London No. 1 Lake Park",
+			"wow",
+			"Send Mail",
 		},
-		Data: [][]string{
-			{
-				"John Brown",
-				"32",
-				"New York No. 1 Lake Park",
-				"nice, developer",
-				"Send Mail",
-			},
-			{
-				"Jim Green	",
-				"42",
-				"London No. 1 Lake Park",
-				"wow",
-				"Send Mail",
-			},
-			{
-				"Joe Black	",
-				"32",
-				"Sidney No. 1 Lake Park",
-				"cool, teacher",
-				"Send Mail",
-			},
+		{
+			"Joe Black	",
+			"32",
+			"Sidney No. 1 Lake Park",
+			"cool, teacher",
+			"Send Mail",
 		},
-	},
+	}
+	spans := map[int]int{
+		0: 2,
+		1: 1,
+		// 设置第三列的span
+		2: 3,
+		3: 2,
+		4: 2,
+	}
+	p, err := charts.TableRender(
+		header,
+		data,
+		spans,
 	)
 	if err != nil {
 		panic(err)

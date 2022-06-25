@@ -38,6 +38,8 @@ type Painter struct {
 	parent *Painter
 	style  Style
 	theme  ColorPalette
+	// 类型
+	outputType string
 }
 
 type PainterOptions struct {
@@ -169,6 +171,8 @@ func NewPainter(opts PainterOptions, opt ...PainterOption) (*Painter, error) {
 			Bottom: opts.Height,
 		},
 		font: font,
+		// 类型
+		outputType: opts.Type,
 	}
 	p.setOptions(opt...)
 	if p.theme == nil {

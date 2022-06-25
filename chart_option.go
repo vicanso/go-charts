@@ -23,7 +23,6 @@
 package charts
 
 import (
-	"fmt"
 	"sort"
 
 	"github.com/golang/freetype/truetype"
@@ -338,24 +337,44 @@ func FunnelRender(values []float64, opts ...OptionFunc) (*Painter, error) {
 	}, opts...)
 }
 
-func TableRender(opt TableChartOption) (*Painter, error) {
+// TableRender table chart render
+func TableRender(header []string, data [][]string, spanMaps ...map[int]int) (*Painter, error) {
+	opt := TableChartOption{
+		Header: header,
+		Data:   data,
+	}
+	if len(spanMaps) != 0 {
+		spanMap := spanMaps[0]
+		spans := make([]int, len(opt.Header))
+		for index := range spans {
+			v, ok := spanMap[index]
+			if !ok {
+				v = 1
+			}
+			spans[index] = v
+		}
+		opt.Spans = spans
+	}
+	return TableOptionRender(opt)
+}
+
+// TableOptionRender table render with option
+func TableOptionRender(opt TableChartOption) (*Painter, error) {
 	if opt.Type == "" {
 		opt.Type = ChartOutputPNG
 	}
 	if opt.Width <= 0 {
 		opt.Width = defaultChartWidth
 	}
-	if opt.Height <= 0 {
-		opt.Height = defaultChartHeight
-	}
 	if opt.Font == nil {
 		opt.Font, _ = chart.GetDefaultFont()
 	}
 
 	p, err := NewPainter(PainterOptions{
-		Type:   opt.Type,
-		Width:  opt.Width,
-		Height: opt.Height,
+		Type:  opt.Type,
+		Width: opt.Width,
+		// 仅用于计算表格高度，因此随便设置即可
+		Height: 100,
 		Font:   opt.Font,
 	})
 	if err != nil {
@@ -365,8 +384,6 @@ func TableRender(opt TableChartOption) (*Painter, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(*info)
-	fmt.Println(info.Height)
 
 	p, err = NewPainter(PainterOptions{
 		Type:   opt.Type,
@@ -377,31 +394,9 @@ func TableRender(opt TableChartOption) (*Painter, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = NewTableChart(p, opt).Render()
+	_, err = NewTableChart(p, opt).renderWithInfo(info)
 	if err != nil {
 		return nil, err
 	}
-
-	// opt := ChartOption{}
-	// for _, fn := range opts {
-	// 	fn(&opt)
-	// }
-	// opt.fillDefault()
-	// p, err := NewPainter(PainterOptions{
-	// 	Type:   opt.Type,
-	// 	Width:  opt.Width,
-	// 	Height: opt.Height,
-	// 	Font:   opt.font,
-	// })
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// _, err = NewTableChart(p, TableChartOption{
-	// 	Header: header,
-	// 	Data:   data,
-	// }).Render()
-	// if err != nil {
-	// 	return nil, err
-	// }
 	return p, nil
 }

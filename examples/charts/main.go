@@ -92,6 +92,48 @@ func handler(w http.ResponseWriter, req *http.Request, chartOptions []charts.Cha
 		bytesList = append(bytesList, buf)
 	}
 
+	p, err := charts.TableOptionRender(charts.TableChartOption{
+		Type: charts.ChartOutputSVG,
+		Header: []string{
+			"Name",
+			"Age",
+			"Address",
+			"Tag",
+			"Action",
+		},
+		Data: [][]string{
+			{
+				"John Brown",
+				"32",
+				"New York No. 1 Lake Park",
+				"nice, developer",
+				"Send Mail",
+			},
+			{
+				"Jim Green	",
+				"42",
+				"London No. 1 Lake Park",
+				"wow",
+				"Send Mail",
+			},
+			{
+				"Joe Black	",
+				"32",
+				"Sidney No. 1 Lake Park",
+				"cool, teacher",
+				"Send Mail",
+			},
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+	buf, err := p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	bytesList = append(bytesList, buf)
+
 	data := bytes.ReplaceAll([]byte(html), []byte("{{body}}"), bytes.Join(bytesList, []byte("")))
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(data)

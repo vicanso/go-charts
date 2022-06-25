@@ -29,7 +29,9 @@ func main() {
 
 	assetFS := middleware.NewEmbedStaticFS(webFS, "web")
 	e.GET("/static/*", middleware.NewStaticServe(assetFS, middleware.StaticServeConfig{
-		// 缓存服务器缓存一个小时
+		// 客户端缓存
+		MaxAge: 10 * time.Minute,
+		// 缓存服务器缓存
 		SMaxAge:             5 * time.Minute,
 		DenyQueryString:     true,
 		DisableLastModified: true,

@@ -18,9 +18,10 @@ Screenshot of common charts, the left part is light theme, the right part is gra
 <p align="center">
     <img src="./assets/go-table.png" alt="go-table">
 </p>
+
 ## Chart Type
 
-These chart types are supported: `line`, `bar`, `pie`, `radar` or `funnel`.
+These chart types are supported: `line`, `bar`, `pie`, `radar` or `funnel` and `table`.
 
 ## Example
 

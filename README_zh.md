@@ -12,9 +12,13 @@
     <img src="./assets/go-charts.png" alt="go-charts">
 </p>
 
+<p align="center">
+    <img src="./assets/go-table.png" alt="go-table">
+</p
+
 ## 支持图表类型
 
-支持以下的图表类型：`line`, `bar`, `pie`, `radar` 以及 `funnel` 
+支持以下的图表类型：`line`, `bar`, `pie`, `radar`, `funnel` 以及 `table`
 
 
 ## 示例

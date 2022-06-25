@@ -321,10 +321,6 @@ func (t *tableChart) Render() (Box, error) {
 	if !opt.BackgroundColor.IsZero() {
 		p.SetBackground(p.Width(), p.Height(), opt.BackgroundColor)
 	}
-	headerBGColor := opt.HeaderBackgroundColor
-	if headerBGColor.IsZero() {
-		headerBGColor = tableDefaultSetting.HeaderColor
-	}
 	if opt.Font == nil && opt.FontFamily != "" {
 		opt.Font, _ = GetFont(opt.FontFamily)
 	}

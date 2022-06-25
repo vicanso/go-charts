@@ -24,6 +24,7 @@ func writeFile(buf []byte) error {
 }
 
 func main() {
+	// charts.SetDefaultTableSetting(charts.TableDarkThemeSetting)
 	charts.SetDefaultWidth(810)
 	header := []string{
 		"Name",

@@ -4,18 +4,20 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/vicanso/go-charts/v2"
+	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
-func writeFile(buf []byte) error {
+func writeFile(buf []byte, filename string) error {
 	tmpPath := "./tmp"
 	err := os.MkdirAll(tmpPath, 0700)
 	if err != nil {
 		return err
 	}
 
-	file := filepath.Join(tmpPath, "table.png")
+	file := filepath.Join(tmpPath, filename)
 	err = ioutil.WriteFile(file, buf, 0600)
 	if err != nil {
 		return err
@@ -77,7 +79,54 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = writeFile(buf)
+	err = writeFile(buf, "table.png")
+	if err != nil {
+		panic(err)
+	}
+
+	p, err = charts.TableOptionRender(charts.TableChartOption{
+		Header: header,
+		Data:   data,
+		CellTextStyle: func(tc charts.TableCell) *charts.Style {
+			row := tc.Row
+			column := tc.Column
+			style := tc.Style
+			if column == 1 && row != 0 {
+				age, _ := strconv.Atoi(tc.Text)
+				if age < 40 {
+					style.FontColor = drawing.ColorGreen
+				} else {
+					style.FontColor = drawing.ColorRed
+				}
+				return &style
+			}
+			return nil
+		},
+		CellStyle: func(tc charts.TableCell) *charts.Style {
+			row := tc.Row
+			column := tc.Column
+			if row == 2 && column == 1 {
+				return &charts.Style{
+					FillColor: drawing.ColorBlue,
+				}
+			}
+			if row == 3 && column == 4 {
+				return &charts.Style{
+					FillColor: drawing.ColorRed.WithAlpha(100),
+				}
+			}
+			return nil
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	buf, err = p.Bytes()
+	if err != nil {
+		panic(err)
+	}
+	err = writeFile(buf, "table-color.png")
 	if err != nil {
 		panic(err)
 	}

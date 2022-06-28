@@ -46,6 +46,17 @@ func NewTableChart(p *Painter, opt TableChartOption) *tableChart {
 	}
 }
 
+type TableCell struct {
+	// Text the text of table cell
+	Text string
+	// Style the current style of table cell
+	Style Style
+	// Row the row index of table cell
+	Row int
+	// Column the column index of table cell
+	Column int
+}
+
 type TableChartOption struct {
 	// The output type
 	Type string
@@ -76,6 +87,10 @@ type TableChartOption struct {
 	RowBackgroundColors []Color
 	// The background color
 	BackgroundColor Color
+	// CellTextStyle customize text style of table cell
+	CellTextStyle func(TableCell) *Style
+	// CellStyle customize drawing style of table cell
+	CellStyle func(TableCell) *Style
 }
 
 type TableSetting struct {
@@ -180,6 +195,7 @@ type renderInfo struct {
 	Height       int
 	HeaderHeight int
 	RowHeights   []int
+	ColumnWidths []int
 }
 
 func (t *tableChart) render() (*renderInfo, error) {
@@ -227,6 +243,15 @@ func (t *tableChart) render() (*renderInfo, error) {
 
 	sum := sumInt(spans)
 	values := autoDivideSpans(p.Width(), sum, spans)
+	columnWidths := make([]int, 0)
+	for index, v := range values {
+		if index == len(values)-1 {
+			break
+		}
+		columnWidths = append(columnWidths, values[index+1]-v)
+	}
+	info.ColumnWidths = columnWidths
+
 	height := 0
 	textStyle := Style{
 		FontSize:  fontSize,
@@ -234,25 +259,48 @@ func (t *tableChart) render() (*renderInfo, error) {
 		FillColor: headerFontColor,
 		Font:      font,
 	}
-	p.SetStyle(textStyle)
 
 	headerHeight := 0
 	padding := opt.Padding
 	if padding.IsZero() {
 		padding = tableDefaultSetting.Padding
 	}
+	getCellTextStyle := opt.CellTextStyle
+	if getCellTextStyle == nil {
+		getCellTextStyle = func(_ TableCell) *Style {
+			return nil
+		}
+	}
 
-	renderTableCells := func(textList []string, currentHeight int, cellPadding Box) int {
+	// 表格单元的处理
+	renderTableCells := func(
+		currentStyle Style,
+		rowIndex int,
+		textList []string,
+		currentHeight int,
+		cellPadding Box,
+	) int {
 		cellMaxHeight := 0
 		paddingHeight := cellPadding.Top + cellPadding.Bottom
 		paddingWidth := cellPadding.Left + cellPadding.Right
 		for index, text := range textList {
+			cellStyle := getCellTextStyle(TableCell{
+				Text:   text,
+				Row:    rowIndex,
+				Column: index,
+				Style:  currentStyle,
+			})
+			if cellStyle == nil {
+				cellStyle = &currentStyle
+			}
+			p.SetStyle(*cellStyle)
 			x := values[index]
 			y := currentHeight + cellPadding.Top
 			width := values[index+1] - x
 			x += cellPadding.Left
 			width -= paddingWidth
 			box := p.TextFit(text, x, y+int(fontSize), width)
+			// 计算最高的高度
 			if box.Height()+paddingHeight > cellMaxHeight {
 				cellMaxHeight = box.Height() + paddingHeight
 			}
@@ -260,15 +308,16 @@ func (t *tableChart) render() (*renderInfo, error) {
 		return cellMaxHeight
 	}
 
-	headerHeight = renderTableCells(opt.Header, height, padding)
+	// 表头的处理
+	headerHeight = renderTableCells(textStyle, 0, opt.Header, height, padding)
 	height += headerHeight
 	info.HeaderHeight = headerHeight
 
+	// 表格内容的处理
 	textStyle.FontColor = fontColor
 	textStyle.FillColor = fontColor
-	p.SetStyle(textStyle)
-	for _, textList := range opt.Data {
-		cellHeight := renderTableCells(textList, height, padding)
+	for index, textList := range opt.Data {
+		cellHeight := renderTableCells(textStyle, index+1, textList, height, padding)
 		info.RowHeights = append(info.RowHeights, cellHeight)
 		height += cellHeight
 	}
@@ -303,6 +352,41 @@ func (t *tableChart) renderWithInfo(info *renderInfo) (Box, error) {
 		}))
 		child.SetBackground(p.Width(), h, color, true)
 		currentHeight += h
+	}
+	// 根据是否有设置表格样式调整背景色
+	getCellStyle := opt.CellStyle
+	if getCellStyle != nil {
+		arr := [][]string{
+			opt.Header,
+		}
+		arr = append(arr, opt.Data...)
+		top := 0
+		heights := []int{
+			info.HeaderHeight,
+		}
+		heights = append(heights, info.RowHeights...)
+		// 循环所有表格单元，生成背景色
+		for i, textList := range arr {
+			left := 0
+			for j, v := range textList {
+				style := getCellStyle(TableCell{
+					Text:   v,
+					Row:    i,
+					Column: j,
+				})
+				if style != nil && !style.FillColor.IsZero() {
+					child := p.Child(PainterPaddingOption(Box{
+						Top:  top,
+						Left: left,
+					}))
+					w := info.ColumnWidths[j]
+					h := heights[i]
+					child.SetBackground(w, h, style.FillColor, true)
+				}
+				left += info.ColumnWidths[j]
+			}
+			top += heights[i]
+		}
 	}
 	_, err := t.render()
 	if err != nil {

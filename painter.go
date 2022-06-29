@@ -545,7 +545,7 @@ func (p *Painter) Text(body string, x, y int) *Painter {
 	return p
 }
 
-func (p *Painter) TextFit(body string, x, y, width int) chart.Box {
+func (p *Painter) TextFit(body string, x, y, width int, textAligns ...string) chart.Box {
 	style := p.style
 	textWarp := style.TextWrap
 	style.TextWrap = chart.TextWrapWord
@@ -554,14 +554,24 @@ func (p *Painter) TextFit(body string, x, y, width int) chart.Box {
 	p.SetTextStyle(style)
 	var output chart.Box
 
+	textAlign := ""
+	if len(textAligns) != 0 {
+		textAlign = textAligns[0]
+	}
 	for index, line := range lines {
 		if line == "" {
 			continue
 		}
 		x0 := x
 		y0 := y + output.Height()
-		p.Text(line, x0, y0)
 		lineBox := r.MeasureText(line)
+		switch textAlign {
+		case AlignRight:
+			x0 += width - lineBox.Width()
+		case AlignCenter:
+			x0 += (width - lineBox.Width()) >> 1
+		}
+		p.Text(line, x0, y0)
 		output.Right = chart.MaxInt(lineBox.Right, output.Right)
 		output.Bottom += lineBox.Height()
 		if index < len(lines)-1 {

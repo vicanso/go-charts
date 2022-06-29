@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/vicanso/go-charts/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
@@ -84,38 +85,83 @@ func main() {
 		panic(err)
 	}
 
+	bgColor := charts.Color{
+		R: 16,
+		G: 22,
+		B: 30,
+		A: 255,
+	}
 	p, err = charts.TableOptionRender(charts.TableChartOption{
-		Header: header,
-		Data:   data,
-		CellTextStyle: func(tc charts.TableCell) *charts.Style {
-			row := tc.Row
-			column := tc.Column
-			style := tc.Style
-			if column == 1 && row != 0 {
-				age, _ := strconv.Atoi(tc.Text)
-				if age < 40 {
-					style.FontColor = drawing.ColorGreen
-				} else {
-					style.FontColor = drawing.ColorRed
-				}
-				return &style
-			}
-			return nil
+		Header: []string{
+			"Name",
+			"Price",
+			"Change",
+		},
+		BackgroundColor:       bgColor,
+		HeaderBackgroundColor: bgColor,
+		RowBackgroundColors: []charts.Color{
+			bgColor,
+		},
+		HeaderFontColor: drawing.ColorWhite,
+		FontColor:       drawing.ColorWhite,
+		Padding: charts.Box{
+			Top:    15,
+			Right:  10,
+			Bottom: 15,
+			Left:   10,
+		},
+		Data: [][]string{
+			{
+				"Datadog Inc",
+				"97.32",
+				"-7.49%",
+			},
+			{
+				"Hashicorp Inc",
+				"28.66",
+				"-9.25%",
+			},
+			{
+				"Gitlab Inc",
+				"51.63",
+				"+4.32%",
+			},
+		},
+		TextAligns: []string{
+			"",
+			charts.AlignRight,
+			charts.AlignRight,
 		},
 		CellStyle: func(tc charts.TableCell) *charts.Style {
-			row := tc.Row
 			column := tc.Column
-			if row == 2 && column == 1 {
-				return &charts.Style{
-					FillColor: drawing.ColorBlue,
+			if column != 2 {
+				return nil
+			}
+			value, _ := strconv.ParseFloat(strings.Replace(tc.Text, "%", "", 1), 64)
+			if value == 0 {
+				return nil
+			}
+			style := charts.Style{
+				Padding: charts.Box{
+					Bottom: 5,
+				},
+			}
+			if value > 0 {
+				style.FillColor = charts.Color{
+					R: 179,
+					G: 53,
+					B: 20,
+					A: 255,
+				}
+			} else if value < 0 {
+				style.FillColor = charts.Color{
+					R: 33,
+					G: 124,
+					B: 50,
+					A: 255,
 				}
 			}
-			if row == 3 && column == 4 {
-				return &charts.Style{
-					FillColor: drawing.ColorRed.WithAlpha(100),
-				}
-			}
-			return nil
+			return &style
 		},
 	})
 	if err != nil {

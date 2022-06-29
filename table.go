@@ -70,8 +70,10 @@ type TableChartOption struct {
 	Header []string
 	// The data of table
 	Data [][]string
-	// The span of table column
+	// The span list of table column
 	Spans []int
+	// The text align list of table cell
+	TextAligns []string
 	// The font size of table
 	FontSize float64
 	// The font family, which should be installed first
@@ -271,6 +273,13 @@ func (t *tableChart) render() (*renderInfo, error) {
 			return nil
 		}
 	}
+	// textAligns := opt.TextAligns
+	getTextAlign := func(index int) string {
+		if len(opt.TextAligns) <= index {
+			return ""
+		}
+		return opt.TextAligns[index]
+	}
 
 	// 表格单元的处理
 	renderTableCells := func(
@@ -299,7 +308,7 @@ func (t *tableChart) render() (*renderInfo, error) {
 			width := values[index+1] - x
 			x += cellPadding.Left
 			width -= paddingWidth
-			box := p.TextFit(text, x, y+int(fontSize), width)
+			box := p.TextFit(text, x, y+int(fontSize), width, getTextAlign(index))
 			// 计算最高的高度
 			if box.Height()+paddingHeight > cellMaxHeight {
 				cellMaxHeight = box.Height() + paddingHeight
@@ -342,7 +351,7 @@ func (t *tableChart) renderWithInfo(info *renderInfo) (Box, error) {
 	p.SetBackground(info.Width, info.HeaderHeight, headerBGColor, true)
 	currentHeight := info.HeaderHeight
 	rowColors := opt.RowBackgroundColors
-	if len(rowColors) == 0 {
+	if rowColors == nil {
 		rowColors = tableDefaultSetting.RowColors
 	}
 	for index, h := range info.RowHeights {
@@ -375,12 +384,13 @@ func (t *tableChart) renderWithInfo(info *renderInfo) (Box, error) {
 					Column: j,
 				})
 				if style != nil && !style.FillColor.IsZero() {
+					padding := style.Padding
 					child := p.Child(PainterPaddingOption(Box{
-						Top:  top,
-						Left: left,
+						Top:  top + padding.Top,
+						Left: left + padding.Left,
 					}))
-					w := info.ColumnWidths[j]
-					h := heights[i]
+					w := info.ColumnWidths[j] - padding.Left - padding.Top
+					h := heights[i] - padding.Top - padding.Bottom
 					child.SetBackground(w, h, style.FillColor, true)
 				}
 				left += info.ColumnWidths[j]

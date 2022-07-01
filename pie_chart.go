@@ -99,88 +99,79 @@ func (p *pieChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 		seriesNames = seriesList.Names()
 	}
 	theme := opt.Theme
-	if len(values) == 1 {
+
+	currentValue := float64(0)
+	prevEndX := 0
+	prevEndY := 0
+	for index, v := range values {
 		seriesPainter.OverrideDrawingStyle(Style{
 			StrokeWidth: 1,
-			StrokeColor: theme.GetSeriesColor(0),
-			FillColor:   theme.GetSeriesColor(0),
+			StrokeColor: theme.GetSeriesColor(index),
+			FillColor:   theme.GetSeriesColor(index),
 		})
-		seriesPainter.MoveTo(cx, cy).
-			Circle(radius, cx, cy)
-	} else {
-		currentValue := float64(0)
-		prevEndX := 0
-		prevEndY := 0
-		for index, v := range values {
-			seriesPainter.OverrideDrawingStyle(Style{
-				StrokeWidth: 1,
-				StrokeColor: theme.GetSeriesColor(index),
-				FillColor:   theme.GetSeriesColor(index),
-			})
-			seriesPainter.MoveTo(cx, cy)
-			start := chart.PercentToRadians(currentValue/total) - math.Pi/2
-			currentValue += v
-			percent := (v / total)
-			delta := chart.PercentToRadians(percent)
-			seriesPainter.ArcTo(cx, cy, radius, radius, start, delta).
-				LineTo(cx, cy).
-				Close().
-				FillStroke()
+		seriesPainter.MoveTo(cx, cy)
+		start := chart.PercentToRadians(currentValue/total) - math.Pi/2
+		currentValue += v
+		percent := (v / total)
+		delta := chart.PercentToRadians(percent)
+		seriesPainter.ArcTo(cx, cy, radius, radius, start, delta).
+			LineTo(cx, cy).
+			Close().
+			FillStroke()
 
-			series := seriesList[index]
-			// 是否显示label
-			showLabel := series.Label.Show
-			if !showLabel {
-				continue
-			}
-
-			// label的角度为饼块中间
-			angle := start + delta/2
-			startx := cx + int(radius*math.Cos(angle))
-			starty := cy + int(radius*math.Sin(angle))
-
-			endx := cx + int(labelRadius*math.Cos(angle))
-			endy := cy + int(labelRadius*math.Sin(angle))
-			// 计算是否有重叠，如果有则调整y坐标位置
-			if index != 0 &&
-				math.Abs(float64(endx-prevEndX)) < labelFontSize &&
-				math.Abs(float64(endy-prevEndY)) < labelFontSize {
-				endy -= (labelFontSize << 1)
-			}
-			prevEndX = endx
-			prevEndY = endy
-
-			seriesPainter.MoveTo(startx, starty)
-			seriesPainter.LineTo(endx, endy)
-			offset := labelLineWidth
-			if endx < cx {
-				offset *= -1
-			}
-			seriesPainter.MoveTo(endx, endy)
-			endx += offset
-			seriesPainter.LineTo(endx, endy)
-			seriesPainter.Stroke()
-
-			textStyle := Style{
-				FontColor: theme.GetTextColor(),
-				FontSize:  labelFontSize,
-				Font:      opt.Font,
-			}
-			if !series.Label.Color.IsZero() {
-				textStyle.FontColor = series.Label.Color
-			}
-			seriesPainter.OverrideTextStyle(textStyle)
-			text := NewPieLabelFormatter(seriesNames, series.Label.Formatter)(index, v, percent)
-			textBox := seriesPainter.MeasureText(text)
-			textMargin := 3
-			x := endx + textMargin
-			y := endy + textBox.Height()>>1 - 1
-			if offset < 0 {
-				textWidth := textBox.Width()
-				x = endx - textWidth - textMargin
-			}
-			seriesPainter.Text(text, x, y)
+		series := seriesList[index]
+		// 是否显示label
+		showLabel := series.Label.Show
+		if !showLabel {
+			continue
 		}
+
+		// label的角度为饼块中间
+		angle := start + delta/2
+		startx := cx + int(radius*math.Cos(angle))
+		starty := cy + int(radius*math.Sin(angle))
+
+		endx := cx + int(labelRadius*math.Cos(angle))
+		endy := cy + int(labelRadius*math.Sin(angle))
+		// 计算是否有重叠，如果有则调整y坐标位置
+		if index != 0 &&
+			math.Abs(float64(endx-prevEndX)) < labelFontSize &&
+			math.Abs(float64(endy-prevEndY)) < labelFontSize {
+			endy -= (labelFontSize << 1)
+		}
+		prevEndX = endx
+		prevEndY = endy
+
+		seriesPainter.MoveTo(startx, starty)
+		seriesPainter.LineTo(endx, endy)
+		offset := labelLineWidth
+		if endx < cx {
+			offset *= -1
+		}
+		seriesPainter.MoveTo(endx, endy)
+		endx += offset
+		seriesPainter.LineTo(endx, endy)
+		seriesPainter.Stroke()
+
+		textStyle := Style{
+			FontColor: theme.GetTextColor(),
+			FontSize:  labelFontSize,
+			Font:      opt.Font,
+		}
+		if !series.Label.Color.IsZero() {
+			textStyle.FontColor = series.Label.Color
+		}
+		seriesPainter.OverrideTextStyle(textStyle)
+		text := NewPieLabelFormatter(seriesNames, series.Label.Formatter)(index, v, percent)
+		textBox := seriesPainter.MeasureText(text)
+		textMargin := 3
+		x := endx + textMargin
+		y := endy + textBox.Height()>>1 - 1
+		if offset < 0 {
+			textWidth := textBox.Width()
+			x = endx - textWidth - textMargin
+		}
+		seriesPainter.Text(text, x, y)
 	}
 
 	return p.p.box, nil

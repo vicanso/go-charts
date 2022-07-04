@@ -132,6 +132,9 @@ type Series struct {
 type SeriesList []Series
 
 func (sl SeriesList) init() {
+	if len(sl) == 0 {
+		return
+	}
 	if sl[len(sl)-1].index != 0 {
 		return
 	}

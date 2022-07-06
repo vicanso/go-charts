@@ -135,7 +135,11 @@ func (l *legendPainter) Render() (Box, error) {
 	textOffset := 2
 	legendWidth := 30
 	legendHeight := 20
+	itemMaxHeight := 0
 	for _, item := range measureList {
+		if item.Height() > itemMaxHeight {
+			itemMaxHeight = item.Height()
+		}
 		if opt.Orient == OrientVertical {
 			height += item.Height()
 		} else {
@@ -170,6 +174,10 @@ func (l *legendPainter) Render() (Box, error) {
 	}
 	top, _ := strconv.Atoi(opt.Top)
 
+	if left < 0 {
+		left = 0
+	}
+
 	x := int(left)
 	y := int(top) + 10
 	x0 := x
@@ -199,6 +207,10 @@ func (l *legendPainter) Render() (Box, error) {
 			FillColor:   color,
 			StrokeColor: color,
 		})
+		if x0+measureList[index].Width() > p.Width() {
+			x0 = 0
+			y0 += itemMaxHeight
+		}
 		if opt.Align != AlignRight {
 			x0 = drawIcon(y0, x0)
 			x0 += textOffset

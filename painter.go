@@ -653,8 +653,9 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	} else {
 		values = autoDivide(width, count)
 	}
+	showIndex := opt.Unit / 2
 	for index, text := range opt.TextList {
-		if opt.Unit != 0 && index%opt.Unit != 0 {
+		if opt.Unit != 0 && index%opt.Unit != showIndex {
 			continue
 		}
 		box := p.MeasureText(text)

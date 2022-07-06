@@ -153,8 +153,14 @@ func (a *axisPainter) Render() (Box, error) {
 	top.SetDrawingStyle(style).OverrideTextStyle(style)
 
 	textMaxWidth, textMaxHeight := top.MeasureTextMaxWidthHeight(data)
-	textCount := ceilFloatToInt(float64(top.Width()) / float64(textMaxWidth))
+
+	textFillWidth := float64(textMaxWidth) * 1.3
+	textCount := ceilFloatToInt(float64(top.Width()) / textFillWidth)
 	unit := ceilFloatToInt(float64(dataCount) / float64(chart.MaxInt(textCount, opt.SplitNumber)))
+	// 偶数
+	if unit%2 == 0 && dataCount%(unit+1) == 0 {
+		unit++
+	}
 
 	width := 0
 	height := 0

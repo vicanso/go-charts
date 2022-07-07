@@ -154,7 +154,8 @@ func (a *axisPainter) Render() (Box, error) {
 
 	textMaxWidth, textMaxHeight := top.MeasureTextMaxWidthHeight(data)
 
-	textFillWidth := float64(textMaxWidth) * 1.3
+	// 增加30px来计算文本展示区域
+	textFillWidth := float64(textMaxWidth + 20)
 	textCount := ceilFloatToInt(float64(top.Width()) / textFillWidth)
 	unit := ceilFloatToInt(float64(dataCount) / float64(chart.MaxInt(textCount, opt.SplitNumber)))
 	// 偶数

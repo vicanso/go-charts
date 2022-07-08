@@ -146,6 +146,8 @@ func (l *legendPainter) Render() (Box, error) {
 			width += item.Width()
 		}
 	}
+	// 增加padding
+	itemMaxHeight += 10
 	if opt.Orient == OrientVertical {
 		width = maxTextWidth + textOffset + legendWidth
 		height = offset * len(opt.Data)
@@ -207,9 +209,10 @@ func (l *legendPainter) Render() (Box, error) {
 			FillColor:   color,
 			StrokeColor: color,
 		})
-		if x0+measureList[index].Width() > p.Width() {
+		if x0+measureList[index].Width()+textOffset+offset+legendWidth > p.Width() {
 			x0 = 0
-			y0 += itemMaxHeight
+			y += itemMaxHeight
+			y0 = y
 		}
 		if opt.Align != AlignRight {
 			x0 = drawIcon(y0, x0)

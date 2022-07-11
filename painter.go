@@ -637,12 +637,15 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	}
 	count := len(opt.TextList)
 	positionCenter := true
+	showIndex := opt.Unit / 2
 	if containsString([]string{
 		PositionLeft,
 		PositionTop,
 	}, opt.Position) {
 		positionCenter = false
 		count--
+		// 非居中
+		showIndex = 0
 	}
 	width := p.Width()
 	height := p.Height()
@@ -653,7 +656,6 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	} else {
 		values = autoDivide(width, count)
 	}
-	showIndex := opt.Unit / 2
 	for index, text := range opt.TextList {
 		if opt.Unit != 0 && index%opt.Unit != showIndex {
 			continue

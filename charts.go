@@ -25,6 +25,8 @@ package charts
 import (
 	"errors"
 	"sort"
+
+	"github.com/wcharczuk/go-chart/v2"
 )
 
 const labelFontSize = 10
@@ -110,14 +112,16 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		p = p.Child(PainterPaddingOption(opt.Padding))
 	}
 
+	legendHeight := 0
 	if len(opt.LegendOption.Data) != 0 {
 		if opt.LegendOption.Theme == nil {
 			opt.LegendOption.Theme = opt.Theme
 		}
-		_, err := NewLegendPainter(p, opt.LegendOption).Render()
+		legendResult, err := NewLegendPainter(p, opt.LegendOption).Render()
 		if err != nil {
 			return nil, err
 		}
+		legendHeight = legendResult.Height()
 	}
 
 	// 如果有标题
@@ -131,9 +135,10 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		if err != nil {
 			return nil, err
 		}
+
 		p = p.Child(PainterPaddingOption(Box{
 			// 标题下留白
-			Top: titleBox.Height() + 20,
+			Top: chart.MaxInt(legendHeight, titleBox.Height()) + 20,
 		}))
 	}
 

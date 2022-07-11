@@ -182,6 +182,7 @@ func (l *legendPainter) Render() (Box, error) {
 
 	x := int(left)
 	y := int(top) + 10
+	startY := y
 	x0 := x
 	y0 := y
 
@@ -203,13 +204,18 @@ func (l *legendPainter) Render() (Box, error) {
 		}
 		return left + legendWidth
 	}
+	lastIndex := len(opt.Data) - 1
 	for index, text := range opt.Data {
 		color := theme.GetSeriesColor(index)
 		p.SetDrawingStyle(Style{
 			FillColor:   color,
 			StrokeColor: color,
 		})
-		if x0+measureList[index].Width()+textOffset+offset+legendWidth > p.Width() {
+		itemWidth := x0 + measureList[index].Width() + textOffset + offset + legendWidth
+		if lastIndex == index {
+			itemWidth = x0 + measureList[index].Width() + legendWidth
+		}
+		if itemWidth > p.Width() {
 			x0 = 0
 			y += itemMaxHeight
 			y0 = y
@@ -231,6 +237,7 @@ func (l *legendPainter) Render() (Box, error) {
 			x0 += offset
 			y0 = y
 		}
+		height = y0 - startY + 10
 	}
 
 	return Box{

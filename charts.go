@@ -136,9 +136,14 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 			return nil, err
 		}
 
+		top := chart.MaxInt(legendHeight, titleBox.Height())
+		// 如果是垂直方式，则不计算legend高度
+		if opt.LegendOption.Orient == OrientVertical {
+			top = titleBox.Height()
+		}
 		p = p.Child(PainterPaddingOption(Box{
 			// 标题下留白
-			Top: chart.MaxInt(legendHeight, titleBox.Height()) + 20,
+			Top: top + 20,
 		}))
 	}
 

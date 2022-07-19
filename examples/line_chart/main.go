@@ -89,7 +89,13 @@ func main() {
 			"Video Ads",
 			"Direct",
 			"Search Engine",
-		}, charts.PositionCenter),
+		}, "50"),
+		func(opt *charts.ChartOption) {
+			opt.Legend.Padding = charts.Box{
+				Top:    5,
+				Bottom: 10,
+			}
+		},
 	)
 
 	if err != nil {

@@ -59,6 +59,8 @@ type LegendOption struct {
 	FontColor Color
 	// The flag for show legend, set this to *false will hide legend
 	Show *bool
+	// The padding of legend
+	Padding Box
 }
 
 // NewLegendOption returns a legend option
@@ -111,9 +113,11 @@ func (l *legendPainter) Render() (Box, error) {
 	if opt.Left == "" {
 		opt.Left = PositionCenter
 	}
-	p := l.p.Child(PainterPaddingOption(Box{
-		Top: 5,
-	}))
+	padding := opt.Padding
+	if padding.IsZero() {
+		padding.Top = 5
+	}
+	p := l.p.Child(PainterPaddingOption(padding))
 	p.SetTextStyle(Style{
 		FontSize:  opt.FontSize,
 		FontColor: opt.FontColor,
@@ -242,6 +246,6 @@ func (l *legendPainter) Render() (Box, error) {
 
 	return Box{
 		Right:  width,
-		Bottom: height,
+		Bottom: height + padding.Bottom + padding.Top,
 	}, nil
 }

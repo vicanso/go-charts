@@ -36,10 +36,6 @@ type TitleOption struct {
 	Text string
 	// Subtitle text, support \n for new line
 	Subtext string
-	// // Title style
-	// Style Style
-	// // Subtitle style
-	// SubtextStyle Style
 	// Distance between title component and the left side of the container.
 	// It can be pixel value: 20, percentage value: 20%,
 	// or position value: right, center.

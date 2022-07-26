@@ -156,8 +156,11 @@ func (a *axisPainter) Render() (Box, error) {
 
 	// 增加30px来计算文本展示区域
 	textFillWidth := float64(textMaxWidth + 20)
-	textCount := ceilFloatToInt(float64(top.Width()) / textFillWidth)
-	unit := ceilFloatToInt(float64(dataCount) / float64(chart.MaxInt(textCount, opt.SplitNumber)))
+	// 根据文本宽度计算较为符合的展示项
+	fitTextCount := ceilFloatToInt(float64(top.Width()) / textFillWidth)
+
+	unit := ceilFloatToInt(float64(dataCount) / float64(fitTextCount))
+	unit = chart.MaxInt(unit, opt.SplitNumber)
 	// 偶数
 	if unit%2 == 0 && dataCount%(unit+1) == 0 {
 		unit++

@@ -232,7 +232,7 @@ func (l *legendPainter) Render() (Box, error) {
 		x0 += measureList[index].Width()
 		if opt.Align == AlignRight {
 			x0 += textOffset
-			x0 = drawIcon(0, x0)
+			x0 = drawIcon(y0, x0)
 		}
 		if opt.Orient == OrientVertical {
 			y0 += offset

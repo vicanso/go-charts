@@ -108,9 +108,12 @@ func TitleOptionFunc(title TitleOption) OptionFunc {
 }
 
 // TitleTextOptionFunc set title text of chart
-func TitleTextOptionFunc(text string) OptionFunc {
+func TitleTextOptionFunc(text string, subtext ...string) OptionFunc {
 	return func(opt *ChartOption) {
 		opt.Title.Text = text
+		if len(subtext) != 0 {
+			opt.Title.Subtext = subtext[0]
+		}
 	}
 }
 

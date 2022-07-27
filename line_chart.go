@@ -60,6 +60,8 @@ type LineChartOption struct {
 	Title TitleOption
 	// The legend option
 	Legend LegendOption
+	// The flag for show symbol of line, set this to *false will hide symbol
+	SymbolShow *bool
 	// background is filled
 	backgroundIsFilled bool
 }
@@ -123,7 +125,9 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 		}
 		drawingStyle.StrokeWidth = 1
 		seriesPainter.SetDrawingStyle(drawingStyle)
-		seriesPainter.Dots(points)
+		if !isFalse(opt.SymbolShow) {
+			seriesPainter.Dots(points)
+		}
 		markPointPainter.Add(markPointRenderOption{
 			FillColor: seriesColor,
 			Font:      opt.Font,

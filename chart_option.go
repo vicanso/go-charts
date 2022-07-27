@@ -62,6 +62,8 @@ type ChartOption struct {
 	RadarIndicators []RadarIndicator
 	// The background color of chart
 	BackgroundColor Color
+	// The flag for show symbol of line, set this to *false will hide symbol
+	SymbolShow *bool
 	// The child charts
 	Children []ChartOption
 }

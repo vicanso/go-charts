@@ -259,6 +259,9 @@ func (o *ChartOption) fillDefault() {
 
 	if o.font == nil {
 		o.font, _ = chart.GetDefaultFont()
+	} else {
+		// 如果指定了字体，则设置主题的字体
+		t.SetFont(o.font)
 	}
 	if o.BackgroundColor.IsZero() {
 		o.BackgroundColor = t.GetBackgroundColor()

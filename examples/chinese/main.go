@@ -25,7 +25,8 @@ func writeFile(buf []byte) error {
 
 func main() {
 	// 字体文件需要自行下载
-	buf, err := ioutil.ReadFile("../NotoSansSC.ttf")
+	// https://github.com/googlefonts/noto-cjk
+	buf, err := ioutil.ReadFile("./NotoSansSC.ttf")
 	if err != nil {
 		panic(err)
 	}
@@ -83,7 +84,7 @@ func main() {
 	}
 	p, err := charts.LineRender(
 		values,
-		charts.TitleTextOptionFunc("Line"),
+		charts.TitleTextOptionFunc("测试"),
 		charts.FontFamilyOptionFunc("noto"),
 		charts.XAxisDataOptionFunc([]string{
 			"星期一",

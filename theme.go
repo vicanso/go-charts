@@ -36,12 +36,19 @@ const ThemeAnt = "ant"
 type ColorPalette interface {
 	IsDark() bool
 	GetAxisStrokeColor() Color
+	SetAxisStrokeColor(Color)
 	GetAxisSplitLineColor() Color
+	SetAxisSplitLineColor(Color)
 	GetSeriesColor(int) Color
+	SetSeriesColor([]Color)
 	GetBackgroundColor() Color
+	SetBackgroundColor(Color)
 	GetTextColor() Color
+	SetTextColor(Color)
 	GetFontSize() float64
+	SetFontSize(float64)
 	GetFont() *truetype.Font
+	SetFont(*truetype.Font)
 }
 
 type themeColorPalette struct {
@@ -64,7 +71,7 @@ type ThemeOption struct {
 	SeriesColors       []Color
 }
 
-var palettes = map[string]ColorPalette{}
+var palettes = map[string]*themeColorPalette{}
 
 const defaultFontSize = 12.0
 
@@ -241,7 +248,8 @@ func NewTheme(name string) ColorPalette {
 	if !ok {
 		p = palettes[ThemeLight]
 	}
-	return p
+	clone := *p
+	return &clone
 }
 
 func (t *themeColorPalette) IsDark() bool {
@@ -252,21 +260,40 @@ func (t *themeColorPalette) GetAxisStrokeColor() Color {
 	return t.axisStrokeColor
 }
 
+func (t *themeColorPalette) SetAxisStrokeColor(c Color) {
+	t.axisStrokeColor = c
+}
+
 func (t *themeColorPalette) GetAxisSplitLineColor() Color {
 	return t.axisSplitLineColor
+}
+
+func (t *themeColorPalette) SetAxisSplitLineColor(c Color) {
+	t.axisSplitLineColor = c
 }
 
 func (t *themeColorPalette) GetSeriesColor(index int) Color {
 	colors := t.seriesColors
 	return colors[index%len(colors)]
 }
+func (t *themeColorPalette) SetSeriesColor(colors []Color) {
+	t.seriesColors = colors
+}
 
 func (t *themeColorPalette) GetBackgroundColor() Color {
 	return t.backgroundColor
 }
 
+func (t *themeColorPalette) SetBackgroundColor(c Color) {
+	t.backgroundColor = c
+}
+
 func (t *themeColorPalette) GetTextColor() Color {
 	return t.textColor
+}
+
+func (t *themeColorPalette) SetTextColor(c Color) {
+	t.textColor = c
 }
 
 func (t *themeColorPalette) GetFontSize() float64 {
@@ -276,10 +303,18 @@ func (t *themeColorPalette) GetFontSize() float64 {
 	return defaultFontSize
 }
 
+func (t *themeColorPalette) SetFontSize(fontSize float64) {
+	t.fontSize = fontSize
+}
+
 func (t *themeColorPalette) GetFont() *truetype.Font {
 	if t.font != nil {
 		return t.font
 	}
 	f, _ := chart.GetDefaultFont()
 	return f
+}
+
+func (t *themeColorPalette) SetFont(f *truetype.Font) {
+	t.font = f
 }

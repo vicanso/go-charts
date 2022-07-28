@@ -64,6 +64,8 @@ type ChartOption struct {
 	BackgroundColor Color
 	// The flag for show symbol of line, set this to *false will hide symbol
 	SymbolShow *bool
+	// The stroke width of line chart
+	LineStrokeWidth float64
 	// The child charts
 	Children []ChartOption
 }

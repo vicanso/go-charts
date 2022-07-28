@@ -377,10 +377,11 @@ func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
 	if len(lineSeriesList) != 0 {
 		handler.Add(func() error {
 			_, err := NewLineChart(p, LineChartOption{
-				Theme:      opt.theme,
-				Font:       opt.font,
-				XAxis:      opt.XAxis,
-				SymbolShow: opt.SymbolShow,
+				Theme:       opt.theme,
+				Font:        opt.font,
+				XAxis:       opt.XAxis,
+				SymbolShow:  opt.SymbolShow,
+				StrokeWidth: opt.LineStrokeWidth,
 			}).render(renderResult, lineSeriesList)
 			return err
 		})

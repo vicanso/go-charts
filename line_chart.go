@@ -62,6 +62,8 @@ type LineChartOption struct {
 	Legend LegendOption
 	// The flag for show symbol of line, set this to *false will hide symbol
 	SymbolShow *bool
+	// The stroke width of line
+	StrokeWidth float64
 	// background is filled
 	backgroundIsFilled bool
 }
@@ -95,12 +97,16 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 		markPointPainter,
 		markLinePainter,
 	}
+	strokeWidth := opt.StrokeWidth
+	if strokeWidth == 0 {
+		strokeWidth = defaultStrokeWidth
+	}
 	for index := range seriesList {
 		series := seriesList[index]
 		seriesColor := opt.Theme.GetSeriesColor(series.index)
 		drawingStyle := Style{
 			StrokeColor: seriesColor,
-			StrokeWidth: defaultStrokeWidth,
+			StrokeWidth: strokeWidth,
 		}
 
 		seriesPainter.SetDrawingStyle(drawingStyle)

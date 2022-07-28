@@ -96,6 +96,7 @@ func main() {
 				Bottom: 10,
 			}
 			opt.SymbolShow = charts.FalseFlag()
+			opt.LineStrokeWidth = 1
 		},
 	)
 

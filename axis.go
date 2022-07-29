@@ -265,6 +265,7 @@ func (a *axisPainter) Render() (Box, error) {
 	// 显示辅助线
 	if opt.SplitLineShow {
 		style.StrokeColor = opt.SplitLineColor
+		style.StrokeWidth = 1
 		top.OverrideDrawingStyle(style)
 		if isVertical {
 			x0 := p.Width()
@@ -273,7 +274,9 @@ func (a *axisPainter) Render() (Box, error) {
 				x0 = 0
 				x1 = top.Width() - p.Width()
 			}
-			for _, y := range autoDivide(height, tickCount) {
+			yValues := autoDivide(height, tickCount)
+			yValues = yValues[0 : len(yValues)-1]
+			for _, y := range yValues {
 				top.LineStroke([]Point{
 					{
 						X: x0,

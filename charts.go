@@ -316,9 +316,8 @@ func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
 		TitleOption:  opt.Title,
 		LegendOption: opt.Legend,
 		axisReversed: axisReversed,
-	}
-	if isChild {
-		renderOpt.backgroundIsFilled = true
+		// 前置已设置背景色
+		backgroundIsFilled: true,
 	}
 	if len(pieSeriesList) != 0 ||
 		len(radarSeriesList) != 0 ||

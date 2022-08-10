@@ -200,7 +200,11 @@ func (r *radarChart) render(result *defaultRenderResult, seriesList SeriesList) 
 				continue
 			}
 			indicator := indicators[j]
-			percent := (item.Value - indicator.Min) / (indicator.Max - indicator.Min)
+			var percent float64
+			offset := indicator.Max - indicator.Min
+			if offset > 0 {
+				percent = (item.Value - indicator.Min) / offset
+			}
 			r := percent * radius
 			p := getPolygonPoint(center, r, angles[j])
 			linePoints = append(linePoints, p)

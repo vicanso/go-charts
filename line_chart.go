@@ -64,6 +64,8 @@ type LineChartOption struct {
 	SymbolShow *bool
 	// The stroke width of line
 	StrokeWidth float64
+	// Fill the area of line
+	FillArea bool
 	// background is filled
 	backgroundIsFilled bool
 }
@@ -109,7 +111,6 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 			StrokeWidth: strokeWidth,
 		}
 
-		seriesPainter.SetDrawingStyle(drawingStyle)
 		yRange := result.axisRanges[series.AxisIndex]
 		points := make([]Point, 0)
 		for i, item := range series.Data {
@@ -120,6 +121,25 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 			}
 			points = append(points, p)
 		}
+		// 如果需要填充区域
+		if opt.FillArea {
+			areaPoints := make([]Point, len(points))
+			copy(areaPoints, points)
+			bottomY := yRange.getRestHeight(yRange.min)
+			areaPoints = append(areaPoints, Point{
+				X: areaPoints[len(areaPoints)-1].X,
+				Y: bottomY,
+			}, Point{
+				X: areaPoints[0].X,
+				Y: bottomY,
+			}, areaPoints[0])
+			seriesPainter.SetDrawingStyle(Style{
+				FillColor: seriesColor.WithAlpha(200),
+			})
+			seriesPainter.FillArea(areaPoints)
+		}
+		seriesPainter.SetDrawingStyle(drawingStyle)
+
 		// 画线
 		seriesPainter.LineStroke(points)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -260,6 +261,35 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 					MarkLine: charts.NewMarkLine(charts.SeriesMarkDataTypeAverage),
 				},
 			},
+		},
+		{
+			Title: charts.TitleOption{
+				Text: "Line Area",
+			},
+			Legend: charts.NewLegendOption([]string{
+				"Email",
+			}),
+			XAxis: charts.NewXAxisOption([]string{
+				"Mon",
+				"Tue",
+				"Wed",
+				"Thu",
+				"Fri",
+				"Sat",
+				"Sun",
+			}),
+			SeriesList: []charts.Series{
+				charts.NewSeriesFromValues([]float64{
+					120,
+					132,
+					101,
+					134,
+					90,
+					230,
+					210,
+				}),
+			},
+			FillArea: true,
 		},
 		// 柱状图
 		{
@@ -1935,5 +1965,6 @@ func echartsHandler(w http.ResponseWriter, req *http.Request) {
 func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/echarts", echartsHandler)
+	fmt.Println("http://127.0.0.1:3012/")
 	http.ListenAndServe(":3012", nil)
 }

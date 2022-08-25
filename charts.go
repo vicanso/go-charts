@@ -381,6 +381,7 @@ func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
 				XAxis:       opt.XAxis,
 				SymbolShow:  opt.SymbolShow,
 				StrokeWidth: opt.LineStrokeWidth,
+				FillArea:    opt.FillArea,
 			}).render(renderResult, lineSeriesList)
 			return err
 		})

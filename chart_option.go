@@ -66,6 +66,8 @@ type ChartOption struct {
 	SymbolShow *bool
 	// The stroke width of line chart
 	LineStrokeWidth float64
+	// Fill the area of line chart
+	FillArea bool
 	// The child charts
 	Children []ChartOption
 }

@@ -60,7 +60,10 @@ func NewRange(opt AxisRangeOption) axisRange {
 	r := math.Abs(max - min)
 
 	// 最小单位计算
-	unit := 2
+	unit := 1
+	if r > 5 {
+		unit = 2
+	}
 	if r > 10 {
 		unit = 4
 	}
@@ -85,6 +88,10 @@ func NewRange(opt AxisRangeOption) axisRange {
 		}
 	}
 	max = min + float64(unit*divideCount)
+	expectMax := opt.Max * 2
+	if max > expectMax {
+		max = float64(ceilFloatToInt(expectMax))
+	}
 	return axisRange{
 		divideCount: divideCount,
 		min:         min,

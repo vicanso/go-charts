@@ -174,12 +174,6 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 			yAxisOption = opt.YAxisOptions[index]
 		}
 		max, min := opt.SeriesList.GetMaxMin(index)
-		if yAxisOption.Min != nil {
-			min = *yAxisOption.Min
-		}
-		if yAxisOption.Max != nil {
-			max = *yAxisOption.Max
-		}
 		r := NewRange(AxisRangeOption{
 			Min: min,
 			Max: max,
@@ -188,6 +182,12 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 			// 分隔数量
 			DivideCount: defaultAxisDivideCount,
 		})
+		if yAxisOption.Min != nil && *yAxisOption.Min <= min {
+			r.min = *yAxisOption.Min
+		}
+		if yAxisOption.Max != nil && *yAxisOption.Max >= max {
+			r.max = *yAxisOption.Max
+		}
 		result.axisRanges[index] = r
 
 		if yAxisOption.Theme == nil {

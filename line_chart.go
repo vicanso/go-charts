@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"math"
+
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
@@ -115,6 +117,9 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 		points := make([]Point, 0)
 		for i, item := range series.Data {
 			h := yRange.getRestHeight(item.Value)
+			if item.Value == nullValue {
+				h = math.MaxInt
+			}
 			p := Point{
 				X: xValues[i],
 				Y: h,

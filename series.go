@@ -165,6 +165,10 @@ func (sl SeriesList) GetMaxMin(axisIndex int) (float64, float64) {
 			continue
 		}
 		for _, item := range series.Data {
+			// 如果为空值，忽略
+			if item.Value == nullValue {
+				continue
+			}
 			if item.Value > max {
 				max = item.Value
 			}

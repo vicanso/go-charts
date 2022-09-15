@@ -24,6 +24,7 @@ package charts
 
 import (
 	"errors"
+	"math"
 	"sort"
 
 	"github.com/wcharczuk/go-chart/v2"
@@ -49,6 +50,18 @@ func SetDefaultHeight(height int) {
 	if height > 0 {
 		defaultChartHeight = height
 	}
+}
+
+var nullValue = math.MaxFloat64
+
+// SetNullValue sets the null value, default is MaxFloat64
+func SetNullValue(v float64) {
+	nullValue = v
+}
+
+// GetNullValue gets the null value
+func GetNullValue() float64 {
+	return nullValue
 }
 
 type Renderer interface {

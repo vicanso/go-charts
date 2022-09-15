@@ -438,11 +438,18 @@ func (p *Painter) MeasureTextMaxWidthHeight(textList []string) (int, int) {
 }
 
 func (p *Painter) LineStroke(points []Point) *Painter {
+	shouldMoveTo := false
 	for index, point := range points {
 		x := point.X
 		y := point.Y
-		if index == 0 {
+		if y == math.MaxInt {
+			p.Stroke()
+			shouldMoveTo = true
+			continue
+		}
+		if shouldMoveTo || index == 0 {
 			p.MoveTo(x, y)
+			shouldMoveTo = false
 		} else {
 			p.LineTo(x, y)
 		}

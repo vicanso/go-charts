@@ -442,7 +442,7 @@ func (p *Painter) LineStroke(points []Point) *Painter {
 	for index, point := range points {
 		x := point.X
 		y := point.Y
-		if y == math.MaxInt {
+		if y == int(math.MaxInt32) {
 			p.Stroke()
 			shouldMoveTo = true
 			continue

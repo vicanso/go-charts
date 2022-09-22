@@ -97,7 +97,9 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 	}
 	markPointPainter := NewMarkPointPainter(seriesPainter)
 	markLinePainter := NewMarkLinePainter(seriesPainter)
+	labelPainter := NewSeriesLabelPainter(seriesPainter)
 	rendererList := []Renderer{
+		labelPainter,
 		markPointPainter,
 		markLinePainter,
 	}
@@ -105,6 +107,8 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 	if strokeWidth == 0 {
 		strokeWidth = defaultStrokeWidth
 	}
+	seriesNames := seriesList.Names()
+	theme := opt.Theme
 	for index := range seriesList {
 		series := seriesList[index]
 		seriesColor := opt.Theme.GetSeriesColor(series.index)
@@ -125,6 +129,32 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 				Y: h,
 			}
 			points = append(points, p)
+
+			// 如果label不需要展示，则返回
+			if !series.Label.Show {
+				continue
+			}
+			distance := series.Label.Distance
+			if distance == 0 {
+				distance = 5
+			}
+			text := NewValueLabelFormatter(seriesNames, series.Label.Formatter)(index, item.Value, -1)
+			labelStyle := Style{
+				FontColor: theme.GetTextColor(),
+				FontSize:  labelFontSize,
+				Font:      opt.Font,
+			}
+			if !series.Label.Color.IsZero() {
+				labelStyle.FontColor = series.Label.Color
+			}
+
+			textBox := seriesPainter.MeasureText(text)
+			labelPainter.Add(LabelValue{
+				Text:  text,
+				Style: labelStyle,
+				X:     p.X - textBox.Width()>>1,
+				Y:     p.Y - distance,
+			})
 		}
 		// 如果需要填充区域
 		if opt.FillArea {

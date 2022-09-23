@@ -97,9 +97,7 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 	}
 	markPointPainter := NewMarkPointPainter(seriesPainter)
 	markLinePainter := NewMarkLinePainter(seriesPainter)
-	labelPainter := NewSeriesLabelPainter(seriesPainter)
 	rendererList := []Renderer{
-		labelPainter,
 		markPointPainter,
 		markLinePainter,
 	}
@@ -108,7 +106,6 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 		strokeWidth = defaultStrokeWidth
 	}
 	seriesNames := seriesList.Names()
-	theme := opt.Theme
 	for index := range seriesList {
 		series := seriesList[index]
 		seriesColor := opt.Theme.GetSeriesColor(series.index)
@@ -119,6 +116,17 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 
 		yRange := result.axisRanges[series.AxisIndex]
 		points := make([]Point, 0)
+		var labelPainter *SeriesLabelPainter
+		if series.Label.Show {
+			labelPainter = NewSeriesLabelPainter(SeriesLabelPainterParams{
+				P:           seriesPainter,
+				SeriesNames: seriesNames,
+				Label:       series.Label,
+				Theme:       opt.Theme,
+				Font:        opt.Font,
+			})
+			rendererList = append(rendererList, labelPainter)
+		}
 		for i, item := range series.Data {
 			h := yRange.getRestHeight(item.Value)
 			if item.Value == nullValue {
@@ -131,29 +139,14 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 			points = append(points, p)
 
 			// 如果label不需要展示，则返回
-			if !series.Label.Show {
+			if labelPainter == nil {
 				continue
 			}
-			distance := series.Label.Distance
-			if distance == 0 {
-				distance = 5
-			}
-			text := NewValueLabelFormatter(seriesNames, series.Label.Formatter)(index, item.Value, -1)
-			labelStyle := Style{
-				FontColor: theme.GetTextColor(),
-				FontSize:  labelFontSize,
-				Font:      opt.Font,
-			}
-			if !series.Label.Color.IsZero() {
-				labelStyle.FontColor = series.Label.Color
-			}
-
-			textBox := seriesPainter.MeasureText(text)
 			labelPainter.Add(LabelValue{
-				Text:  text,
-				Style: labelStyle,
-				X:     p.X - textBox.Width()>>1,
-				Y:     p.Y - distance,
+				Index: index,
+				Value: item.Value,
+				X:     p.X,
+				Y:     p.Y,
 			})
 		}
 		// 如果需要填充区域

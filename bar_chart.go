@@ -59,7 +59,8 @@ type BarChartOption struct {
 	// The option of title
 	Title TitleOption
 	// The legend option
-	Legend LegendOption
+	Legend   LegendOption
+	BarWidth int
 }
 
 func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
@@ -86,7 +87,12 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 	}
 	seriesCount := len(seriesList)
 	// 总的宽度-两个margin-(总数-1)的barMargin
-	barWidth := (width - 2*margin - barMargin*(seriesCount-1)) / len(seriesList)
+	barWidth := (width - 2*margin - barMargin*(seriesCount-1)) / seriesCount
+	if opt.BarWidth > 0 && opt.BarWidth < barWidth {
+		barWidth = opt.BarWidth
+		// 重新计算margin
+		margin = (width - len(seriesList)*barWidth - barMargin*(seriesCount-1)) / 2
+	}
 	barMaxHeight := seriesPainter.Height()
 	theme := opt.Theme
 	seriesNames := seriesList.Names()

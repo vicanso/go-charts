@@ -354,9 +354,10 @@ func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
 	if len(barSeriesList) != 0 {
 		handler.Add(func() error {
 			_, err := NewBarChart(p, BarChartOption{
-				Theme: opt.theme,
-				Font:  opt.font,
-				XAxis: opt.XAxis,
+				Theme:    opt.theme,
+				Font:     opt.font,
+				XAxis:    opt.XAxis,
+				BarWidth: opt.BarWidth,
 			}).render(renderResult, barSeriesList)
 			return err
 		})

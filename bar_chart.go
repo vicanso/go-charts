@@ -91,7 +91,7 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 	if opt.BarWidth > 0 && opt.BarWidth < barWidth {
 		barWidth = opt.BarWidth
 		// 重新计算margin
-		margin = (width - len(seriesList)*barWidth - barMargin*(seriesCount-1)) / 2
+		margin = (width - seriesCount*barWidth - barMargin*(seriesCount-1)) / 2
 	}
 	barMaxHeight := seriesPainter.Height()
 	theme := opt.Theme

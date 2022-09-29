@@ -369,6 +369,7 @@ func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
 			_, err := NewHorizontalBarChart(p, HorizontalBarChartOption{
 				Theme:        opt.theme,
 				Font:         opt.font,
+				BarHeight:    opt.BarHeight,
 				YAxisOptions: opt.YAxisOptions,
 			}).render(renderResult, horizontalBarSeriesList)
 			return err

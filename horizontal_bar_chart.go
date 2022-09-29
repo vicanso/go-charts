@@ -48,7 +48,8 @@ type HorizontalBarChartOption struct {
 	// The option of title
 	Title TitleOption
 	// The legend option
-	Legend LegendOption
+	Legend    LegendOption
+	BarHeight int
 }
 
 // NewHorizontalBarChart returns a horizontal bar chart renderer
@@ -82,7 +83,11 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 	}
 	seriesCount := len(seriesList)
 	// 总的高度-两个margin-(总数-1)的barMargin
-	barHeight := (height - 2*margin - barMargin*(seriesCount-1)) / len(seriesList)
+	barHeight := (height - 2*margin - barMargin*(seriesCount-1)) / seriesCount
+	if opt.BarHeight > 0 && opt.BarHeight < barHeight {
+		barHeight = opt.BarHeight
+		margin = (height - seriesCount*barHeight - barMargin*(seriesCount-1)) / 2
+	}
 
 	theme := opt.Theme
 

@@ -160,15 +160,25 @@ func NewFloatPoint(f float64) *float64 {
 	v := f
 	return &v
 }
+
+const K_VALUE = float64(1000)
+const M_VALUE = K_VALUE * K_VALUE
+const G_VALUE = M_VALUE * K_VALUE
+const T_VALUE = G_VALUE * K_VALUE
+
 func commafWithDigits(value float64) string {
 	decimals := 2
-	m := float64(1000 * 1000)
-	if value >= m {
-		return humanize.CommafWithDigits(value/m, decimals) + "M"
+	if value >= T_VALUE {
+		return humanize.CommafWithDigits(value/T_VALUE, decimals) + "T"
 	}
-	k := float64(1000)
-	if value >= k {
-		return humanize.CommafWithDigits(value/k, decimals) + "k"
+	if value >= G_VALUE {
+		return humanize.CommafWithDigits(value/G_VALUE, decimals) + "G"
+	}
+	if value >= M_VALUE {
+		return humanize.CommafWithDigits(value/M_VALUE, decimals) + "M"
+	}
+	if value >= K_VALUE {
+		return humanize.CommafWithDigits(value/K_VALUE, decimals) + "k"
 	}
 	return humanize.CommafWithDigits(value, decimals)
 }

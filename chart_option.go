@@ -74,6 +74,8 @@ type ChartOption struct {
 	FillArea bool
 	// The child charts
 	Children []ChartOption
+	// The value formatter
+	ValueFormatter ValueFormatter
 }
 
 // OptionFunc option function

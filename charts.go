@@ -188,8 +188,9 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		}
 		max, min := opt.SeriesList.GetMaxMin(index)
 		r := NewRange(AxisRangeOption{
-			Min: min,
-			Max: max,
+			Painter: p,
+			Min:     min,
+			Max:     max,
 			// 高度需要减去x轴的高度
 			Size: rangeHeight,
 			// 分隔数量
@@ -287,6 +288,9 @@ func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
 		opt.Parent = p
 	}
 	p := opt.Parent
+	if opt.ValueFormatter != nil {
+		p.valueFormatter = opt.ValueFormatter
+	}
 	if !opt.Box.IsZero() {
 		p = p.Child(PainterBoxOption(opt.Box))
 	}

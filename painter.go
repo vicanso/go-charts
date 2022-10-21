@@ -31,6 +31,8 @@ import (
 	"github.com/wcharczuk/go-chart/v2"
 )
 
+type ValueFormatter func(float64) string
+
 type Painter struct {
 	render chart.Renderer
 	box    Box
@@ -39,7 +41,8 @@ type Painter struct {
 	style  Style
 	theme  ColorPalette
 	// 类型
-	outputType string
+	outputType     string
+	valueFormatter ValueFormatter
 }
 
 type PainterOptions struct {
@@ -188,6 +191,9 @@ func (p *Painter) setOptions(opts ...PainterOption) {
 
 func (p *Painter) Child(opt ...PainterOption) *Painter {
 	child := &Painter{
+		// 格式化
+		valueFormatter: p.valueFormatter,
+		// render
 		render: p.render,
 		box:    p.box.Clone(),
 		font:   p.font,

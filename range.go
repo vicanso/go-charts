@@ -29,6 +29,7 @@ import (
 const defaultAxisDivideCount = 6
 
 type axisRange struct {
+	p           *Painter
 	divideCount int
 	min         float64
 	max         float64
@@ -37,6 +38,7 @@ type axisRange struct {
 }
 
 type AxisRangeOption struct {
+	Painter *Painter
 	// The min value of axis
 	Min float64
 	// The max value of axis
@@ -93,6 +95,7 @@ func NewRange(opt AxisRangeOption) axisRange {
 		max = float64(ceilFloatToInt(expectMax))
 	}
 	return axisRange{
+		p:           opt.Painter,
 		divideCount: divideCount,
 		min:         min,
 		max:         max,
@@ -105,9 +108,13 @@ func NewRange(opt AxisRangeOption) axisRange {
 func (r axisRange) Values() []string {
 	offset := (r.max - r.min) / float64(r.divideCount)
 	values := make([]string, 0)
+	formatter := commafWithDigits
+	if r.p != nil && r.p.valueFormatter != nil {
+		formatter = r.p.valueFormatter
+	}
 	for i := 0; i <= r.divideCount; i++ {
 		v := r.min + float64(i)*offset
-		value := commafWithDigits(v)
+		value := formatter(v)
 		values = append(values, value)
 	}
 	return values

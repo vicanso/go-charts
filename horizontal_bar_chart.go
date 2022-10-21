@@ -93,6 +93,7 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 
 	max, min := seriesList.GetMaxMin(0)
 	xRange := NewRange(AxisRangeOption{
+		Painter:     p,
 		Min:         min,
 		Max:         max,
 		DivideCount: defaultAxisDivideCount,

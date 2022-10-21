@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -98,6 +99,9 @@ func main() {
 			}
 			opt.SymbolShow = charts.FalseFlag()
 			opt.LineStrokeWidth = 1
+			opt.ValueFormatter = func(f float64) string {
+				return fmt.Sprintf("%.0f", f)
+			}
 		},
 	)
 

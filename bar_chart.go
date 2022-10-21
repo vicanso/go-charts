@@ -69,6 +69,7 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 	seriesPainter := result.seriesPainter
 
 	xRange := NewRange(AxisRangeOption{
+		Painter:     b.p,
 		DivideCount: len(opt.XAxis.Data),
 		Size:        seriesPainter.Width(),
 	})

@@ -55,6 +55,7 @@ func TestMarkLine(t *testing.T) {
 					StrokeColor: drawing.ColorBlack,
 					Series:      series,
 					Range: NewRange(AxisRangeOption{
+						Painter:     p,
 						Min:         0,
 						Max:         5,
 						Size:        p.Height(),

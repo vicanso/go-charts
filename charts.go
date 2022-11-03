@@ -186,6 +186,10 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 		if len(opt.YAxisOptions) > index {
 			yAxisOption = opt.YAxisOptions[index]
 		}
+		divideCount := yAxisOption.DivideCount
+		if divideCount <= 0 {
+			divideCount = defaultAxisDivideCount
+		}
 		max, min := opt.SeriesList.GetMaxMin(index)
 		r := NewRange(AxisRangeOption{
 			Painter: p,
@@ -194,7 +198,7 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 			// 高度需要减去x轴的高度
 			Size: rangeHeight,
 			// 分隔数量
-			DivideCount: defaultAxisDivideCount,
+			DivideCount: divideCount,
 		})
 		if yAxisOption.Min != nil && *yAxisOption.Min <= min {
 			r.min = *yAxisOption.Min
@@ -345,6 +349,10 @@ func Render(opt ChartOption, opts ...OptionFunc) (*Painter, error) {
 				Show: FalseFlag(),
 			},
 		}
+	}
+	if len(horizontalBarSeriesList) != 0 {
+		renderOpt.YAxisOptions[0].DivideCount = len(renderOpt.YAxisOptions[0].Data)
+		renderOpt.YAxisOptions[0].Unit = 1
 	}
 
 	renderResult, err := defaultRender(p, renderOpt)

@@ -75,6 +75,7 @@ type AxisOption struct {
 	SplitLineShow bool
 	// The color of split line
 	SplitLineColor Color
+	Unit           int
 }
 
 func (a *axisPainter) Render() (Box, error) {
@@ -159,11 +160,15 @@ func (a *axisPainter) Render() (Box, error) {
 	// 根据文本宽度计算较为符合的展示项
 	fitTextCount := ceilFloatToInt(float64(top.Width()) / textFillWidth)
 
-	unit := ceilFloatToInt(float64(dataCount) / float64(fitTextCount))
-	unit = chart.MaxInt(unit, opt.SplitNumber)
-	// 偶数
-	if unit%2 == 0 && dataCount%(unit+1) == 0 {
-		unit++
+	unit := opt.Unit
+	if unit <= 0 {
+
+		unit = ceilFloatToInt(float64(dataCount) / float64(fitTextCount))
+		unit = chart.MaxInt(unit, opt.SplitNumber)
+		// 偶数
+		if unit%2 == 0 && dataCount%(unit+1) == 0 {
+			unit++
+		}
 	}
 
 	width := 0

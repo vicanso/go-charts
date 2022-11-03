@@ -47,6 +47,8 @@ type YAxisOption struct {
 	Color Color
 	// The flag for show axis, set this to *false will hide axis
 	Show           *bool
+	DivideCount    int
+	Unit           int
 	isCategoryAxis bool
 }
 
@@ -87,6 +89,7 @@ func (opt *YAxisOption) ToAxisOption(p *Painter) AxisOption {
 		SplitLineShow:  true,
 		SplitLineColor: theme.GetAxisSplitLineColor(),
 		Show:           opt.Show,
+		Unit:           opt.Unit,
 	}
 	if !opt.Color.IsZero() {
 		axisOpt.FontColor = opt.Color

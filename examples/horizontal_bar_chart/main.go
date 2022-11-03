@@ -26,6 +26,7 @@ func writeFile(buf []byte) error {
 func main() {
 	values := [][]float64{
 		{
+			8203,
 			18203,
 			23489,
 			29034,
@@ -34,6 +35,7 @@ func main() {
 			630230,
 		},
 		{
+			9325,
 			19325,
 			23438,
 			31000,
@@ -56,6 +58,7 @@ func main() {
 			"2012",
 		}),
 		charts.YAxisDataOptionFunc([]string{
+			"UN",
 			"Brazil",
 			"Indonesia",
 			"USA",

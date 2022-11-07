@@ -101,8 +101,23 @@ func (p *pieChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 	theme := opt.Theme
 
 	currentValue := float64(0)
-	prevEndX := 0
-	prevEndY := 0
+	prevPoints := make([]Point, 0)
+
+	isOverride := func(x, y int) bool {
+		for _, p := range prevPoints {
+			if math.Abs(float64(p.Y-y)) > labelFontSize {
+				continue
+			}
+			// label可能较多内容，不好计算横向占用空间
+			// 因此x的位置需要中间位置两侧，否则认为override
+			if (p.X <= cx && x <= cx) ||
+				(p.X > cx && x > cx) {
+				return true
+			}
+		}
+		return false
+	}
+
 	for index, v := range values {
 		seriesPainter.OverrideDrawingStyle(Style{
 			StrokeWidth: 1,
@@ -134,13 +149,17 @@ func (p *pieChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 		endx := cx + int(labelRadius*math.Cos(angle))
 		endy := cy + int(labelRadius*math.Sin(angle))
 		// 计算是否有重叠，如果有则调整y坐标位置
-		if index != 0 &&
-			math.Abs(float64(endx-prevEndX)) < labelFontSize &&
-			math.Abs(float64(endy-prevEndY)) < labelFontSize {
+		// 最多只尝试5次
+		for i := 0; i < 5; i++ {
+			if !isOverride(endx, endy) {
+				break
+			}
 			endy -= (labelFontSize << 1)
 		}
-		prevEndX = endx
-		prevEndY = endy
+		prevPoints = append(prevPoints, Point{
+			X: endx,
+			Y: endy,
+		})
 
 		seriesPainter.MoveTo(startx, starty)
 		seriesPainter.LineTo(endx, endy)

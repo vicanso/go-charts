@@ -24,7 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
@@ -311,7 +310,7 @@ func (t *themeColorPalette) GetFont() *truetype.Font {
 	if t.font != nil {
 		return t.font
 	}
-	f, _ := chart.GetDefaultFont()
+	f, _ := GetDefaultFont()
 	return f
 }
 

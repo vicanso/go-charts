@@ -351,7 +351,7 @@ func TestPainterTextFit(t *testing.T) {
 		Type:   ChartOutputSVG,
 	})
 	assert.Nil(err)
-	f, _ := chart.GetDefaultFont()
+	f, _ := GetDefaultFont()
 	style := Style{
 		FontSize:  12,
 		FontColor: chart.ColorBlack,

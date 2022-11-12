@@ -149,7 +149,7 @@ func NewPainter(opts PainterOptions, opt ...PainterOption) (*Painter, error) {
 	}
 	font := opts.Font
 	if font == nil {
-		f, err := chart.GetDefaultFont()
+		f, err := GetDefaultFont()
 		if err != nil {
 			return nil, err
 		}

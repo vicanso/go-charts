@@ -24,7 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
 // NewMarkLine returns a series mark line
@@ -75,7 +74,7 @@ func (m *markLinePainter) Render() (Box, error) {
 		}
 		font := opt.Font
 		if font == nil {
-			font, _ = chart.GetDefaultFont()
+			font, _ = GetDefaultFont()
 		}
 		summary := s.Summary()
 		for _, markLine := range s.MarkLine.Data {

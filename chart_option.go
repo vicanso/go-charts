@@ -26,7 +26,6 @@ import (
 	"sort"
 
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2"
 )
 
 type ChartOption struct {
@@ -270,7 +269,7 @@ func (o *ChartOption) fillDefault() {
 	o.font, _ = GetFont(o.FontFamily)
 
 	if o.font == nil {
-		o.font, _ = chart.GetDefaultFont()
+		o.font, _ = GetDefaultFont()
 	} else {
 		// 如果指定了字体，则设置主题的字体
 		t.SetFont(o.font)
@@ -388,7 +387,7 @@ func TableOptionRender(opt TableChartOption) (*Painter, error) {
 		opt.Font, _ = GetFont(opt.FontFamily)
 	}
 	if opt.Font == nil {
-		opt.Font, _ = chart.GetDefaultFont()
+		opt.Font, _ = GetDefaultFont()
 	}
 
 	p, err := NewPainter(PainterOptions{

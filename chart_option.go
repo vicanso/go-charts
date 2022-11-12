@@ -384,6 +384,9 @@ func TableOptionRender(opt TableChartOption) (*Painter, error) {
 	if opt.Width <= 0 {
 		opt.Width = defaultChartWidth
 	}
+	if opt.FontFamily != "" {
+		opt.Font, _ = GetFont(opt.FontFamily)
+	}
 	if opt.Font == nil {
 		opt.Font, _ = chart.GetDefaultFont()
 	}

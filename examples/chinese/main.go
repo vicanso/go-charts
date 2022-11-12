@@ -34,6 +34,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	font, _ := charts.GetFont("noto")
+	charts.SetDefaultFont(font)
 
 	values := [][]float64{
 		{
@@ -85,7 +87,6 @@ func main() {
 	p, err := charts.LineRender(
 		values,
 		charts.TitleTextOptionFunc("测试"),
-		charts.FontFamilyOptionFunc("noto"),
 		charts.XAxisDataOptionFunc([]string{
 			"星期一",
 			"星期二",

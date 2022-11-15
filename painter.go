@@ -558,6 +558,12 @@ func (p *Painter) Text(body string, x, y int) *Painter {
 	return p
 }
 
+func (p *Painter) TextRotation(body string, x, y int, radians float64) {
+	p.render.SetTextRotation(radians)
+	p.render.Text(body, x, y)
+	p.render.ClearTextRotation()
+}
+
 func (p *Painter) TextFit(body string, x, y, width int, textAligns ...string) chart.Box {
 	style := p.style
 	textWarp := style.TextWrap

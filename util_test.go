@@ -189,3 +189,35 @@ func TestParseColor(t *testing.T) {
 		A: 250,
 	}, c)
 }
+
+func TestIsLightColor(t *testing.T) {
+	assert := assert.New(t)
+
+	assert.True(isLightColor(drawing.Color{
+		R: 255,
+		G: 255,
+		B: 255,
+	}))
+	assert.True(isLightColor(drawing.Color{
+		R: 145,
+		G: 204,
+		B: 117,
+	}))
+
+	assert.False(isLightColor(drawing.Color{
+		R: 88,
+		G: 112,
+		B: 198,
+	}))
+
+	assert.False(isLightColor(drawing.Color{
+		R: 0,
+		G: 0,
+		B: 0,
+	}))
+	assert.False(isLightColor(drawing.Color{
+		R: 16,
+		G: 12,
+		B: 42,
+	}))
+}

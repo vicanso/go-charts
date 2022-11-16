@@ -262,3 +262,10 @@ func getPolygonPoints(center Point, radius float64, sides int) []Point {
 	}
 	return points
 }
+
+func isLightColor(c Color) bool {
+	r := float64(c.R) * float64(c.R) * 0.299
+	g := float64(c.G) * float64(c.G) * 0.587
+	b := float64(c.B) * float64(c.B) * 0.114
+	return math.Sqrt(r+g+b) > 127.5
+}

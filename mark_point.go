@@ -24,7 +24,6 @@ package charts
 
 import (
 	"github.com/golang/freetype/truetype"
-	"github.com/wcharczuk/go-chart/v2/drawing"
 )
 
 // NewMarkPoint returns a series mark point
@@ -78,15 +77,14 @@ func (m *markPointPainter) Render() (Box, error) {
 			symbolSize = 30
 		}
 		textStyle := Style{
-			FontColor: drawing.Color{
-				R: 238,
-				G: 238,
-				B: 238,
-				A: 255,
-			},
 			FontSize:    labelFontSize,
 			StrokeWidth: 1,
 			Font:        opt.Font,
+		}
+		if isLightColor(opt.FillColor) {
+			textStyle.FontColor = defaultLightFontColor
+		} else {
+			textStyle.FontColor = defaultDarkFontColor
 		}
 		painter.OverrideDrawingStyle(Style{
 			FillColor: opt.FillColor,

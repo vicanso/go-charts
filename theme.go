@@ -76,6 +76,19 @@ const defaultFontSize = 12.0
 
 var defaultTheme ColorPalette
 
+var defaultLightFontColor = drawing.Color{
+	R: 70,
+	G: 70,
+	B: 70,
+	A: 255,
+}
+var defaultDarkFontColor = drawing.Color{
+	R: 238,
+	G: 238,
+	B: 238,
+	A: 255,
+}
+
 func init() {
 	echartSeriesColors := []Color{
 		parseColor("#5470c6"),

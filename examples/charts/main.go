@@ -355,6 +355,10 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 							Value: 180,
 						},
 					},
+					Label: charts.SeriesLabel{
+						Show:     true,
+						Position: charts.PositionBottom,
+					},
 				},
 			},
 		},

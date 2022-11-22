@@ -23,6 +23,8 @@
 package charts
 
 import (
+	"math"
+
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 )
@@ -164,11 +166,26 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			if labelPainter == nil {
 				continue
 			}
+			y := barMaxHeight - h
+			radians := float64(0)
+			var fontColor Color
+			if series.Label.Position == PositionBottom {
+				y = barMaxHeight
+				radians = -math.Pi / 2
+				if isLightColor(fillColor) {
+					fontColor = defaultLightFontColor
+				} else {
+					fontColor = defaultDarkFontColor
+				}
+			}
 			labelPainter.Add(LabelValue{
 				Index: index,
 				Value: item.Value,
 				X:     x + barWidth>>1,
-				Y:     barMaxHeight - h,
+				Y:     y,
+				// 旋转
+				Radians:   radians,
+				FontColor: fontColor,
 			})
 		}
 

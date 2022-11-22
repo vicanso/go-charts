@@ -79,6 +79,8 @@ type SeriesLabel struct {
 	Show bool
 	// Distance to the host graphic element.
 	Distance int
+	// The position of label
+	Position string
 }
 
 const (

@@ -32,6 +32,8 @@ type labelRenderValue struct {
 	Style Style
 	X     int
 	Y     int
+	// 旋转
+	Radians float64
 }
 
 type LabelValue struct {
@@ -39,6 +41,10 @@ type LabelValue struct {
 	Value float64
 	X     int
 	Y     int
+	// 旋转
+	Radians float64
+	// 字体颜色
+	FontColor Color
 }
 
 type SeriesLabelPainter struct {
@@ -81,19 +87,33 @@ func (o *SeriesLabelPainter) Add(value LabelValue) {
 		FontSize:  labelFontSize,
 		Font:      o.font,
 	}
+	if !value.FontColor.IsZero() {
+		label.Color = value.FontColor
+	}
 	if !label.Color.IsZero() {
 		labelStyle.FontColor = label.Color
 	}
-	o.p.OverrideDrawingStyle(labelStyle)
-	textBox := o.p.MeasureText(text)
-	renderValue := labelRenderValue{
-		Text:  text,
-		Style: labelStyle,
-		X:     value.X - textBox.Width()>>1,
-		Y:     value.Y - distance,
+	p := o.p
+	p.OverrideDrawingStyle(labelStyle)
+	rotated := value.Radians != 0
+	if rotated {
+		p.SetTextRotation(value.Radians)
 	}
-	if textBox.Width()%2 != 0 {
-		renderValue.X++
+	textBox := p.MeasureText(text)
+	renderValue := labelRenderValue{
+		Text:    text,
+		Style:   labelStyle,
+		X:       value.X - textBox.Width()>>1,
+		Y:       value.Y - distance,
+		Radians: value.Radians,
+	}
+	if rotated {
+		renderValue.X = value.X + textBox.Width()>>1 - 1
+		p.ClearTextRotation()
+	} else {
+		if textBox.Width()%2 != 0 {
+			renderValue.X++
+		}
 	}
 	o.values = append(o.values, renderValue)
 }
@@ -101,7 +121,11 @@ func (o *SeriesLabelPainter) Add(value LabelValue) {
 func (o *SeriesLabelPainter) Render() (Box, error) {
 	for _, item := range o.values {
 		o.p.OverrideTextStyle(item.Style)
-		o.p.Text(item.Text, item.X, item.Y)
+		if item.Radians != 0 {
+			o.p.TextRotation(item.Text, item.X, item.Y, item.Radians)
+		} else {
+			o.p.Text(item.Text, item.X, item.Y)
+		}
 	}
 	return chart.BoxZero, nil
 }

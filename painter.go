@@ -560,7 +560,14 @@ func (p *Painter) Text(body string, x, y int) *Painter {
 
 func (p *Painter) TextRotation(body string, x, y int, radians float64) {
 	p.render.SetTextRotation(radians)
-	p.render.Text(body, x, y)
+	p.render.Text(body, x+p.box.Left, y+p.box.Top)
+	p.render.ClearTextRotation()
+}
+
+func (p *Painter) SetTextRotation(radians float64) {
+	p.render.SetTextRotation(radians)
+}
+func (p *Painter) ClearTextRotation() {
 	p.render.ClearTextRotation()
 }
 

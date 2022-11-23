@@ -81,6 +81,8 @@ type SeriesLabel struct {
 	Distance int
 	// The position of label
 	Position string
+	// The offset of label's position
+	Offset Box
 }
 
 const (

@@ -99,11 +99,25 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 		DivideCount: defaultAxisDivideCount,
 		Size:        seriesPainter.Width(),
 	})
+	seriesNames := seriesList.Names()
 
+	rendererList := []Renderer{}
 	for index := range seriesList {
 		series := seriesList[index]
 		seriesColor := theme.GetSeriesColor(series.index)
 		divideValues := yRange.AutoDivide()
+
+		var labelPainter *SeriesLabelPainter
+		if series.Label.Show {
+			labelPainter = NewSeriesLabelPainter(SeriesLabelPainterParams{
+				P:           seriesPainter,
+				SeriesNames: seriesNames,
+				Label:       series.Label,
+				Theme:       opt.Theme,
+				Font:        opt.Font,
+			})
+			rendererList = append(rendererList, labelPainter)
+		}
 		for j, item := range series.Data {
 			if j >= yRange.divideCount {
 				continue
@@ -130,7 +144,34 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 				Right:  right,
 				Bottom: y + barHeight,
 			})
+			// 如果label不需要展示，则返回
+			if labelPainter == nil {
+				continue
+			}
+			x := right
+			var fontColor Color
+			if series.Label.Position == PositionLeft {
+				x = 0
+				if isLightColor(fillColor) {
+					fontColor = defaultLightFontColor
+				} else {
+					fontColor = defaultDarkFontColor
+				}
+			}
+			labelPainter.Add(LabelValue{
+				Orient:    OrientHorizontal,
+				Index:     index,
+				Value:     item.Value,
+				X:         x,
+				Y:         y + barHeight>>1,
+				FontColor: fontColor,
+				Offset:    series.Label.Offset,
+			})
 		}
+	}
+	err := doRender(rendererList...)
+	if err != nil {
+		return BoxZero, err
 	}
 	return p.box, nil
 }

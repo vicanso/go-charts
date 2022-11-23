@@ -186,6 +186,7 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 				// 旋转
 				Radians:   radians,
 				FontColor: fontColor,
+				Offset:    series.Label.Offset,
 			})
 		}
 

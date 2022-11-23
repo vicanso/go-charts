@@ -45,6 +45,8 @@ type LabelValue struct {
 	Radians float64
 	// 字体颜色
 	FontColor Color
+	Orient    string
+	Offset    Box
 }
 
 type SeriesLabelPainter struct {
@@ -103,9 +105,17 @@ func (o *SeriesLabelPainter) Add(value LabelValue) {
 	renderValue := labelRenderValue{
 		Text:    text,
 		Style:   labelStyle,
-		X:       value.X - textBox.Width()>>1,
-		Y:       value.Y - distance,
+		X:       value.X,
+		Y:       value.Y,
 		Radians: value.Radians,
+	}
+	if value.Orient != OrientHorizontal {
+		renderValue.X -= textBox.Width() >> 1
+		renderValue.Y -= distance
+	} else {
+		renderValue.X += distance
+		renderValue.Y += textBox.Height() >> 1
+		renderValue.Y -= 2
 	}
 	if rotated {
 		renderValue.X = value.X + textBox.Width()>>1 - 1
@@ -115,6 +125,8 @@ func (o *SeriesLabelPainter) Add(value LabelValue) {
 			renderValue.X++
 		}
 	}
+	renderValue.X += value.Offset.Left
+	renderValue.Y += value.Offset.Top
 	o.values = append(o.values, renderValue)
 }
 

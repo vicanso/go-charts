@@ -121,6 +121,9 @@ func (r axisRange) Values() []string {
 }
 
 func (r *axisRange) getHeight(value float64) int {
+	if r.max <= r.min {
+		return 0
+	}
 	v := (value - r.min) / (r.max - r.min)
 	return int(v * float64(r.size))
 }

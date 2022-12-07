@@ -168,14 +168,16 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			}
 			y := barMaxHeight - h
 			radians := float64(0)
-			var fontColor Color
+			fontColor := series.Label.Color
 			if series.Label.Position == PositionBottom {
 				y = barMaxHeight
 				radians = -math.Pi / 2
-				if isLightColor(fillColor) {
-					fontColor = defaultLightFontColor
-				} else {
-					fontColor = defaultDarkFontColor
+				if fontColor.IsZero() {
+					if isLightColor(fillColor) {
+						fontColor = defaultLightFontColor
+					} else {
+						fontColor = defaultDarkFontColor
+					}
 				}
 			}
 			labelPainter.Add(LabelValue{

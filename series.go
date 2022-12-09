@@ -83,6 +83,8 @@ type SeriesLabel struct {
 	Position string
 	// The offset of label's position
 	Offset Box
+	// The font size of label
+	FontSize float64
 }
 
 const (

@@ -147,6 +147,8 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 				Value: item.Value,
 				X:     p.X,
 				Y:     p.Y,
+				// 字体大小
+				FontSize: series.Label.FontSize,
 			})
 		}
 		// 如果需要填充区域

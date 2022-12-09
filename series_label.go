@@ -45,8 +45,10 @@ type LabelValue struct {
 	Radians float64
 	// 字体颜色
 	FontColor Color
-	Orient    string
-	Offset    Box
+	// 字体大小
+	FontSize float64
+	Orient   string
+	Offset   Box
 }
 
 type SeriesLabelPainter struct {
@@ -88,6 +90,9 @@ func (o *SeriesLabelPainter) Add(value LabelValue) {
 		FontColor: o.theme.GetTextColor(),
 		FontSize:  labelFontSize,
 		Font:      o.font,
+	}
+	if value.FontSize != 0 {
+		labelStyle.FontSize = value.FontSize
 	}
 	if !value.FontColor.IsZero() {
 		label.Color = value.FontColor

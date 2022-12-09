@@ -189,6 +189,7 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 				Radians:   radians,
 				FontColor: fontColor,
 				Offset:    series.Label.Offset,
+				FontSize:  series.Label.FontSize,
 			})
 		}
 

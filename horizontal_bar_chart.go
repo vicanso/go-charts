@@ -156,6 +156,7 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 				Y:         y + barHeight>>1,
 				Offset:    series.Label.Offset,
 				FontColor: series.Label.Color,
+				FontSize:  series.Label.FontSize,
 			}
 			if series.Label.Position == PositionLeft {
 				labelValue.X = 0

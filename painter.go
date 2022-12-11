@@ -685,13 +685,16 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	} else {
 		values = autoDivide(width, count)
 	}
+	isTextRotation := opt.TextRotation != 0
 	offset := opt.Offset
 	for index, text := range opt.TextList {
 		if opt.Unit != 0 && index%opt.Unit != showIndex {
 			continue
 		}
-		p.ClearTextRotation()
-		p.SetTextRotation(opt.TextRotation)
+		if isTextRotation {
+			p.ClearTextRotation()
+			p.SetTextRotation(opt.TextRotation)
+		}
 		box := p.MeasureText(text)
 		start := values[index]
 		if positionCenter {
@@ -716,7 +719,9 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 		y += offset.Top
 		p.Text(text, x, y)
 	}
-	p.ClearTextRotation()
+	if isTextRotation {
+		p.ClearTextRotation()
+	}
 	return p
 }
 

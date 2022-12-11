@@ -75,7 +75,11 @@ type AxisOption struct {
 	SplitLineShow bool
 	// The color of split line
 	SplitLineColor Color
-	Unit           int
+	// The text rotation of label
+	TextRotation float64
+	// The offset of label
+	LabelOffset Box
+	Unit        int
 }
 
 func (a *axisPainter) Render() (Box, error) {
@@ -153,7 +157,15 @@ func (a *axisPainter) Render() (Box, error) {
 	}
 	top.SetDrawingStyle(style).OverrideTextStyle(style)
 
+	isTextRotation := opt.TextRotation != 0
+
+	if isTextRotation {
+		top.SetTextRotation(opt.TextRotation)
+	}
 	textMaxWidth, textMaxHeight := top.MeasureTextMaxWidthHeight(data)
+	if isTextRotation {
+		top.ClearTextRotation()
+	}
 
 	// 增加30px来计算文本展示区域
 	textFillWidth := float64(textMaxWidth + 20)
@@ -261,11 +273,13 @@ func (a *axisPainter) Render() (Box, error) {
 		Top:   labelPaddingTop,
 		Right: labelPaddingRight,
 	})).MultiText(MultiTextOption{
-		Align:    textAlign,
-		TextList: data,
-		Orient:   orient,
-		Unit:     unit,
-		Position: labelPosition,
+		Align:        textAlign,
+		TextList:     data,
+		Orient:       orient,
+		Unit:         unit,
+		Position:     labelPosition,
+		TextRotation: opt.TextRotation,
+		Offset:       opt.LabelOffset,
 	})
 	// 显示辅助线
 	if opt.SplitLineShow {

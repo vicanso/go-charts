@@ -47,7 +47,11 @@ type XAxisOption struct {
 	// The line color of axis
 	StrokeColor Color
 	// The color of label
-	FontColor   Color
+	FontColor Color
+	// The text rotation of label
+	TextRotation float64
+	// The offset of label
+	LabelOffset Box
 	isValueAxis bool
 }
 
@@ -81,6 +85,8 @@ func (opt *XAxisOption) ToAxisOption() AxisOption {
 		FontColor:      opt.FontColor,
 		Show:           opt.Show,
 		SplitLineColor: opt.Theme.GetAxisSplitLineColor(),
+		TextRotation:   opt.TextRotation,
+		LabelOffset:    opt.LabelOffset,
 	}
 	if opt.isValueAxis {
 		axisOpt.SplitLineShow = true

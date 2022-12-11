@@ -71,6 +71,9 @@ type MultiTextOption struct {
 	Unit     int
 	Position string
 	Align    string
+	// The text rotation of label
+	TextRotation float64
+	Offset       Box
 }
 
 type GridOption struct {
@@ -682,10 +685,13 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	} else {
 		values = autoDivide(width, count)
 	}
+	offset := opt.Offset
 	for index, text := range opt.TextList {
 		if opt.Unit != 0 && index%opt.Unit != showIndex {
 			continue
 		}
+		p.ClearTextRotation()
+		p.SetTextRotation(opt.TextRotation)
 		box := p.MeasureText(text)
 		start := values[index]
 		if positionCenter {
@@ -706,8 +712,11 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 		} else {
 			x = start - box.Width()>>1
 		}
+		x += offset.Left
+		y += offset.Top
 		p.Text(text, x, y)
 	}
+	p.ClearTextRotation()
 	return p
 }
 

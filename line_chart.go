@@ -70,6 +70,8 @@ type LineChartOption struct {
 	FillArea bool
 	// background is filled
 	backgroundIsFilled bool
+	// background fill (alpha) opacity
+	Opacity uint8
 }
 
 func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
@@ -156,6 +158,10 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 			areaPoints := make([]Point, len(points))
 			copy(areaPoints, points)
 			bottomY := yRange.getRestHeight(yRange.min)
+			var opacity uint8 = 200
+			if opt.Opacity != 0 {
+				opacity = opt.Opacity
+			}
 			areaPoints = append(areaPoints, Point{
 				X: areaPoints[len(areaPoints)-1].X,
 				Y: bottomY,
@@ -164,7 +170,7 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 				Y: bottomY,
 			}, areaPoints[0])
 			seriesPainter.SetDrawingStyle(Style{
-				FillColor: seriesColor.WithAlpha(200),
+				FillColor: seriesColor.WithAlpha(opacity),
 			})
 			seriesPainter.FillArea(areaPoints)
 		}

@@ -71,6 +71,8 @@ type ChartOption struct {
 	BarHeight int
 	// Fill the area of line chart
 	FillArea bool
+	// background fill (alpha) opacity
+	Opacity uint8
 	// The child charts
 	Children []ChartOption
 	// The value formatter

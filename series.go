@@ -279,6 +279,14 @@ func NewPieLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 	return NewLabelFormatter(seriesNames, layout)
 }
 
+// NewFunnelLabelFormatter returns a funner label formatter
+func NewFunnelLabelFormatter(seriesNames []string, layout string) LabelFormatter {
+	if len(layout) == 0 {
+		layout = "{b}({d})"
+	}
+	return NewLabelFormatter(seriesNames, layout)
+}
+
 // NewValueLabelFormatter returns a value formatter
 func NewValueLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 	if len(layout) == 0 {

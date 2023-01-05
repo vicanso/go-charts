@@ -23,9 +23,6 @@
 package charts
 
 import (
-	"fmt"
-
-	"github.com/dustin/go-humanize"
 	"github.com/golang/freetype/truetype"
 )
 
@@ -95,13 +92,14 @@ func (f *funnelChart) render(result *defaultRenderResult, seriesList SeriesList)
 	y := 0
 	widthList := make([]int, len(seriesList))
 	textList := make([]string, len(seriesList))
+	seriesNames := seriesList.Names()
 	for index, item := range seriesList {
 		value := item.Data[0].Value
 		widthPercent := (value - min) / (max - min)
 		w := int(widthPercent * float64(width))
 		widthList[index] = w
-		p := humanize.CommafWithDigits(value/max*100, 2) + "%"
-		textList[index] = fmt.Sprintf("%s(%s)", item.Name, p)
+		percent := value / max
+		textList[index] = NewFunnelLabelFormatter(seriesNames, item.Label.Formatter)(index, value, percent)
 	}
 
 	for index, w := range widthList {

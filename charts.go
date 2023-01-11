@@ -215,7 +215,16 @@ func defaultRender(p *Painter, opt defaultRenderOption) (*defaultRenderResult, e
 			yAxisOption.Data = r.Values()
 		} else {
 			yAxisOption.isCategoryAxis = true
-			opt.XAxis.Data = r.Values()
+			// 由于x轴为value部分，因此计算其label单独处理
+			opt.XAxis.Data = NewRange(AxisRangeOption{
+				Painter: p,
+				Min:     min,
+				Max:     max,
+				// 高度需要减去x轴的高度
+				Size: rangeHeight,
+				// 分隔数量
+				DivideCount: defaultAxisDivideCount,
+			}).Values()
 			opt.XAxis.isValueAxis = true
 		}
 		reverseStringSlice(yAxisOption.Data)

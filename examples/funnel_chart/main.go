@@ -30,6 +30,8 @@ func main() {
 		60,
 		40,
 		20,
+		10,
+		0,
 	}
 	p, err := charts.FunnelRender(
 		values,
@@ -40,6 +42,8 @@ func main() {
 			"Visit",
 			"Inquiry",
 			"Order",
+			"Pay",
+			"Cancel",
 		}),
 	)
 	if err != nil {

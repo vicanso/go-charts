@@ -93,12 +93,21 @@ func (f *funnelChart) render(result *defaultRenderResult, seriesList SeriesList)
 	widthList := make([]int, len(seriesList))
 	textList := make([]string, len(seriesList))
 	seriesNames := seriesList.Names()
+	offset := max - min
 	for index, item := range seriesList {
 		value := item.Data[0].Value
-		widthPercent := (value - min) / (max - min)
+		// 最大最小值一致则为100%
+		widthPercent := 100.0
+		if offset != 0 {
+			widthPercent = (value - min) / offset
+		}
 		w := int(widthPercent * float64(width))
 		widthList[index] = w
-		percent := value / max
+		// 如果最大值为0，则占比100%
+		percent := 1.0
+		if max != 0 {
+			percent = value / max
+		}
 		textList[index] = NewFunnelLabelFormatter(seriesNames, item.Label.Formatter)(index, value, percent)
 	}
 

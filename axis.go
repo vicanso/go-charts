@@ -63,6 +63,8 @@ type AxisOption struct {
 	StrokeWidth float64
 	// The length of the axis tick
 	TickLength int
+	// The first axis
+	FirstAxis int
 	// The margin value of label
 	LabelMargin int
 	// The font size of label
@@ -255,6 +257,7 @@ func (a *axisPainter) Render() (Box, error) {
 			Length: tickLength,
 			Unit:   unit,
 			Orient: orient,
+			First:  opt.FirstAxis,
 		})
 		p.LineStroke([]Point{
 			{
@@ -273,6 +276,7 @@ func (a *axisPainter) Render() (Box, error) {
 		Top:   labelPaddingTop,
 		Right: labelPaddingRight,
 	})).MultiText(MultiTextOption{
+		First:        opt.FirstAxis,
 		Align:        textAlign,
 		TextList:     data,
 		Orient:       orient,

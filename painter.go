@@ -59,6 +59,8 @@ type PainterOptions struct {
 type PainterOption func(*Painter)
 
 type TicksOption struct {
+	// the first tick
+	First  int
 	Length int
 	Orient string
 	Count  int
@@ -74,6 +76,8 @@ type MultiTextOption struct {
 	// The text rotation of label
 	TextRotation float64
 	Offset       Box
+	// The first text index
+	First int
 }
 
 type GridOption struct {
@@ -616,6 +620,7 @@ func (p *Painter) Ticks(opt TicksOption) *Painter {
 		return p
 	}
 	count := opt.Count
+	first := opt.First
 	width := p.Width()
 	height := p.Height()
 	unit := 1
@@ -630,7 +635,10 @@ func (p *Painter) Ticks(opt TicksOption) *Painter {
 		values = autoDivide(width, count)
 	}
 	for index, value := range values {
-		if index%unit != 0 {
+		if index < first {
+			continue
+		}
+		if (index-first)%unit != 0 {
 			continue
 		}
 		if isVertical {
@@ -688,7 +696,10 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	isTextRotation := opt.TextRotation != 0
 	offset := opt.Offset
 	for index, text := range opt.TextList {
-		if opt.Unit != 0 && index%opt.Unit != showIndex {
+		if index < opt.First {
+			continue
+		}
+		if opt.Unit != 0 && (index-opt.First)%opt.Unit != showIndex {
 			continue
 		}
 		if isTextRotation {

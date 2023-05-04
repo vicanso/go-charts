@@ -617,10 +617,12 @@ func (p *Painter) TextFit(body string, x, y, width int, textAligns ...string) ch
 
 func isTick(totalRange int, numTicks int, index int) bool {
 	step := float64(totalRange-1) / float64(numTicks-1)
-	for i := 0; i < numTicks; i++ {
-		value := float64(i) * step
-		if int(value + 0.5) == index {
+	for i := int(float64(index) / step); i < numTicks; i++ {
+		value := int((float64(i) * step) + 0.5)
+		if value == index {
 			return true
+		} else if value > index {
+			break
 		}
 	}
 	return false

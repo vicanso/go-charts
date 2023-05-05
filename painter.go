@@ -615,7 +615,8 @@ func (p *Painter) TextFit(body string, x, y, width int, textAligns ...string) ch
 	return output
 }
 
-func isTick(totalRange int, numTicks int, index int) bool {
+func isTick(totalRange int, unit int, index int) bool {
+	numTicks := (totalRange / unit) + 1
 	step := float64(totalRange-1) / float64(numTicks-1)
 	for i := int(float64(index) / step); i < numTicks; i++ {
 		value := int((float64(i) * step) + 0.5)
@@ -737,7 +738,7 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 			}
 		} else {
 			if index == len(opt.TextList) - 1 {
-				x = start - box.Width()
+				x = start - box.Width() + 10
 			} else {
 				x = start - box.Width()>>1
 			}

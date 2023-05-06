@@ -176,7 +176,6 @@ func (a *axisPainter) Render() (Box, error) {
 
 	unit := opt.Unit
 	if unit <= 0 {
-
 		unit = ceilFloatToInt(float64(dataCount) / float64(fitTextCount))
 		unit = chart.MaxInt(unit, opt.SplitNumber)
 		// 偶数

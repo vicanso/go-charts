@@ -615,6 +615,20 @@ func (p *Painter) TextFit(body string, x, y, width int, textAligns ...string) ch
 	return output
 }
 
+func isTick(totalRange int, unit int, index int) bool {
+	numTicks := (totalRange / unit) + 1
+	step := float64(totalRange-1) / float64(numTicks-1)
+	for i := int(float64(index) / step); i < numTicks; i++ {
+		value := int((float64(i) * step) + 0.5)
+		if value == index {
+			return true
+		} else if value > index {
+			break
+		}
+	}
+	return false
+}
+
 func (p *Painter) Ticks(opt TicksOption) *Painter {
 	if opt.Count <= 0 || opt.Length <= 0 {
 		return p
@@ -638,7 +652,7 @@ func (p *Painter) Ticks(opt TicksOption) *Painter {
 		if index < first {
 			continue
 		}
-		if (index-first)%unit != 0 {
+		if ! isTick(len(values), unit, index) {
 			continue
 		}
 		if isVertical {
@@ -674,15 +688,13 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	}
 	count := len(opt.TextList)
 	positionCenter := true
-	showIndex := opt.Unit / 2
+	tickLimit := true
 	if containsString([]string{
 		PositionLeft,
 		PositionTop,
 	}, opt.Position) {
 		positionCenter = false
 		count--
-		// 非居中
-		showIndex = 0
 	}
 	width := p.Width()
 	height := p.Height()
@@ -690,6 +702,7 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 	isVertical := opt.Orient == OrientVertical
 	if isVertical {
 		values = autoDivide(height, count)
+		tickLimit = false
 	} else {
 		values = autoDivide(width, count)
 	}
@@ -699,7 +712,7 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 		if index < opt.First {
 			continue
 		}
-		if opt.Unit != 0 && (index-opt.First)%opt.Unit != showIndex {
+		if opt.Unit != 0 && tickLimit && ! isTick(len(opt.TextList)-opt.First, opt.Unit, index-opt.First) {
 			continue
 		}
 		if isTextRotation {
@@ -724,7 +737,11 @@ func (p *Painter) MultiText(opt MultiTextOption) *Painter {
 				x = 0
 			}
 		} else {
-			x = start - box.Width()>>1
+			if index == len(opt.TextList) - 1 {
+				x = start - box.Width() + 10
+			} else {
+				x = start - box.Width()>>1
+			}
 		}
 		x += offset.Left
 		y += offset.Top
@@ -749,7 +766,6 @@ func (p *Painter) Grid(opt GridOption) *Painter {
 			x1 := 0
 			y1 := 0
 			if isVertical {
-
 				x0 = v
 				x1 = v
 				y1 = height

@@ -40,7 +40,7 @@ type XAxisOption struct {
 	FontSize float64
 	// The flag for show axis, set this to *false will hide axis
 	Show *bool
-	// Number of segments that the axis is split into. Note that this number serves only as a recommendation to avoid writing overlap.
+	// Number of segments that the axis is split into. Note that this number serves only as a recommendation.
 	SplitNumber int
 	// The position of axis, it can be 'top' or 'bottom'
 	Position string
@@ -55,8 +55,6 @@ type XAxisOption struct {
 	// The offset of label
 	LabelOffset Box
 	isValueAxis bool
-	// This value overrides SplitNumber, specifying directly the frequency at which the axis is split into, higher numbers result in less ticks
-	Unit int
 }
 
 const defaultXAxisHeight = 30
@@ -92,7 +90,6 @@ func (opt *XAxisOption) ToAxisOption() AxisOption {
 		TextRotation:   opt.TextRotation,
 		LabelOffset:    opt.LabelOffset,
 		FirstAxis:      opt.FirstAxis,
-		Unit:           opt.Unit,
 	}
 	if opt.isValueAxis {
 		axisOpt.SplitLineShow = true

@@ -25,6 +25,7 @@ package charts
 import (
 	"errors"
 
+	"github.com/dustin/go-humanize"
 	"github.com/golang/freetype/truetype"
 	"github.com/wcharczuk/go-chart/v2"
 	"github.com/wcharczuk/go-chart/v2/drawing"
@@ -230,9 +231,15 @@ func (r *radarChart) render(result *defaultRenderResult, seriesList SeriesList) 
 			StrokeColor: color,
 			FillColor:   dotFillColor,
 		})
-		for _, point := range linePoints {
+		for index, point := range linePoints {
 			seriesPainter.Circle(dotWith, point.X, point.Y)
 			seriesPainter.FillStroke()
+			if series.Label.Show && index < len(series.Data) {
+				value := humanize.FtoaWithDigits(series.Data[index].Value, 2)
+				b := seriesPainter.MeasureText(value)
+				seriesPainter.Text(value, point.X-b.Width()/2, point.Y)
+			}
+
 		}
 	}
 

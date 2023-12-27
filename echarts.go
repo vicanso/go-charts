@@ -344,6 +344,11 @@ func (esList EChartsSeriesList) ToSeriesList() SeriesList {
 					Data: NewSeriesDataFromValues(dataItem.Value.values),
 					Max:  item.Max,
 					Min:  item.Min,
+					Label: SeriesLabel{
+						Color:    parseColor(item.Label.Color),
+						Show:     item.Label.Show,
+						Distance: item.Label.Distance,
+					},
 				})
 			}
 			continue

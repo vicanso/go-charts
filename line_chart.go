@@ -115,6 +115,9 @@ func (l *lineChart) render(result *defaultRenderResult, seriesList SeriesList) (
 			StrokeColor: seriesColor,
 			StrokeWidth: strokeWidth,
 		}
+		if len(series.Style.StrokeDashArray) > 0 {
+			drawingStyle.StrokeDashArray = series.Style.StrokeDashArray
+		}
 
 		yRange := result.axisRanges[series.AxisIndex]
 		points := make([]Point, 0)

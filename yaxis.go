@@ -50,6 +50,8 @@ type YAxisOption struct {
 	DivideCount    int
 	Unit           int
 	isCategoryAxis bool
+	// The flag for show axis split line, set this to true will show axis split line
+	SplitLineShow *bool
 }
 
 // NewYAxisOptions returns a y axis option
@@ -99,6 +101,9 @@ func (opt *YAxisOption) ToAxisOption(p *Painter) AxisOption {
 		axisOpt.BoundaryGap = TrueFlag()
 		axisOpt.StrokeWidth = 1
 		axisOpt.SplitLineShow = false
+	}
+	if opt.SplitLineShow != nil {
+		axisOpt.SplitLineShow = *opt.SplitLineShow
 	}
 	return axisOpt
 }

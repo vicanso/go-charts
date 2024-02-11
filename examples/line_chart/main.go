@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -17,7 +16,7 @@ func writeFile(buf []byte) error {
 	}
 
 	file := filepath.Join(tmpPath, "line-chart.png")
-	err = ioutil.WriteFile(file, buf, 0600)
+	err = os.WriteFile(file, buf, 0600)
 	if err != nil {
 		return err
 	}
@@ -96,6 +95,11 @@ func main() {
 			opt.Legend.Padding = charts.Box{
 				Top:    5,
 				Bottom: 10,
+			}
+			opt.YAxisOptions = []charts.YAxisOption{
+				{
+					SplitLineShow: charts.FalseFlag(),
+				},
 			}
 			opt.SymbolShow = charts.FalseFlag()
 			opt.LineStrokeWidth = 1

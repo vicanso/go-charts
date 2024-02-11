@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -19,7 +18,7 @@ func writeFile(buf []byte, filename string) error {
 	}
 
 	file := filepath.Join(tmpPath, filename)
-	err = ioutil.WriteFile(file, buf, 0600)
+	err = os.WriteFile(file, buf, 0600)
 	if err != nil {
 		return err
 	}

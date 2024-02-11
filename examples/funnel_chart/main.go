@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -16,7 +15,7 @@ func writeFile(buf []byte) error {
 	}
 
 	file := filepath.Join(tmpPath, "funnel-chart.png")
-	err = ioutil.WriteFile(file, buf, 0600)
+	err = os.WriteFile(file, buf, 0600)
 	if err != nil {
 		return err
 	}

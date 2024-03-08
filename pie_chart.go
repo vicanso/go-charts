@@ -63,6 +63,96 @@ func NewPieChart(p *Painter, opt PieChartOption) *pieChart {
 	}
 }
 
+type sector struct {
+	value       float64
+	percent     float64
+	cx          int
+	cy          int
+	rx          float64
+	ry          float64
+	start       float64
+	delta       float64
+	offset      int
+	quadrant    int
+	lineStartX  int
+	lineStartY  int
+	lineBranchX int
+	lineBranchY int
+	lineEndX    int
+	lineEndY    int
+	showLabel   bool
+	label       string
+	series      Series
+	color       Color
+}
+
+func NewSector(cx int, cy int, radius float64, labelRadius float64, value float64, currentValue float64, totalValue float64, labelLineLength int, label string, series Series, color Color) sector {
+	s := sector{}
+	s.value = value
+	s.percent = value / totalValue
+	s.cx = cx
+	s.cy = cy
+	s.rx = radius
+	s.ry = radius
+	p := currentValue / totalValue
+	if p < 0.25 {
+		s.quadrant = 1
+	} else if p < 0.5 {
+		s.quadrant = 4
+	} else if p < 0.75 {
+		s.quadrant = 3
+	} else {
+		s.quadrant = 2
+	}
+	s.start = chart.PercentToRadians(currentValue/totalValue) - math.Pi/2 // Bogenmaß
+	s.delta = chart.PercentToRadians(value / totalValue)
+	angle := s.start + s.delta/2
+	s.lineStartX = cx + int(radius*math.Cos(angle))
+	s.lineStartY = cy + int(radius*math.Sin(angle))
+	s.lineBranchX = cx + int(labelRadius*math.Cos(angle))
+	s.lineBranchY = cy + int(labelRadius*math.Sin(angle))
+	s.offset = labelLineLength
+	if s.lineBranchX <= cx {
+		s.offset *= -1
+	}
+	s.lineEndX = s.lineBranchX + s.offset
+	s.lineEndY = s.lineBranchY
+	s.series = series
+	s.color = color
+	s.showLabel = series.Label.Show
+	s.label = NewPieLabelFormatter([]string{label}, series.Label.Formatter)(0, s.value, s.percent)
+	return s
+}
+
+func (s *sector) calculateY(prevY int) int {
+	for i := 0; i <= s.cy; i++ {
+		if s.quadrant <= 2 {
+			if (prevY - s.lineBranchY) > labelFontSize+5 {
+				break
+			}
+			s.lineBranchY -= 1
+		} else {
+			if (s.lineBranchY - prevY) > labelFontSize+5 {
+				break
+			}
+			s.lineBranchY += 1
+		}
+	}
+	s.lineEndY = s.lineBranchY
+	return s.lineBranchY
+}
+
+func (s *sector) calculateTextXY(textBox Box) (x int, y int) {
+	textMargin := 3
+	x = s.lineEndX + textMargin
+	y = s.lineEndY + textBox.Height()>>1 - 1
+	if s.offset < 0 {
+		textWidth := textBox.Width()
+		x = s.lineEndX - textWidth - textMargin
+	}
+	return
+}
+
 func (p *pieChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
 	opt := p.opt
 	values := make([]float64, len(seriesList))
@@ -101,98 +191,91 @@ func (p *pieChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 	theme := opt.Theme
 
 	currentValue := float64(0)
-	prevPoints := make([]Point, 0)
 
-	isOverride := func(x, y int) bool {
-		for _, p := range prevPoints {
-			if math.Abs(float64(p.Y-y)) > labelFontSize {
-				continue
-			}
-			// label可能较多内容，不好计算横向占用空间
-			// 因此x的位置需要中间位置两侧，否则认为override
-			if (p.X <= cx && x <= cx) ||
-				(p.X > cx && x > cx) {
-				return true
+	var quadrant1, quadrant2, quadrant3, quadrant4 []sector
+	for index, v := range values {
+		series := seriesList[index]
+		color := theme.GetSeriesColor(index)
+		if index == len(values)-1 {
+			if color == theme.GetSeriesColor(0) {
+				color = theme.GetSeriesColor(1)
 			}
 		}
-		return false
+		s := NewSector(cx, cy, radius, labelRadius, v, currentValue, total, labelLineWidth, seriesNames[index], series, color)
+		switch quadrant := s.quadrant; quadrant {
+		case 1:
+			quadrant1 = append([]sector{s}, quadrant1...)
+		case 2:
+			quadrant2 = append(quadrant2, s)
+		case 3:
+			quadrant3 = append([]sector{s}, quadrant3...)
+		case 4:
+			quadrant4 = append(quadrant4, s)
+		}
+		currentValue += v
 	}
+	sectors := append(quadrant1, quadrant4...)
+	sectors = append(sectors, quadrant3...)
+	sectors = append(sectors, quadrant2...)
 
-	for index, v := range values {
+	currentQuadrant := 0
+	prevY := 0
+	maxY := 0
+	minY := 0
+	for _, s := range sectors {
 		seriesPainter.OverrideDrawingStyle(Style{
 			StrokeWidth: 1,
-			StrokeColor: theme.GetSeriesColor(index),
-			FillColor:   theme.GetSeriesColor(index),
+			StrokeColor: s.color,
+			FillColor:   s.color,
 		})
-		seriesPainter.MoveTo(cx, cy)
-		start := chart.PercentToRadians(currentValue/total) - math.Pi/2
-		currentValue += v
-		percent := (v / total)
-		delta := chart.PercentToRadians(percent)
-		seriesPainter.ArcTo(cx, cy, radius, radius, start, delta).
-			LineTo(cx, cy).
-			Close().
-			FillStroke()
-
-		series := seriesList[index]
-		// 是否显示label
-		showLabel := series.Label.Show
-		if !showLabel {
+		seriesPainter.MoveTo(s.cx, s.cy)
+		seriesPainter.ArcTo(s.cx, s.cy, s.rx, s.ry, s.start, s.delta).LineTo(s.cx, s.cy).Close().FillStroke()
+		if !s.showLabel {
 			continue
 		}
-
-		// label的角度为饼块中间
-		angle := start + delta/2
-		startx := cx + int(radius*math.Cos(angle))
-		starty := cy + int(radius*math.Sin(angle))
-
-		endx := cx + int(labelRadius*math.Cos(angle))
-		endy := cy + int(labelRadius*math.Sin(angle))
-		// 计算是否有重叠，如果有则调整y坐标位置
-		// 最多只尝试5次
-		for i := 0; i < 5; i++ {
-			if !isOverride(endx, endy) {
-				break
+		if currentQuadrant != s.quadrant {
+			currentQuadrant = s.quadrant
+			if s.quadrant == 1 {
+				minY = cy * 2
+				maxY = 0
+				prevY = cy * 2
 			}
-			endy -= (labelFontSize << 1)
+			if s.quadrant == 2 {
+				prevY = minY
+			}
+			if s.quadrant == 3 {
+				minY = cy * 2
+				maxY = 0
+				prevY = 0
+			}
+			if s.quadrant == 4 {
+				prevY = maxY
+			}
 		}
-		prevPoints = append(prevPoints, Point{
-			X: endx,
-			Y: endy,
-		})
-
-		seriesPainter.MoveTo(startx, starty)
-		seriesPainter.LineTo(endx, endy)
-		offset := labelLineWidth
-		if endx < cx {
-			offset *= -1
+		prevY = s.calculateY(prevY)
+		if prevY > maxY {
+			maxY = prevY
 		}
-		seriesPainter.MoveTo(endx, endy)
-		endx += offset
-		seriesPainter.LineTo(endx, endy)
+		if prevY < minY {
+			minY = prevY
+		}
+		seriesPainter.MoveTo(s.lineStartX, s.lineStartY)
+		seriesPainter.LineTo(s.lineBranchX, s.lineBranchY)
+		seriesPainter.MoveTo(s.lineBranchX, s.lineBranchY)
+		seriesPainter.LineTo(s.lineEndX, s.lineEndY)
 		seriesPainter.Stroke()
-
 		textStyle := Style{
 			FontColor: theme.GetTextColor(),
 			FontSize:  labelFontSize,
 			Font:      opt.Font,
 		}
-		if !series.Label.Color.IsZero() {
-			textStyle.FontColor = series.Label.Color
+		if !s.series.Label.Color.IsZero() {
+			textStyle.FontColor = s.series.Label.Color
 		}
 		seriesPainter.OverrideTextStyle(textStyle)
-		text := NewPieLabelFormatter(seriesNames, series.Label.Formatter)(index, v, percent)
-		textBox := seriesPainter.MeasureText(text)
-		textMargin := 3
-		x := endx + textMargin
-		y := endy + textBox.Height()>>1 - 1
-		if offset < 0 {
-			textWidth := textBox.Width()
-			x = endx - textWidth - textMargin
-		}
-		seriesPainter.Text(text, x, y)
+		x, y := s.calculateTextXY(seriesPainter.MeasureText(s.label))
+		seriesPainter.Text(s.label, x, y)
 	}
-
 	return p.p.box, nil
 }
 

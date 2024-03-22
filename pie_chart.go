@@ -94,7 +94,7 @@ func NewSector(cx int, cy int, radius float64, labelRadius float64, value float6
 	s.cy = cy
 	s.rx = radius
 	s.ry = radius
-	p := currentValue / totalValue
+	p := (currentValue + value/2) / totalValue
 	if p < 0.25 {
 		s.quadrant = 1
 	} else if p < 0.5 {
@@ -104,7 +104,7 @@ func NewSector(cx int, cy int, radius float64, labelRadius float64, value float6
 	} else {
 		s.quadrant = 2
 	}
-	s.start = chart.PercentToRadians(currentValue/totalValue) - math.Pi/2 // Bogenmaß
+	s.start = chart.PercentToRadians(currentValue/totalValue) - math.Pi/2
 	s.delta = chart.PercentToRadians(value / totalValue)
 	angle := s.start + s.delta/2
 	s.lineStartX = cx + int(radius*math.Cos(angle))

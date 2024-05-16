@@ -142,14 +142,25 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 			}
 			top := barMaxHeight - h
 
-			seriesPainter.OverrideDrawingStyle(Style{
-				FillColor: fillColor,
-			}).Rect(chart.Box{
-				Top:    top,
-				Left:   x,
-				Right:  x + barWidth,
-				Bottom: barMaxHeight - 1,
-			})
+			if series.RoundRadius <= 0 {
+				seriesPainter.OverrideDrawingStyle(Style{
+					FillColor: fillColor,
+				}).Rect(chart.Box{
+					Top:    top,
+					Left:   x,
+					Right:  x + barWidth,
+					Bottom: barMaxHeight - 1,
+				})
+			} else {
+				seriesPainter.OverrideDrawingStyle(Style{
+					FillColor: fillColor,
+				}).RoundedRect(chart.Box{
+					Top:    top,
+					Left:   x,
+					Right:  x + barWidth,
+					Bottom: barMaxHeight - 1,
+				}, series.RoundRadius)
+			}
 			// 用于生成marker point
 			points[j] = Point{
 				// 居中的位置

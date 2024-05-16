@@ -343,6 +343,29 @@ func TestPainter(t *testing.T) {
 	}
 }
 
+func TestRoundedRect(t *testing.T) {
+	assert := assert.New(t)
+	p, err := NewPainter(PainterOptions{
+		Width:  400,
+		Height: 300,
+		Type:   ChartOutputSVG,
+	})
+	assert.Nil(err)
+	p.OverrideDrawingStyle(Style{
+		FillColor:   drawing.ColorWhite,
+		StrokeWidth: 1,
+		StrokeColor: drawing.ColorWhite,
+	}).RoundedRect(Box{
+		Left:   10,
+		Right:  30,
+		Bottom: 150,
+		Top:    10,
+	}, 5)
+	buf, err := p.Bytes()
+	assert.Nil(err)
+	assert.Equal("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" width=\"400\" height=\"300\">\\n<path  d=\"M 15 10\nL 25 10\nL 25 10\nA 5 5 90.00 0 1 30 15\nL 30 145\nL 30 145\nA 5 5 90.00 0 1 25 150\nL 15 150\nL 15 150\nA 5 5 90.00 0 1 10 145\nL 10 15\nL 10 15\nA 5 5 90.00 0 1 15 10\nZ\" style=\"stroke-width:1;stroke:rgba(255,255,255,1.0);fill:rgba(255,255,255,1.0)\"/><path  d=\"\" style=\"stroke-width:1;stroke:rgba(255,255,255,1.0);fill:rgba(255,255,255,1.0)\"/></svg>", string(buf))
+}
+
 func TestPainterTextFit(t *testing.T) {
 	assert := assert.New(t)
 	p, err := NewPainter(PainterOptions{

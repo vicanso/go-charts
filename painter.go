@@ -803,6 +803,48 @@ func (p *Painter) Rect(box Box) *Painter {
 	return p
 }
 
+func (p *Painter) RoundedRect(box Box, radius int) *Painter {
+	r := (box.Right - box.Left) / 2
+	if radius > r {
+		radius = r
+	}
+	rx := float64(radius)
+	ry := float64(radius)
+	p.MoveTo(box.Left+radius, box.Top)
+	p.LineTo(box.Right-radius, box.Top)
+
+	cx := box.Right - radius
+	cy := box.Top + radius
+	// right top
+	p.ArcTo(cx, cy, rx, ry, -math.Pi/2, math.Pi/2)
+
+	p.LineTo(box.Right, box.Bottom-radius)
+
+	// right bottom
+	cx = box.Right - radius
+	cy = box.Bottom - radius
+	p.ArcTo(cx, cy, rx, ry, 0.0, math.Pi/2)
+
+	p.LineTo(box.Left+radius, box.Bottom)
+
+	// left bottom
+	cx = box.Left + radius
+	cy = box.Bottom - radius
+	p.ArcTo(cx, cy, rx, ry, math.Pi/2, math.Pi/2)
+
+	p.LineTo(box.Left, box.Top+radius)
+
+	// left top
+	cx = box.Left + radius
+	cy = box.Top + radius
+	p.ArcTo(cx, cy, rx, ry, math.Pi, math.Pi/2)
+
+	p.Close()
+	p.FillStroke()
+	p.Fill()
+	return p
+}
+
 func (p *Painter) LegendLineDot(box Box) *Painter {
 	width := box.Width()
 	height := box.Height()

@@ -126,6 +126,8 @@ type Series struct {
 	Name string
 	// Radius for Pie chart, e.g.: 40%, default is "40%"
 	Radius string
+	// Round for bar chart
+	RoundRadius int
 	// Mark point for series
 	MarkPoint SeriesMarkPoint
 	// Make line for series

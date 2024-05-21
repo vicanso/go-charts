@@ -136,14 +136,26 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 				fillColor = item.Style.FillColor
 			}
 			right := w
-			seriesPainter.OverrideDrawingStyle(Style{
-				FillColor: fillColor,
-			}).Rect(chart.Box{
-				Top:    y,
-				Left:   0,
-				Right:  right,
-				Bottom: y + barHeight,
-			})
+			if series.RoundRadius <= 0 {
+				seriesPainter.OverrideDrawingStyle(Style{
+					FillColor: fillColor,
+				}).Rect(chart.Box{
+					Top:    y,
+					Left:   0,
+					Right:  right,
+					Bottom: y + barHeight,
+				})
+			} else {
+				seriesPainter.OverrideDrawingStyle(Style{
+					FillColor: fillColor,
+				}).RoundedRect(chart.Box{
+					Top:    y,
+					Left:   0,
+					Right:  right,
+					Bottom: y + barHeight,
+				}, series.RoundRadius)
+			}
+
 			// 如果label不需要展示，则返回
 			if labelPainter == nil {
 				continue

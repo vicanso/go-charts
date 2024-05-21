@@ -65,6 +65,9 @@ func main() {
 			"China",
 			"World",
 		}),
+		func(opt *charts.ChartOption) {
+			opt.SeriesList[0].RoundRadius = 5
+		},
 	)
 	if err != nil {
 		panic(err)

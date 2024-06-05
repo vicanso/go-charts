@@ -860,3 +860,7 @@ func (p *Painter) LegendLineDot(box Box) *Painter {
 	p.FillStroke()
 	return p
 }
+
+func (p *Painter) GetRenderer() chart.Renderer {
+	return p.render
+}

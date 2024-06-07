@@ -50,6 +50,8 @@ type HorizontalBarChartOption struct {
 	// The legend option
 	Legend    LegendOption
 	BarHeight int
+	// Margin of bar
+	BarMargin int
 }
 
 // NewHorizontalBarChart returns a horizontal bar chart renderer
@@ -80,6 +82,9 @@ func (h *horizontalBarChart) render(result *defaultRenderResult, seriesList Seri
 	} else if height < 50 {
 		margin = 5
 		barMargin = 3
+	}
+	if opt.BarMargin > 0 {
+		barMargin = opt.BarMargin
 	}
 	seriesCount := len(seriesList)
 	// 总的高度-两个margin-(总数-1)的barMargin

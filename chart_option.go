@@ -67,6 +67,8 @@ type ChartOption struct {
 	LineStrokeWidth float64
 	// The bar with of bar chart
 	BarWidth int
+	// The margin of each bar
+	BarMargin int
 	// The bar height of horizontal bar chart
 	BarHeight int
 	// Fill the area of line chart

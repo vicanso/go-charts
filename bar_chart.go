@@ -23,6 +23,7 @@
 package charts
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/golang/freetype/truetype"
@@ -63,6 +64,8 @@ type BarChartOption struct {
 	// The legend option
 	Legend   LegendOption
 	BarWidth int
+	// Margin of bar
+	BarMargin int
 }
 
 func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (Box, error) {
@@ -88,6 +91,10 @@ func (b *barChart) render(result *defaultRenderResult, seriesList SeriesList) (B
 		margin = 5
 		barMargin = 3
 	}
+	if opt.BarMargin > 0 {
+		barMargin = opt.BarMargin
+	}
+	fmt.Println(barMargin)
 	seriesCount := len(seriesList)
 	// 总的宽度-两个margin-(总数-1)的barMargin
 	barWidth := (width - 2*margin - barMargin*(seriesCount-1)) / seriesCount

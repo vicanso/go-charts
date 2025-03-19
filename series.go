@@ -72,6 +72,7 @@ type SeriesLabel struct {
 	// {b}: the name of a data item.
 	// {c}: the value of a data item.
 	// {d}: the percent of a data item(pie chart).
+	// {e}: the value with commas of a data item
 	Formatter string
 	// The color for label
 	Color Color
@@ -306,6 +307,7 @@ func NewLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 			percentText = humanize.FtoaWithDigits(percent*100, 2) + "%"
 		}
 		valueText := humanize.FtoaWithDigits(value, 2)
+		valueTextWithCommas := humanize.CommafWithDigits(value, 2)
 		name := ""
 		if len(seriesNames) > index {
 			name = seriesNames[index]
@@ -313,6 +315,7 @@ func NewLabelFormatter(seriesNames []string, layout string) LabelFormatter {
 		text := strings.ReplaceAll(layout, "{c}", valueText)
 		text = strings.ReplaceAll(text, "{d}", percentText)
 		text = strings.ReplaceAll(text, "{b}", name)
+		text = strings.ReplaceAll(text, "{e}", valueTextWithCommas)
 		return text
 	}
 }

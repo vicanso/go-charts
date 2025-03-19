@@ -86,4 +86,9 @@ func TestFormatter(t *testing.T) {
 		"a",
 		"b",
 	}, "")(0, 10, 0.12))
+
+	assert.Equal("10,000.01", NewLabelFormatter([]string{
+		"a",
+		"b",
+	}, "{e}")(0, 10000.01, 0))
 }
